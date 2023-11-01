@@ -5,7 +5,6 @@ var IgnoredHeaders = Rules{
 	ExcludeList{
 		MapRule{
 			"Authorization":   struct{}{},
-			"User-Agent":      struct{}{},
 			"X-Amzn-Trace-Id": struct{}{},
 			"Expect":          struct{}{},
 		},
