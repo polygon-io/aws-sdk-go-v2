@@ -1,3 +1,96 @@
+# v1.126.0 (2024-01-26)
+
+* **Feature**: Amazon SageMaker Automatic Model Tuning now provides an API to programmatically delete tuning jobs.
+
+# v1.125.0 (2024-01-14)
+
+* **Feature**: This release will have ValidationException thrown if certain invalid app types are provided. The release will also throw ValidationException if more than 10 account ids are provided in VpcOnlyTrustedAccounts.
+
+# v1.124.0 (2024-01-04)
+
+* **Feature**: Adding support for provisioned throughput mode for SageMaker Feature Groups
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.123.0 (2023-12-28)
+
+* **Feature**: Amazon SageMaker Studio now supports Docker access from within app container
+
+# v1.122.1 (2023-12-26)
+
+* No change notes available for this release.
+
+# v1.122.0 (2023-12-21)
+
+* **Feature**: Amazon SageMaker Training now provides model training container access for debugging purposes. Amazon SageMaker Search now provides the ability to use visibility conditions to limit resource access to a single domain or multiple domains.
+
+# v1.121.0 (2023-12-15)
+
+* **Feature**: This release 1) introduces a new API: DeleteCompilationJob , and 2) adds InfraCheckConfig for Create/Describe training job API
+
+# v1.120.4 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.120.3 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.120.2 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.120.1 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.120.0 (2023-11-30.2)
+
+* **Feature**: This release adds support for 1/ Code Editor, based on Code-OSS, Visual Studio Code Open Source, a new fully managed IDE option in SageMaker Studio  2/ JupyterLab, a new fully managed JupyterLab IDE experience in SageMaker Studio
+
+# v1.119.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.119.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Feature**: This release adds following support 1/ Improved SDK tooling for model deployment. 2/ New Inference Component based features to lower inference costs and latency 3/ SageMaker HyperPod management. 4/ Additional parameters for FM Fine Tuning in Autopilot
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.118.2 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.118.1 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.118.0 (2023-11-22)
+
+* **Feature**: This feature adds the end user license agreement status as a model access configuration parameter.
+
+# v1.117.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.117.0 (2023-11-16)
+
+* **Feature**: Amazon SageMaker Studio now supports Trainium instance types - trn1.2xlarge, trn1.32xlarge, trn1n.32xlarge.
+
+# v1.116.1 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.116.0 (2023-11-14)
+
+* **Feature**: This release makes Model Registry Inference Specification fields as not required.
+
+# v1.115.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.115.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

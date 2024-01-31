@@ -450,6 +450,23 @@ func (CertificateMode) Values() []CertificateMode {
 	}
 }
 
+type CertificateProviderOperation string
+
+// Enum values for CertificateProviderOperation
+const (
+	CertificateProviderOperationCreateCertificateFromCsr CertificateProviderOperation = "CreateCertificateFromCsr"
+)
+
+// Values returns all known values for CertificateProviderOperation. Note that
+// this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (CertificateProviderOperation) Values() []CertificateProviderOperation {
+	return []CertificateProviderOperation{
+		"CreateCertificateFromCsr",
+	}
+}
+
 type CertificateStatus string
 
 // Enum values for CertificateStatus
@@ -1039,13 +1056,11 @@ type LogTargetType string
 
 // Enum values for LogTargetType
 const (
-	LogTargetTypeDefault        LogTargetType = "DEFAULT"
-	LogTargetTypeThingGroup     LogTargetType = "THING_GROUP"
-	LogTargetTypeClientId       LogTargetType = "CLIENT_ID"
-	LogTargetTypeSourceIp       LogTargetType = "SOURCE_IP"
-	LogTargetTypePrincipalId    LogTargetType = "PRINCIPAL_ID"
-	LogTargetTypeEventType      LogTargetType = "EVENT_TYPE"
-	LogTargetTypeDeviceDefender LogTargetType = "DEVICE_DEFENDER"
+	LogTargetTypeDefault     LogTargetType = "DEFAULT"
+	LogTargetTypeThingGroup  LogTargetType = "THING_GROUP"
+	LogTargetTypeClientId    LogTargetType = "CLIENT_ID"
+	LogTargetTypeSourceIp    LogTargetType = "SOURCE_IP"
+	LogTargetTypePrincipalId LogTargetType = "PRINCIPAL_ID"
 )
 
 // Values returns all known values for LogTargetType. Note that this can be
@@ -1058,8 +1073,6 @@ func (LogTargetType) Values() []LogTargetType {
 		"CLIENT_ID",
 		"SOURCE_IP",
 		"PRINCIPAL_ID",
-		"EVENT_TYPE",
-		"DEVICE_DEFENDER",
 	}
 }
 
@@ -1372,6 +1385,24 @@ func (Status) Values() []Status {
 		"Failed",
 		"Cancelled",
 		"Cancelling",
+	}
+}
+
+type TargetFieldOrder string
+
+// Enum values for TargetFieldOrder
+const (
+	TargetFieldOrderLatLon TargetFieldOrder = "LatLon"
+	TargetFieldOrderLonLat TargetFieldOrder = "LonLat"
+)
+
+// Values returns all known values for TargetFieldOrder. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (TargetFieldOrder) Values() []TargetFieldOrder {
+	return []TargetFieldOrder{
+		"LatLon",
+		"LonLat",
 	}
 }
 

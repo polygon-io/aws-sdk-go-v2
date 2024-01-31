@@ -751,6 +751,28 @@ func (ChannelState) Values() []ChannelState {
 	}
 }
 
+type ColorSpace string
+
+// Enum values for ColorSpace
+const (
+	ColorSpaceHdr10   ColorSpace = "HDR10"
+	ColorSpaceHlg2020 ColorSpace = "HLG_2020"
+	ColorSpaceRec601  ColorSpace = "REC_601"
+	ColorSpaceRec709  ColorSpace = "REC_709"
+)
+
+// Values returns all known values for ColorSpace. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
+func (ColorSpace) Values() []ColorSpace {
+	return []ColorSpace{
+		"HDR10",
+		"HLG_2020",
+		"REC_601",
+		"REC_709",
+	}
+}
+
 type ContentType string
 
 // Enum values for ContentType
@@ -1462,6 +1484,25 @@ const (
 // slice is not guaranteed to be stable across updates.
 func (FeatureActivationsInputPrepareScheduleActions) Values() []FeatureActivationsInputPrepareScheduleActions {
 	return []FeatureActivationsInputPrepareScheduleActions{
+		"DISABLED",
+		"ENABLED",
+	}
+}
+
+type FeatureActivationsOutputStaticImageOverlayScheduleActions string
+
+// Enum values for FeatureActivationsOutputStaticImageOverlayScheduleActions
+const (
+	FeatureActivationsOutputStaticImageOverlayScheduleActionsDisabled FeatureActivationsOutputStaticImageOverlayScheduleActions = "DISABLED"
+	FeatureActivationsOutputStaticImageOverlayScheduleActionsEnabled  FeatureActivationsOutputStaticImageOverlayScheduleActions = "ENABLED"
+)
+
+// Values returns all known values for
+// FeatureActivationsOutputStaticImageOverlayScheduleActions. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (FeatureActivationsOutputStaticImageOverlayScheduleActions) Values() []FeatureActivationsOutputStaticImageOverlayScheduleActions {
+	return []FeatureActivationsOutputStaticImageOverlayScheduleActions{
 		"DISABLED",
 		"ENABLED",
 	}
@@ -3017,6 +3058,37 @@ func (InputDeviceCodec) Values() []InputDeviceCodec {
 	}
 }
 
+type InputDeviceConfigurableAudioChannelPairProfile string
+
+// Enum values for InputDeviceConfigurableAudioChannelPairProfile
+const (
+	InputDeviceConfigurableAudioChannelPairProfileDisabled       InputDeviceConfigurableAudioChannelPairProfile = "DISABLED"
+	InputDeviceConfigurableAudioChannelPairProfileVbrAacHhe16000 InputDeviceConfigurableAudioChannelPairProfile = "VBR-AAC_HHE-16000"
+	InputDeviceConfigurableAudioChannelPairProfileVbrAacHe64000  InputDeviceConfigurableAudioChannelPairProfile = "VBR-AAC_HE-64000"
+	InputDeviceConfigurableAudioChannelPairProfileVbrAacLc128000 InputDeviceConfigurableAudioChannelPairProfile = "VBR-AAC_LC-128000"
+	InputDeviceConfigurableAudioChannelPairProfileCbrAacHq192000 InputDeviceConfigurableAudioChannelPairProfile = "CBR-AAC_HQ-192000"
+	InputDeviceConfigurableAudioChannelPairProfileCbrAacHq256000 InputDeviceConfigurableAudioChannelPairProfile = "CBR-AAC_HQ-256000"
+	InputDeviceConfigurableAudioChannelPairProfileCbrAacHq384000 InputDeviceConfigurableAudioChannelPairProfile = "CBR-AAC_HQ-384000"
+	InputDeviceConfigurableAudioChannelPairProfileCbrAacHq512000 InputDeviceConfigurableAudioChannelPairProfile = "CBR-AAC_HQ-512000"
+)
+
+// Values returns all known values for
+// InputDeviceConfigurableAudioChannelPairProfile. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
+func (InputDeviceConfigurableAudioChannelPairProfile) Values() []InputDeviceConfigurableAudioChannelPairProfile {
+	return []InputDeviceConfigurableAudioChannelPairProfile{
+		"DISABLED",
+		"VBR-AAC_HHE-16000",
+		"VBR-AAC_HE-64000",
+		"VBR-AAC_LC-128000",
+		"CBR-AAC_HQ-192000",
+		"CBR-AAC_HQ-256000",
+		"CBR-AAC_HQ-384000",
+		"CBR-AAC_HQ-512000",
+	}
+}
+
 type InputDeviceConfiguredInput string
 
 // Enum values for InputDeviceConfiguredInput
@@ -3162,6 +3234,37 @@ func (InputDeviceType) Values() []InputDeviceType {
 	return []InputDeviceType{
 		"HD",
 		"UHD",
+	}
+}
+
+type InputDeviceUhdAudioChannelPairProfile string
+
+// Enum values for InputDeviceUhdAudioChannelPairProfile
+const (
+	InputDeviceUhdAudioChannelPairProfileDisabled       InputDeviceUhdAudioChannelPairProfile = "DISABLED"
+	InputDeviceUhdAudioChannelPairProfileVbrAacHhe16000 InputDeviceUhdAudioChannelPairProfile = "VBR-AAC_HHE-16000"
+	InputDeviceUhdAudioChannelPairProfileVbrAacHe64000  InputDeviceUhdAudioChannelPairProfile = "VBR-AAC_HE-64000"
+	InputDeviceUhdAudioChannelPairProfileVbrAacLc128000 InputDeviceUhdAudioChannelPairProfile = "VBR-AAC_LC-128000"
+	InputDeviceUhdAudioChannelPairProfileCbrAacHq192000 InputDeviceUhdAudioChannelPairProfile = "CBR-AAC_HQ-192000"
+	InputDeviceUhdAudioChannelPairProfileCbrAacHq256000 InputDeviceUhdAudioChannelPairProfile = "CBR-AAC_HQ-256000"
+	InputDeviceUhdAudioChannelPairProfileCbrAacHq384000 InputDeviceUhdAudioChannelPairProfile = "CBR-AAC_HQ-384000"
+	InputDeviceUhdAudioChannelPairProfileCbrAacHq512000 InputDeviceUhdAudioChannelPairProfile = "CBR-AAC_HQ-512000"
+)
+
+// Values returns all known values for InputDeviceUhdAudioChannelPairProfile. Note
+// that this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (InputDeviceUhdAudioChannelPairProfile) Values() []InputDeviceUhdAudioChannelPairProfile {
+	return []InputDeviceUhdAudioChannelPairProfile{
+		"DISABLED",
+		"VBR-AAC_HHE-16000",
+		"VBR-AAC_HE-64000",
+		"VBR-AAC_LC-128000",
+		"CBR-AAC_HQ-192000",
+		"CBR-AAC_HQ-256000",
+		"CBR-AAC_HQ-384000",
+		"CBR-AAC_HQ-512000",
 	}
 }
 

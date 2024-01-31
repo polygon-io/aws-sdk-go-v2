@@ -587,6 +587,39 @@ type CrossClusterSearchConnectionProperties struct {
 	noSmithyDocumentSerde
 }
 
+// Details about a direct-query data source.
+type DataSourceDetails struct {
+
+	// The type of data source.
+	DataSourceType DataSourceType
+
+	// A description of the data source.
+	Description *string
+
+	// The name of the data source.
+	Name *string
+
+	noSmithyDocumentSerde
+}
+
+// The type of data source.
+//
+// The following types satisfy this interface:
+//
+//	DataSourceTypeMemberS3GlueDataCatalog
+type DataSourceType interface {
+	isDataSourceType()
+}
+
+// An Amazon S3 data source.
+type DataSourceTypeMemberS3GlueDataCatalog struct {
+	Value S3GlueDataCatalog
+
+	noSmithyDocumentSerde
+}
+
+func (*DataSourceTypeMemberS3GlueDataCatalog) isDataSourceType() {}
+
 // A filter to apply to the DescribePackage response.
 type DescribePackagesFilter struct {
 
@@ -639,7 +672,10 @@ type DomainConfig struct {
 	// The OpenSearch or Elasticsearch version that the domain is running.
 	EngineVersion *VersionStatus
 
-	// The type of IP addresses supported by the endpoint for the domain.
+	// Choose either dual stack or IPv4 as your IP address type. Dual stack allows you
+	// to share domain resources across IPv4 and IPv6 address types, and is the
+	// recommended option. If you set your IP address type to dual stack, you can't
+	// change your address type later.
 	IPAddressType *IPAddressTypeStatus
 
 	// Key-value pairs to configure log publishing.
@@ -682,11 +718,13 @@ type DomainEndpointOptions struct {
 	EnforceHTTPS *bool
 
 	// Specify the TLS security policy to apply to the HTTPS endpoint of the domain.
-	// Can be one of the following values:
-	//   - Policy-Min-TLS-1-0-2019-07: TLS security policy which supports TLS version
-	//   1.0 and higher.
-	//   - Policy-Min-TLS-1-2-2019-07: TLS security policy which supports only TLS
+	// The policy can be one of the following values:
+	//   - Policy-Min-TLS-1-0-2019-07: TLS security policy that supports TLS version
+	//   1.0 to TLS version 1.2
+	//   - Policy-Min-TLS-1-2-2019-07: TLS security policy that supports only TLS
 	//   version 1.2
+	//   - Policy-Min-TLS-1-2-PFS-2023-10: TLS security policy that supports TLS
+	//   version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites
 	TLSSecurityPolicy TLSSecurityPolicy
 
 	noSmithyDocumentSerde
@@ -896,13 +934,14 @@ type DomainStatus struct {
 	// to the domain.
 	Endpoint *string
 
-	// The domain endpoint to which index and search requests are submitted. For
-	// example, search-imdb-movies-oopcnjfn6ugo.eu-west-1.es.amazonaws.com or
-	// doc-imdb-movies-oopcnjfn6u.eu-west-1.es.amazonaws.com .
+	// If IPAddressType to set to dualstack , a version 2 domain endpoint is
+	// provisioned. This endpoint functions like a normal endpoint, except that it
+	// works with both IPv4 and IPv6 IP addresses. Normal endpoints work only with IPv4
+	// IP addresses.
 	EndpointV2 *string
 
 	// The key-value pair that exists if the OpenSearch Service domain uses VPC
-	// endpoints.. Example key, value :
+	// endpoints. Example key, value :
 	// 'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com' .
 	Endpoints map[string]string
 
@@ -1643,6 +1682,15 @@ type ReservedInstanceOffering struct {
 	noSmithyDocumentSerde
 }
 
+// Information about the Amazon S3 Glue Data Catalog.
+type S3GlueDataCatalog struct {
+
+	// >The Amazon Resource Name (ARN) for the S3 Glue Data Catalog.
+	RoleArn *string
+
+	noSmithyDocumentSerde
+}
+
 // The SAML identity povider information.
 type SAMLIdp struct {
 
@@ -2150,3 +2198,14 @@ type ZoneAwarenessConfig struct {
 }
 
 type noSmithyDocumentSerde = smithydocument.NoSerde
+
+// UnknownUnionMember is returned when a union member is returned over the wire,
+// but has an unknown tag.
+type UnknownUnionMember struct {
+	Tag   string
+	Value []byte
+
+	noSmithyDocumentSerde
+}
+
+func (*UnknownUnionMember) isDataSourceType() {}

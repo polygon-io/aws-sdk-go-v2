@@ -4,14 +4,10 @@ package connect
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/connect/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
@@ -58,6 +54,7 @@ type GetMetricDataV2Input struct {
 	//   - Channels
 	//   - User hierarchy groups
 	//   - Feature
+	//   - Routing step expression
 	// At least one filter must be passed from queues, routing profiles, agents, or
 	// user hierarchy groups. To filter by phone number, see Create a historical
 	// metrics report (https://docs.aws.amazon.com/connect/latest/adminguide/create-historical-metrics-report.html)
@@ -66,7 +63,8 @@ type GetMetricDataV2Input struct {
 	//   Valid filter keys: QUEUE | ROUTING_PROFILE | AGENT | CHANNEL |
 	//   AGENT_HIERARCHY_LEVEL_ONE | AGENT_HIERARCHY_LEVEL_TWO |
 	//   AGENT_HIERARCHY_LEVEL_THREE | AGENT_HIERARCHY_LEVEL_FOUR |
-	//   AGENT_HIERARCHY_LEVEL_FIVE | FEATURE
+	//   AGENT_HIERARCHY_LEVEL_FIVE | FEATURE |
+	//   contact/segmentAttributes/connect:Subtype | ROUTING_STEP_EXPRESSION
 	//   - Filter values: A maximum of 100 filter values are supported in a single
 	//   request. VOICE, CHAT, and TASK are valid filterValue for the CHANNEL filter
 	//   key. They do not count towards limitation of 100 filter values. For example, a
@@ -74,7 +72,12 @@ type GetMetricDataV2Input struct {
 	//   profiles for a total of 100 filter values, along with 3 channel filters.
 	//   contact_lens_conversational_analytics is a valid filterValue for the FEATURE
 	//   filter key. It is available only to contacts analyzed by Contact Lens
-	//   conversational analytics.
+	//   conversational analytics. connect:Chat , connect:SMS , connect:Telephony , and
+	//   connect:WebRTC are valid filterValue examples (not exhaustive) for the
+	//   contact/segmentAttributes/connect:Subtype filter key. ROUTING_STEP_EXPRESSION
+	//   is a valid filter key with a filter value up to 3000 length. This filter is case
+	//   and order sensitive. JSON string fields must be sorted in ascending order and
+	//   JSON array order should be kept as is.
 	//
 	// This member is required.
 	Filters []types.FilterV2
@@ -84,105 +87,188 @@ type GetMetricDataV2Input struct {
 	// each metric, see Historical metrics definitions (https://docs.aws.amazon.com/connect/latest/adminguide/historical-metrics-definitions.html)
 	// in the Amazon Connect Administrator's Guide. ABANDONMENT_RATE Unit: Percent
 	// Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
-	// Hierarchy AGENT_ADHERENT_TIME This metric is available only in Amazon Web
-	// Services Regions where Forecasting, capacity planning, and scheduling (https://docs.aws.amazon.com/connect/latest/adminguide/regions.html#optimization_region)
+	// Hierarchy, Feature, contact/segmentAttributes/connect:Subtype
+	// AGENT_ADHERENT_TIME This metric is available only in Amazon Web Services Regions
+	// where Forecasting, capacity planning, and scheduling (https://docs.aws.amazon.com/connect/latest/adminguide/regions.html#optimization_region)
 	// is available. Unit: Seconds Valid groupings and filters: Queue, Channel, Routing
-	// Profile, Agent, Agent Hierarchy AGENT_NON_RESPONSE Unit: Count Valid groupings
+	// Profile, Agent, Agent Hierarchy AGENT_ANSWER_RATE Unit: Percent Valid groupings
 	// and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// AGENT_NON_RESPONSE_WITHOUT_CUSTOMER_ABANDONS Unit: Count Valid groupings and
-	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy Data for this
-	// metric is available starting from October 1, 2023 0:00:00 GMT. AGENT_OCCUPANCY
-	// Unit: Percentage Valid groupings and filters: Routing Profile, Agent, Agent
-	// Hierarchy AGENT_SCHEDULE_ADHERENCE This metric is available only in Amazon Web
-	// Services Regions where Forecasting, capacity planning, and scheduling (https://docs.aws.amazon.com/connect/latest/adminguide/regions.html#optimization_region)
+	// AGENT_NON_ADHERENT_TIME Unit: Seconds Valid groupings and filters: Queue,
+	// Channel, Routing Profile, Agent, Agent Hierarchy AGENT_NON_RESPONSE Unit: Count
+	// Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
+	// Hierarchy AGENT_NON_RESPONSE_WITHOUT_CUSTOMER_ABANDONS Unit: Count Valid
+	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
+	// Data for this metric is available starting from October 1, 2023 0:00:00 GMT.
+	// AGENT_OCCUPANCY Unit: Percentage Valid groupings and filters: Routing Profile,
+	// Agent, Agent Hierarchy AGENT_SCHEDULE_ADHERENCE This metric is available only in
+	// Amazon Web Services Regions where Forecasting, capacity planning, and scheduling (https://docs.aws.amazon.com/connect/latest/adminguide/regions.html#optimization_region)
 	// is available. Unit: Percent Valid groupings and filters: Queue, Channel, Routing
 	// Profile, Agent, Agent Hierarchy AGENT_SCHEDULED_TIME This metric is available
 	// only in Amazon Web Services Regions where Forecasting, capacity planning, and
 	// scheduling (https://docs.aws.amazon.com/connect/latest/adminguide/regions.html#optimization_region)
 	// is available. Unit: Seconds Valid groupings and filters: Queue, Channel, Routing
 	// Profile, Agent, Agent Hierarchy AVG_ABANDON_TIME Unit: Seconds Valid groupings
-	// and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// AVG_AFTER_CONTACT_WORK_TIME Unit: Seconds Valid groupings and filters: Queue,
-	// Channel, Routing Profile, Agent, Agent Hierarchy, Feature Feature is a valid
-	// filter but not a valid grouping. AVG_AGENT_CONNECTING_TIME Unit: Seconds Valid
-	// metric filter key: INITIATION_METHOD . For now, this metric only supports the
-	// following as INITIATION_METHOD : INBOUND | OUTBOUND | CALLBACK | API Valid
+	// and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy, Feature,
+	// contact/segmentAttributes/connect:Subtype AVG_ACTIVE_TIME Unit: Seconds Valid
 	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// The Negate key in Metric Level Filters is not applicable for this metric.
-	// AVG_CONTACT_DURATION Unit: Seconds Valid groupings and filters: Queue, Channel,
-	// Routing Profile, Agent, Agent Hierarchy, Feature Feature is a valid filter but
-	// not a valid grouping. AVG_CONVERSATION_DURATION Unit: Seconds Valid groupings
-	// and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
+	// AVG_AFTER_CONTACT_WORK_TIME Unit: Seconds Valid metric filter key:
+	// INITIATION_METHOD Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, Feature, contact/segmentAttributes/connect:Subtype
+	// Feature is a valid filter but not a valid grouping. AVG_AGENT_CONNECTING_TIME
+	// Unit: Seconds Valid metric filter key: INITIATION_METHOD . For now, this metric
+	// only supports the following as INITIATION_METHOD : INBOUND | OUTBOUND | CALLBACK
+	// | API Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
+	// Agent Hierarchy The Negate key in Metric Level Filters is not applicable for
+	// this metric. AVG_AGENT_PAUSE_TIME Unit: Seconds Valid groupings and filters:
+	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy AVG_CONTACT_DURATION
+	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, Feature, contact/segmentAttributes/connect:Subtype
+	// Feature is a valid filter but not a valid grouping. AVG_CONVERSATION_DURATION
+	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, Feature, contact/segmentAttributes/connect:Subtype
 	// AVG_GREETING_TIME_AGENT This metric is available only for contacts analyzed by
 	// Contact Lens conversational analytics. Unit: Seconds Valid groupings and
-	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy AVG_HANDLE_TIME
-	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
-	// Agent, Agent Hierarchy, Feature Feature is a valid filter but not a valid
-	// grouping. AVG_HOLD_TIME Unit: Seconds Valid groupings and filters: Queue,
-	// Channel, Routing Profile, Agent, Agent Hierarchy, Feature Feature is a valid
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype AVG_HANDLE_TIME Unit: Seconds Valid
+	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// Feature, contact/segmentAttributes/connect:Subtype, RoutingStepExpression
+	// Feature is a valid filter but not a valid grouping. AVG_HOLD_TIME Unit: Seconds
+	// Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
+	// Hierarchy, Feature, contact/segmentAttributes/connect:Subtype Feature is a valid
 	// filter but not a valid grouping. AVG_HOLD_TIME_ALL_CONTACTS Unit: Seconds Valid
-	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// AVG_HOLDS Unit: Count Valid groupings and filters: Queue, Channel, Routing
-	// Profile, Agent, Agent Hierarchy, Feature Feature is a valid filter but not a
+	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype AVG_HOLDS Unit: Count Valid groupings
+	// and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy, Feature,
+	// contact/segmentAttributes/connect:Subtype Feature is a valid filter but not a
 	// valid grouping. AVG_INTERACTION_AND_HOLD_TIME Unit: Seconds Valid groupings and
-	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// AVG_INTERACTION_TIME Unit: Seconds Valid groupings and filters: Queue, Channel,
-	// Routing Profile, Feature Feature is a valid filter but not a valid grouping.
-	// AVG_INTERRUPTIONS_AGENT This metric is available only for contacts analyzed by
-	// Contact Lens conversational analytics. Unit: Count Valid groupings and filters:
-	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype AVG_INTERACTION_TIME Unit: Seconds
+	// Valid metric filter key: INITIATION_METHOD Valid groupings and filters: Queue,
+	// Channel, Routing Profile, Feature, contact/segmentAttributes/connect:Subtype
+	// Feature is a valid filter but not a valid grouping. AVG_INTERRUPTIONS_AGENT This
+	// metric is available only for contacts analyzed by Contact Lens conversational
+	// analytics. Unit: Count Valid groupings and filters: Queue, Channel, Routing
+	// Profile, Agent, Agent Hierarchy, contact/segmentAttributes/connect:Subtype
 	// AVG_INTERRUPTION_TIME_AGENT This metric is available only for contacts analyzed
 	// by Contact Lens conversational analytics. Unit: Seconds Valid groupings and
-	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// AVG_NON_TALK_TIME This metric is available only for contacts analyzed by Contact
-	// Lens conversational analytics. Unit: Seconds Valid groupings and filters: Queue,
-	// Channel, Routing Profile, Agent, Agent Hierarchy AVG_QUEUE_ANSWER_TIME Unit:
-	// Seconds Valid groupings and filters: Queue, Channel, Routing Profile, Feature
-	// Feature is a valid filter but not a valid grouping. AVG_RESOLUTION_TIME Unit:
-	// Seconds Valid groupings and filters: Queue, Channel, Routing Profile
-	// AVG_TALK_TIME This metric is available only for contacts analyzed by Contact
-	// Lens conversational analytics. Unit: Seconds Valid groupings and filters: Queue,
-	// Channel, Routing Profile, Agent, Agent Hierarchy AVG_TALK_TIME_AGENT This metric
-	// is available only for contacts analyzed by Contact Lens conversational
-	// analytics. Unit: Seconds Valid groupings and filters: Queue, Channel, Routing
-	// Profile, Agent, Agent Hierarchy AVG_TALK_TIME_CUSTOMER This metric is available
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype AVG_NON_TALK_TIME This metric is
+	// available only for contacts analyzed by Contact Lens conversational analytics.
+	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, contact/segmentAttributes/connect:Subtype
+	// AVG_QUEUE_ANSWER_TIME Unit: Seconds Valid groupings and filters: Queue, Channel,
+	// Routing Profile, Feature, contact/segmentAttributes/connect:Subtype Feature is a
+	// valid filter but not a valid grouping. AVG_RESOLUTION_TIME Unit: Seconds Valid
+	// groupings and filters: Queue, Channel, Routing Profile,
+	// contact/segmentAttributes/connect:Subtype AVG_TALK_TIME This metric is available
 	// only for contacts analyzed by Contact Lens conversational analytics. Unit:
 	// Seconds Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
-	// Agent Hierarchy CONTACTS_ABANDONED Unit: Count Valid groupings and filters:
-	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy CONTACTS_CREATED Unit:
-	// Count Valid metric filter key: INITIATION_METHOD Valid groupings and filters:
-	// Queue, Channel, Routing Profile, Feature Feature is a valid filter but not a
+	// Agent Hierarchy, contact/segmentAttributes/connect:Subtype AVG_TALK_TIME_AGENT
+	// This metric is available only for contacts analyzed by Contact Lens
+	// conversational analytics. Unit: Seconds Valid groupings and filters: Queue,
+	// Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype AVG_TALK_TIME_CUSTOMER This metric is
+	// available only for contacts analyzed by Contact Lens conversational analytics.
+	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, contact/segmentAttributes/connect:Subtype
+	// CONTACTS_ABANDONED Unit: Count Valid groupings and filters: Queue, Channel,
+	// Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype, RoutingStepExpression
+	// CONTACTS_CREATED Unit: Count Valid metric filter key: INITIATION_METHOD Valid
+	// groupings and filters: Queue, Channel, Routing Profile, Feature,
+	// contact/segmentAttributes/connect:Subtype Feature is a valid filter but not a
 	// valid grouping. CONTACTS_HANDLED Unit: Count Valid metric filter key:
 	// INITIATION_METHOD , DISCONNECT_REASON Valid groupings and filters: Queue,
-	// Channel, Routing Profile, Agent, Agent Hierarchy, Feature Feature is a valid
-	// filter but not a valid grouping. CONTACTS_HOLD_ABANDONS Unit: Count Valid
-	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// CONTACTS_QUEUED Unit: Count Valid groupings and filters: Queue, Channel, Routing
-	// Profile, Agent, Agent Hierarchy CONTACTS_RESOLVED_IN_X Unit: Count Valid
-	// groupings and filters: Queue, Channel, Routing Profile Threshold: For
-	// ThresholdValue enter any whole number from 1 to 604800 (inclusive), in seconds.
-	// For Comparison , you must enter LT (for "Less than"). CONTACTS_TRANSFERRED_OUT
-	// Unit: Count Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
-	// Agent Hierarchy, Feature Feature is a valid filter but not a valid grouping.
-	// CONTACTS_TRANSFERRED_OUT_BY_AGENT Unit: Count Valid groupings and filters:
+	// Channel, Routing Profile, Agent, Agent Hierarchy, Feature,
+	// contact/segmentAttributes/connect:Subtype, RoutingStepExpression Feature is a
+	// valid filter but not a valid grouping. CONTACTS_HANDLED_BY_CONNECTED_TO_AGENT
+	// Unit: Count Valid metric filter key: INITIATION_METHOD Valid groupings and
+	// filters: Queue, Channel, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype CONTACTS_HOLD_ABANDONS Unit: Count
+	// Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
+	// Hierarchy, contact/segmentAttributes/connect:Subtype
+	// CONTACTS_ON_HOLD_AGENT_DISCONNECT Unit: Count Valid groupings and filters:
 	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy
-	// CONTACTS_TRANSFERRED_OUT_FROM_QUEUE Unit: Count Valid groupings and filters:
-	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy MAX_QUEUED_TIME Unit:
-	// Seconds Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
-	// Agent Hierarchy SERVICE_LEVEL You can include up to 20 SERVICE_LEVEL metrics in
-	// a request. Unit: Percent Valid groupings and filters: Queue, Channel, Routing
-	// Profile Threshold: For ThresholdValue , enter any whole number from 1 to 604800
-	// (inclusive), in seconds. For Comparison , you must enter LT (for "Less than").
-	// SUM_CONTACTS_ANSWERED_IN_X Unit: Count Valid groupings and filters: Queue,
-	// Channel, Routing Profile Threshold: For ThresholdValue , enter any whole number
-	// from 1 to 604800 (inclusive), in seconds. For Comparison , you must enter LT
-	// (for "Less than"). SUM_CONTACTS_ABANDONED_IN_X Unit: Count Valid groupings and
-	// filters: Queue, Channel, Routing Profile Threshold: For ThresholdValue , enter
+	// CONTACTS_ON_HOLD_CUSTOMER_DISCONNECT Unit: Count Valid groupings and filters:
+	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy CONTACTS_PUT_ON_HOLD
+	// Unit: Count Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
+	// Agent Hierarchy CONTACTS_TRANSFERRED_OUT_EXTERNAL Unit: Count Valid groupings
+	// and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
+	// CONTACTS_TRANSFERRED_OUT_INTERNAL Unit: Percent Valid groupings and filters:
+	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy CONTACTS_QUEUED Unit:
+	// Count Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
+	// Hierarchy, contact/segmentAttributes/connect:Subtype CONTACTS_QUEUED_BY_ENQUEUE
+	// Unit: Count Valid groupings and filters: Queue, Channel, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype CONTACTS_RESOLVED_IN_X Unit: Count
+	// Valid groupings and filters: Queue, Channel, Routing Profile,
+	// contact/segmentAttributes/connect:Subtype Threshold: For ThresholdValue enter
 	// any whole number from 1 to 604800 (inclusive), in seconds. For Comparison , you
-	// must enter LT (for "Less than"). SUM_CONTACTS_DISCONNECTED Valid metric filter
-	// key: DISCONNECT_REASON Unit: Count Valid groupings and filters: Queue, Channel,
-	// Routing Profile SUM_RETRY_CALLBACK_ATTEMPTS Unit: Count Valid groupings and
-	// filters: Queue, Channel, Routing Profile
+	// must enter LT (for "Less than"). CONTACTS_TRANSFERRED_OUT Unit: Count Valid
+	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// Feature, contact/segmentAttributes/connect:Subtype Feature is a valid filter but
+	// not a valid grouping. CONTACTS_TRANSFERRED_OUT_BY_AGENT Unit: Count Valid
+	// groupings and filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype CONTACTS_TRANSFERRED_OUT_FROM_QUEUE
+	// Unit: Count Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
+	// Agent Hierarchy, contact/segmentAttributes/connect:Subtype MAX_QUEUED_TIME Unit:
+	// Seconds Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
+	// Agent Hierarchy, contact/segmentAttributes/connect:Subtype
+	// PERCENT_CONTACTS_STEP_EXPIRED Unit: Percent Valid groupings and filters: Queue,
+	// RoutingStepExpression PERCENT_CONTACTS_STEP_JOINED Unit: Percent Valid groupings
+	// and filters: Queue, RoutingStepExpression PERCENT_NON_TALK_TIME This metric is
+	// available only for contacts analyzed by Contact Lens conversational analytics.
+	// Unit: Percentage Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, contact/segmentAttributes/connect:Subtype
+	// PERCENT_TALK_TIME This metric is available only for contacts analyzed by Contact
+	// Lens conversational analytics. Unit: Percentage Valid groupings and filters:
+	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype PERCENT_TALK_TIME_AGENT This metric is
+	// available only for contacts analyzed by Contact Lens conversational analytics.
+	// Unit: Percentage Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy, contact/segmentAttributes/connect:Subtype
+	// PERCENT_TALK_TIME_CUSTOMER This metric is available only for contacts analyzed
+	// by Contact Lens conversational analytics. Unit: Percentage Valid groupings and
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy,
+	// contact/segmentAttributes/connect:Subtype SERVICE_LEVEL You can include up to 20
+	// SERVICE_LEVEL metrics in a request. Unit: Percent Valid groupings and filters:
+	// Queue, Channel, Routing Profile Threshold: For ThresholdValue , enter any whole
+	// number from 1 to 604800 (inclusive), in seconds. For Comparison , you must enter
+	// LT (for "Less than"). STEP_CONTACTS_QUEUED Unit: Count Valid groupings and
+	// filters: Queue, RoutingStepExpression SUM_AFTER_CONTACT_WORK_TIME Unit: Seconds
+	// Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
+	// Hierarchy SUM_CONNECTING_TIME_AGENT Unit: Seconds Valid metric filter key:
+	// INITIATION_METHOD . This metric only supports the following filter keys as
+	// INITIATION_METHOD : INBOUND | OUTBOUND | CALLBACK | API Valid groupings and
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy The Negate key
+	// in Metric Level Filters is not applicable for this metric. SUM_CONTACT_FLOW_TIME
+	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy SUM_CONTACT_TIME_AGENT Unit: Seconds Valid groupings and
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy
+	// SUM_CONTACTS_ANSWERED_IN_X Unit: Count Valid groupings and filters: Queue,
+	// Channel, Routing Profile, contact/segmentAttributes/connect:Subtype Threshold:
+	// For ThresholdValue , enter any whole number from 1 to 604800 (inclusive), in
+	// seconds. For Comparison , you must enter LT (for "Less than").
+	// SUM_CONTACTS_ABANDONED_IN_X Unit: Count Valid groupings and filters: Queue,
+	// Channel, Routing Profile, contact/segmentAttributes/connect:Subtype Threshold:
+	// For ThresholdValue , enter any whole number from 1 to 604800 (inclusive), in
+	// seconds. For Comparison , you must enter LT (for "Less than").
+	// SUM_CONTACTS_DISCONNECTED Valid metric filter key: DISCONNECT_REASON Unit:
+	// Count Valid groupings and filters: Queue, Channel, Routing Profile, Agent, Agent
+	// Hierarchy, contact/segmentAttributes/connect:Subtype SUM_ERROR_STATUS_TIME_AGENT
+	// Unit: Seconds Valid groupings and filters: Queue, Channel, Routing Profile,
+	// Agent, Agent Hierarchy SUM_HANDLE_TIME Unit: Seconds Valid groupings and
+	// filters: Queue, Channel, Routing Profile, Agent, Agent Hierarchy SUM_HOLD_TIME
+	// Unit: Count Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
+	// Agent Hierarchy SUM_IDLE_TIME_AGENT Unit: Seconds Valid groupings and filters:
+	// Routing Profile, Agent, Agent Hierarchy SUM_INTERACTION_AND_HOLD_TIME Unit:
+	// Seconds Valid groupings and filters: Queue, Channel, Routing Profile, Agent,
+	// Agent Hierarchy SUM_INTERACTION_TIME Unit: Seconds Valid groupings and filters:
+	// Queue, Channel, Routing Profile, Agent, Agent Hierarchy
+	// SUM_NON_PRODUCTIVE_TIME_AGENT Unit: Seconds Valid groupings and filters: Routing
+	// Profile, Agent, Agent Hierarchy SUM_ONLINE_TIME_AGENT Unit: Seconds Valid
+	// groupings and filters: Routing Profile, Agent, Agent Hierarchy
+	// SUM_RETRY_CALLBACK_ATTEMPTS Unit: Count Valid groupings and filters: Queue,
+	// Channel, Routing Profile, contact/segmentAttributes/connect:Subtype
 	//
 	// This member is required.
 	Metrics []types.MetricV2
@@ -209,7 +295,8 @@ type GetMetricDataV2Input struct {
 	// is returned. Valid grouping keys: QUEUE | ROUTING_PROFILE | AGENT | CHANNEL |
 	// AGENT_HIERARCHY_LEVEL_ONE | AGENT_HIERARCHY_LEVEL_TWO |
 	// AGENT_HIERARCHY_LEVEL_THREE | AGENT_HIERARCHY_LEVEL_FOUR |
-	// AGENT_HIERARCHY_LEVEL_FIVE
+	// AGENT_HIERARCHY_LEVEL_FIVE , contact/segmentAttributes/connect:Subtype |
+	// ROUTING_STEP_EXPRESSION
 	Groupings []string
 
 	// The interval period and timezone to apply to returned metrics.
@@ -262,6 +349,9 @@ type GetMetricDataV2Output struct {
 }
 
 func (c *Client) addOperationGetMetricDataV2Middlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetMetricDataV2{}, middleware.After)
 	if err != nil {
 		return err
@@ -270,6 +360,10 @@ func (c *Client) addOperationGetMetricDataV2Middlewares(stack *middleware.Stack,
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetMetricDataV2"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -291,9 +385,6 @@ func (c *Client) addOperationGetMetricDataV2Middlewares(stack *middleware.Stack,
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -309,7 +400,7 @@ func (c *Client) addOperationGetMetricDataV2Middlewares(stack *middleware.Stack,
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addGetMetricDataV2ResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpGetMetricDataV2ValidationMiddleware(stack); err != nil {
@@ -330,7 +421,7 @@ func (c *Client) addOperationGetMetricDataV2Middlewares(stack *middleware.Stack,
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -430,130 +521,6 @@ func newServiceMetadataMiddleware_opGetMetricDataV2(region string) *awsmiddlewar
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "connect",
 		OperationName: "GetMetricDataV2",
 	}
-}
-
-type opGetMetricDataV2ResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opGetMetricDataV2ResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opGetMetricDataV2ResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "connect"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "connect"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("connect")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addGetMetricDataV2ResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opGetMetricDataV2ResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

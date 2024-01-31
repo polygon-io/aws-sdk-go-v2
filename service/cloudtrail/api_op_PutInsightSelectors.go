@@ -4,27 +4,35 @@ package cloudtrail
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lets you enable Insights event logging by specifying the Insights selectors
-// that you want to enable on an existing trail. You also use PutInsightSelectors
-// to turn off Insights event logging, by passing an empty list of insight types.
-// The valid Insights event types in this release are ApiErrorRateInsight and
-// ApiCallRateInsight . To log CloudTrail Insights events on API call volume, the
-// trail must log write management events. To log CloudTrail Insights events on
-// API error rate, the trail must log read or write management events. You can
+// that you want to enable on an existing trail or event data store. You also use
+// PutInsightSelectors to turn off Insights event logging, by passing an empty list
+// of Insights types. The valid Insights event types are ApiErrorRateInsight and
+// ApiCallRateInsight . To enable Insights on an event data store, you must specify
+// the ARNs (or ID suffix of the ARNs) for the source event data store (
+// EventDataStore ) and the destination event data store ( InsightsDestination ).
+// The source event data store logs management events and enables Insights. The
+// destination event data store logs Insights events based upon the management
+// event activity of the source event data store. The source and destination event
+// data stores must belong to the same Amazon Web Services account. To log Insights
+// events for a trail, you must specify the name ( TrailName ) of the CloudTrail
+// trail for which you want to change or add Insights selectors. To log CloudTrail
+// Insights events on API call volume, the trail or event data store must log write
+// management events. To log CloudTrail Insights events on API error rate, the
+// trail or event data store must log read or write management events. You can
 // call GetEventSelectors on a trail to check whether the trail logs management
-// events.
+// events. You can call GetEventDataStore on an event data store to check whether
+// the event data store logs management events. For more information, see Logging
+// CloudTrail Insights events (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-insights-events-with-cloudtrail.html)
+// in the CloudTrail User Guide.
 func (c *Client) PutInsightSelectors(ctx context.Context, params *PutInsightSelectorsInput, optFns ...func(*Options)) (*PutInsightSelectorsOutput, error) {
 	if params == nil {
 		params = &PutInsightSelectorsInput{}
@@ -42,20 +50,31 @@ func (c *Client) PutInsightSelectors(ctx context.Context, params *PutInsightSele
 
 type PutInsightSelectorsInput struct {
 
-	// A JSON string that contains the insight types you want to log on a trail.
-	// ApiCallRateInsight and ApiErrorRateInsight are valid Insight types. The
-	// ApiCallRateInsight Insights type analyzes write-only management API calls that
-	// are aggregated per minute against a baseline API call volume. The
+	// A JSON string that contains the Insights types you want to log on a trail or
+	// event data store. ApiCallRateInsight and ApiErrorRateInsight are valid Insight
+	// types. The ApiCallRateInsight Insights type analyzes write-only management API
+	// calls that are aggregated per minute against a baseline API call volume. The
 	// ApiErrorRateInsight Insights type analyzes management API calls that result in
 	// error codes. The error is shown if the API call is unsuccessful.
 	//
 	// This member is required.
 	InsightSelectors []types.InsightSelector
 
+	// The ARN (or ID suffix of the ARN) of the source event data store for which you
+	// want to change or add Insights selectors. To enable Insights on an event data
+	// store, you must provide both the EventDataStore and InsightsDestination
+	// parameters. You cannot use this parameter with the TrailName parameter.
+	EventDataStore *string
+
+	// The ARN (or ID suffix of the ARN) of the destination event data store that logs
+	// Insights events. To enable Insights on an event data store, you must provide
+	// both the EventDataStore and InsightsDestination parameters. You cannot use this
+	// parameter with the TrailName parameter.
+	InsightsDestination *string
+
 	// The name of the CloudTrail trail for which you want to change or add Insights
-	// selectors.
-	//
-	// This member is required.
+	// selectors. You cannot use this parameter with the EventDataStore and
+	// InsightsDestination parameters.
 	TrailName *string
 
 	noSmithyDocumentSerde
@@ -63,10 +82,17 @@ type PutInsightSelectorsInput struct {
 
 type PutInsightSelectorsOutput struct {
 
+	// The Amazon Resource Name (ARN) of the source event data store for which you
+	// want to change or add Insights selectors.
+	EventDataStoreArn *string
+
 	// A JSON string that contains the Insights event types that you want to log on a
-	// trail. The valid Insights types in this release are ApiErrorRateInsight and
+	// trail or event data store. The valid Insights types are ApiErrorRateInsight and
 	// ApiCallRateInsight .
 	InsightSelectors []types.InsightSelector
+
+	// The ARN of the destination event data store that logs Insights events.
+	InsightsDestination *string
 
 	// The Amazon Resource Name (ARN) of a trail for which you want to change or add
 	// Insights selectors.
@@ -79,6 +105,9 @@ type PutInsightSelectorsOutput struct {
 }
 
 func (c *Client) addOperationPutInsightSelectorsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutInsightSelectors{}, middleware.After)
 	if err != nil {
 		return err
@@ -87,6 +116,10 @@ func (c *Client) addOperationPutInsightSelectorsMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "PutInsightSelectors"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -108,9 +141,6 @@ func (c *Client) addOperationPutInsightSelectorsMiddlewares(stack *middleware.St
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -126,7 +156,7 @@ func (c *Client) addOperationPutInsightSelectorsMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addPutInsightSelectorsResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpPutInsightSelectorsValidationMiddleware(stack); err != nil {
@@ -147,7 +177,7 @@ func (c *Client) addOperationPutInsightSelectorsMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -157,130 +187,6 @@ func newServiceMetadataMiddleware_opPutInsightSelectors(region string) *awsmiddl
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "cloudtrail",
 		OperationName: "PutInsightSelectors",
 	}
-}
-
-type opPutInsightSelectorsResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opPutInsightSelectorsResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opPutInsightSelectorsResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "cloudtrail"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "cloudtrail"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("cloudtrail")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addPutInsightSelectorsResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opPutInsightSelectorsResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

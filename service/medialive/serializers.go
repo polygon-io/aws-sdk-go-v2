@@ -5264,6 +5264,19 @@ func awsRestjson1_serializeDocument__listOfCaptionSelector(v []types.CaptionSele
 	return nil
 }
 
+func awsRestjson1_serializeDocument__listOfColorCorrection(v []types.ColorCorrection, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsRestjson1_serializeDocumentColorCorrection(&v[i], av); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func awsRestjson1_serializeDocument__listOfFailoverCondition(v []types.FailoverCondition, value smithyjson.Value) error {
 	array := value.Array()
 	defer array.Close()
@@ -5321,6 +5334,19 @@ func awsRestjson1_serializeDocument__listOfInputDestinationRequest(v []types.Inp
 	for i := range v {
 		av := array.Value()
 		if err := awsRestjson1_serializeDocumentInputDestinationRequest(&v[i], av); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func awsRestjson1_serializeDocument__listOfInputDeviceConfigurableAudioChannelPairConfig(v []types.InputDeviceConfigurableAudioChannelPairConfig, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsRestjson1_serializeDocumentInputDeviceConfigurableAudioChannelPairConfig(&v[i], av); err != nil {
 			return err
 		}
 	}
@@ -6756,6 +6782,42 @@ func awsRestjson1_serializeDocumentCdiInputSpecification(v *types.CdiInputSpecif
 	return nil
 }
 
+func awsRestjson1_serializeDocumentColorCorrection(v *types.ColorCorrection, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if len(v.InputColorSpace) > 0 {
+		ok := object.Key("inputColorSpace")
+		ok.String(string(v.InputColorSpace))
+	}
+
+	if len(v.OutputColorSpace) > 0 {
+		ok := object.Key("outputColorSpace")
+		ok.String(string(v.OutputColorSpace))
+	}
+
+	if v.Uri != nil {
+		ok := object.Key("uri")
+		ok.String(*v.Uri)
+	}
+
+	return nil
+}
+
+func awsRestjson1_serializeDocumentColorCorrectionSettings(v *types.ColorCorrectionSettings, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.GlobalColorCorrections != nil {
+		ok := object.Key("globalColorCorrections")
+		if err := awsRestjson1_serializeDocument__listOfColorCorrection(v.GlobalColorCorrections, ok); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func awsRestjson1_serializeDocumentColorSpacePassthroughSettings(v *types.ColorSpacePassthroughSettings, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
@@ -7302,6 +7364,13 @@ func awsRestjson1_serializeDocumentEncoderSettings(v *types.EncoderSettings, val
 		}
 	}
 
+	if v.ColorCorrectionSettings != nil {
+		ok := object.Key("colorCorrectionSettings")
+		if err := awsRestjson1_serializeDocumentColorCorrectionSettings(v.ColorCorrectionSettings, ok); err != nil {
+			return err
+		}
+	}
+
 	if v.FeatureActivations != nil {
 		ok := object.Key("featureActivations")
 		if err := awsRestjson1_serializeDocumentFeatureActivations(v.FeatureActivations, ok); err != nil {
@@ -7464,6 +7533,11 @@ func awsRestjson1_serializeDocumentFeatureActivations(v *types.FeatureActivation
 	if len(v.InputPrepareScheduleActions) > 0 {
 		ok := object.Key("inputPrepareScheduleActions")
 		ok.String(string(v.InputPrepareScheduleActions))
+	}
+
+	if len(v.OutputStaticImageOverlayScheduleActions) > 0 {
+		ok := object.Key("outputStaticImageOverlayScheduleActions")
+		ok.String(string(v.OutputStaticImageOverlayScheduleActions))
 	}
 
 	return nil
@@ -8849,9 +8923,33 @@ func awsRestjson1_serializeDocumentInputDestinationRequest(v *types.InputDestina
 	return nil
 }
 
+func awsRestjson1_serializeDocumentInputDeviceConfigurableAudioChannelPairConfig(v *types.InputDeviceConfigurableAudioChannelPairConfig, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Id != nil {
+		ok := object.Key("id")
+		ok.Integer(*v.Id)
+	}
+
+	if len(v.Profile) > 0 {
+		ok := object.Key("profile")
+		ok.String(string(v.Profile))
+	}
+
+	return nil
+}
+
 func awsRestjson1_serializeDocumentInputDeviceConfigurableSettings(v *types.InputDeviceConfigurableSettings, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
+
+	if v.AudioChannelPairs != nil {
+		ok := object.Key("audioChannelPairs")
+		if err := awsRestjson1_serializeDocument__listOfInputDeviceConfigurableAudioChannelPairConfig(v.AudioChannelPairs, ok); err != nil {
+			return err
+		}
+	}
 
 	if len(v.Codec) > 0 {
 		ok := object.Key("codec")
@@ -10929,6 +11027,20 @@ func awsRestjson1_serializeDocumentScheduleActionSettings(v *types.ScheduleActio
 		}
 	}
 
+	if v.StaticImageOutputActivateSettings != nil {
+		ok := object.Key("staticImageOutputActivateSettings")
+		if err := awsRestjson1_serializeDocumentStaticImageOutputActivateScheduleActionSettings(v.StaticImageOutputActivateSettings, ok); err != nil {
+			return err
+		}
+	}
+
+	if v.StaticImageOutputDeactivateSettings != nil {
+		ok := object.Key("staticImageOutputDeactivateSettings")
+		if err := awsRestjson1_serializeDocumentStaticImageOutputDeactivateScheduleActionSettings(v.StaticImageOutputDeactivateSettings, ok); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -11340,6 +11452,96 @@ func awsRestjson1_serializeDocumentStaticImageDeactivateScheduleActionSettings(v
 	if v.Layer != nil {
 		ok := object.Key("layer")
 		ok.Integer(*v.Layer)
+	}
+
+	return nil
+}
+
+func awsRestjson1_serializeDocumentStaticImageOutputActivateScheduleActionSettings(v *types.StaticImageOutputActivateScheduleActionSettings, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.Duration != nil {
+		ok := object.Key("duration")
+		ok.Integer(*v.Duration)
+	}
+
+	if v.FadeIn != nil {
+		ok := object.Key("fadeIn")
+		ok.Integer(*v.FadeIn)
+	}
+
+	if v.FadeOut != nil {
+		ok := object.Key("fadeOut")
+		ok.Integer(*v.FadeOut)
+	}
+
+	if v.Height != nil {
+		ok := object.Key("height")
+		ok.Integer(*v.Height)
+	}
+
+	if v.Image != nil {
+		ok := object.Key("image")
+		if err := awsRestjson1_serializeDocumentInputLocation(v.Image, ok); err != nil {
+			return err
+		}
+	}
+
+	if v.ImageX != nil {
+		ok := object.Key("imageX")
+		ok.Integer(*v.ImageX)
+	}
+
+	if v.ImageY != nil {
+		ok := object.Key("imageY")
+		ok.Integer(*v.ImageY)
+	}
+
+	if v.Layer != nil {
+		ok := object.Key("layer")
+		ok.Integer(*v.Layer)
+	}
+
+	if v.Opacity != nil {
+		ok := object.Key("opacity")
+		ok.Integer(*v.Opacity)
+	}
+
+	if v.OutputNames != nil {
+		ok := object.Key("outputNames")
+		if err := awsRestjson1_serializeDocument__listOf__string(v.OutputNames, ok); err != nil {
+			return err
+		}
+	}
+
+	if v.Width != nil {
+		ok := object.Key("width")
+		ok.Integer(*v.Width)
+	}
+
+	return nil
+}
+
+func awsRestjson1_serializeDocumentStaticImageOutputDeactivateScheduleActionSettings(v *types.StaticImageOutputDeactivateScheduleActionSettings, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.FadeOut != nil {
+		ok := object.Key("fadeOut")
+		ok.Integer(*v.FadeOut)
+	}
+
+	if v.Layer != nil {
+		ok := object.Key("layer")
+		ok.Integer(*v.Layer)
+	}
+
+	if v.OutputNames != nil {
+		ok := object.Key("outputNames")
+		if err := awsRestjson1_serializeDocument__listOf__string(v.OutputNames, ok); err != nil {
+			return err
+		}
 	}
 
 	return nil

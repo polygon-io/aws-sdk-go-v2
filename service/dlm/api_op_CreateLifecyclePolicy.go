@@ -4,20 +4,25 @@ package dlm
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a policy to manage the lifecycle of the specified Amazon Web Services
-// resources. You can create up to 100 lifecycle policies.
+// Creates an Amazon Data Lifecycle Manager lifecycle policy. Amazon Data
+// Lifecycle Manager supports the following policy types:
+//   - Custom EBS snapshot policy
+//   - Custom EBS-backed AMI policy
+//   - Cross-account copy event policy
+//   - Default policy for EBS snapshots
+//   - Default policy for EBS-backed AMIs
+//
+// For more information, see  Default policies vs custom policies (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/policy-differences.html)
+// . If you create a default policy, you can specify the request parameters either
+// in the request body, or in the PolicyDetails request structure, but not both.
 func (c *Client) CreateLifecyclePolicy(ctx context.Context, params *CreateLifecyclePolicyInput, optFns ...func(*Options)) (*CreateLifecyclePolicyOutput, error) {
 	if params == nil {
 		params = &CreateLifecyclePolicyInput{}
@@ -47,15 +52,68 @@ type CreateLifecyclePolicyInput struct {
 	// This member is required.
 	ExecutionRoleArn *string
 
-	// The configuration details of the lifecycle policy.
-	//
-	// This member is required.
-	PolicyDetails *types.PolicyDetails
-
-	// The desired activation state of the lifecycle policy after creation.
+	// The activation state of the lifecycle policy after creation.
 	//
 	// This member is required.
 	State types.SettablePolicyStateValues
+
+	// [Default policies only] Indicates whether the policy should copy tags from the
+	// source resource to the snapshot or AMI. If you do not specify a value, the
+	// default is false . Default: false
+	CopyTags *bool
+
+	// [Default policies only] Specifies how often the policy should run and create
+	// snapshots or AMIs. The creation frequency can range from 1 to 7 days. If you do
+	// not specify a value, the default is 1. Default: 1
+	CreateInterval *int32
+
+	// [Default policies only] Specifies destination Regions for snapshot or AMI
+	// copies. You can specify up to 3 destination Regions. If you do not want to
+	// create cross-Region copies, omit this parameter.
+	CrossRegionCopyTargets []types.CrossRegionCopyTarget
+
+	// [Default policies only] Specify the type of default policy to create.
+	//   - To create a default policy for EBS snapshots, that creates snapshots of all
+	//   volumes in the Region that do not have recent backups, specify VOLUME .
+	//   - To create a default policy for EBS-backed AMIs, that creates EBS-backed
+	//   AMIs from all instances in the Region that do not have recent backups, specify
+	//   INSTANCE .
+	DefaultPolicy types.DefaultPolicyTypeValues
+
+	// [Default policies only] Specifies exclusion parameters for volumes or instances
+	// for which you do not want to create snapshots or AMIs. The policy will not
+	// create snapshots or AMIs for target resources that match any of the specified
+	// exclusion parameters.
+	Exclusions *types.Exclusions
+
+	// [Default policies only] Defines the snapshot or AMI retention behavior for the
+	// policy if the source volume or instance is deleted, or if the policy enters the
+	// error, disabled, or deleted state. By default (ExtendDeletion=false):
+	//   - If a source resource is deleted, Amazon Data Lifecycle Manager will
+	//   continue to delete previously created snapshots or AMIs, up to but not including
+	//   the last one, based on the specified retention period. If you want Amazon Data
+	//   Lifecycle Manager to delete all snapshots or AMIs, including the last one,
+	//   specify true .
+	//   - If a policy enters the error, disabled, or deleted state, Amazon Data
+	//   Lifecycle Manager stops deleting snapshots and AMIs. If you want Amazon Data
+	//   Lifecycle Manager to continue deleting snapshots or AMIs, including the last
+	//   one, if the policy enters one of these states, specify true .
+	// If you enable extended deletion (ExtendDeletion=true), you override both
+	// default behaviors simultaneously. If you do not specify a value, the default is
+	// false . Default: false
+	ExtendDeletion *bool
+
+	// The configuration details of the lifecycle policy. If you create a default
+	// policy, you can specify the request parameters either in the request body, or in
+	// the PolicyDetails request structure, but not both.
+	PolicyDetails *types.PolicyDetails
+
+	// [Default policies only] Specifies how long the policy should retain snapshots
+	// or AMIs before deleting them. The retention period can range from 2 to 14 days,
+	// but it must be greater than the creation frequency to ensure that the policy
+	// retains at least 1 snapshot or AMI at any given time. If you do not specify a
+	// value, the default is 7. Default: 7
+	RetainInterval *int32
 
 	// The tags to apply to the lifecycle policy during creation.
 	Tags map[string]string
@@ -75,6 +133,9 @@ type CreateLifecyclePolicyOutput struct {
 }
 
 func (c *Client) addOperationCreateLifecyclePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateLifecyclePolicy{}, middleware.After)
 	if err != nil {
 		return err
@@ -83,6 +144,10 @@ func (c *Client) addOperationCreateLifecyclePolicyMiddlewares(stack *middleware.
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateLifecyclePolicy"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -104,9 +169,6 @@ func (c *Client) addOperationCreateLifecyclePolicyMiddlewares(stack *middleware.
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -122,7 +184,7 @@ func (c *Client) addOperationCreateLifecyclePolicyMiddlewares(stack *middleware.
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateLifecyclePolicyResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateLifecyclePolicyValidationMiddleware(stack); err != nil {
@@ -143,7 +205,7 @@ func (c *Client) addOperationCreateLifecyclePolicyMiddlewares(stack *middleware.
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -153,130 +215,6 @@ func newServiceMetadataMiddleware_opCreateLifecyclePolicy(region string) *awsmid
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "dlm",
 		OperationName: "CreateLifecyclePolicy",
 	}
-}
-
-type opCreateLifecyclePolicyResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateLifecyclePolicyResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateLifecyclePolicyResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "dlm"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "dlm"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("dlm")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateLifecyclePolicyResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateLifecyclePolicyResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

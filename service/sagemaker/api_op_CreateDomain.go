@@ -4,47 +4,43 @@ package sagemaker
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a Domain used by Amazon SageMaker Studio. A domain consists of an
-// associated Amazon Elastic File System (EFS) volume, a list of authorized users,
-// and a variety of security, application, policy, and Amazon Virtual Private Cloud
-// (VPC) configurations. Users within a domain can share notebook files and other
-// artifacts with each other. EFS storage When a domain is created, an EFS volume
-// is created for use by all of the users within the domain. Each user receives a
-// private home directory within the EFS volume for notebooks, Git repositories,
-// and data files. SageMaker uses the Amazon Web Services Key Management Service
-// (Amazon Web Services KMS) to encrypt the EFS volume attached to the domain with
-// an Amazon Web Services managed key by default. For more control, you can specify
-// a customer managed key. For more information, see Protect Data at Rest Using
-// Encryption (https://docs.aws.amazon.com/sagemaker/latest/dg/encryption-at-rest.html)
-// . VPC configuration All SageMaker Studio traffic between the domain and the EFS
-// volume is through the specified VPC and subnets. For other Studio traffic, you
-// can specify the AppNetworkAccessType parameter. AppNetworkAccessType
-// corresponds to the network access type that you choose when you onboard to
-// Studio. The following options are available:
+// Creates a Domain . A domain consists of an associated Amazon Elastic File System
+// volume, a list of authorized users, and a variety of security, application,
+// policy, and Amazon Virtual Private Cloud (VPC) configurations. Users within a
+// domain can share notebook files and other artifacts with each other. EFS storage
+// When a domain is created, an EFS volume is created for use by all of the users
+// within the domain. Each user receives a private home directory within the EFS
+// volume for notebooks, Git repositories, and data files. SageMaker uses the
+// Amazon Web Services Key Management Service (Amazon Web Services KMS) to encrypt
+// the EFS volume attached to the domain with an Amazon Web Services managed key by
+// default. For more control, you can specify a customer managed key. For more
+// information, see Protect Data at Rest Using Encryption (https://docs.aws.amazon.com/sagemaker/latest/dg/encryption-at-rest.html)
+// . VPC configuration All traffic between the domain and the Amazon EFS volume is
+// through the specified VPC and subnets. For other traffic, you can specify the
+// AppNetworkAccessType parameter. AppNetworkAccessType corresponds to the network
+// access type that you choose when you onboard to the domain. The following
+// options are available:
 //   - PublicInternetOnly - Non-EFS traffic goes through a VPC managed by Amazon
 //     SageMaker, which allows internet access. This is the default value.
-//   - VpcOnly - All Studio traffic is through the specified VPC and subnets.
-//     Internet access is disabled by default. To allow internet access, you must
-//     specify a NAT gateway. When internet access is disabled, you won't be able to
-//     run a Studio notebook or to train or host models unless your VPC has an
+//   - VpcOnly - All traffic is through the specified VPC and subnets. Internet
+//     access is disabled by default. To allow internet access, you must specify a NAT
+//     gateway. When internet access is disabled, you won't be able to run a Amazon
+//     SageMaker Studio notebook or to train or host models unless your VPC has an
 //     interface endpoint to the SageMaker API and runtime or a NAT gateway and your
 //     security groups allow outbound connections.
 //
 // NFS traffic over TCP on port 2049 needs to be allowed in both inbound and
-// outbound rules in order to launch a SageMaker Studio app successfully. For more
-// information, see Connect SageMaker Studio Notebooks to Resources in a VPC (https://docs.aws.amazon.com/sagemaker/latest/dg/studio-notebooks-and-internet-access.html)
+// outbound rules in order to launch a Amazon SageMaker Studio app successfully.
+// For more information, see Connect Amazon SageMaker Studio Notebooks to
+// Resources in a VPC (https://docs.aws.amazon.com/sagemaker/latest/dg/studio-notebooks-and-internet-access.html)
 // .
 func (c *Client) CreateDomain(ctx context.Context, params *CreateDomainInput, optFns ...func(*Options)) (*CreateDomainOutput, error) {
 	if params == nil {
@@ -82,12 +78,12 @@ type CreateDomainInput struct {
 	// This member is required.
 	DomainName *string
 
-	// The VPC subnets that Studio uses for communication.
+	// The VPC subnets that the domain uses for communication.
 	//
 	// This member is required.
 	SubnetIds []string
 
-	// The ID of the Amazon Virtual Private Cloud (VPC) that Studio uses for
+	// The ID of the Amazon Virtual Private Cloud (VPC) that the domain uses for
 	// communication.
 	//
 	// This member is required.
@@ -97,7 +93,7 @@ type CreateDomainInput struct {
 	// PublicInternetOnly .
 	//   - PublicInternetOnly - Non-EFS traffic is through a VPC managed by Amazon
 	//   SageMaker, which allows direct internet access
-	//   - VpcOnly - All Studio traffic is through the specified VPC and subnets
+	//   - VpcOnly - All traffic is through the specified VPC and subnets
 	AppNetworkAccessType types.AppNetworkAccessType
 
 	// The entity that creates and manages the required security groups for inter-app
@@ -148,6 +144,9 @@ type CreateDomainOutput struct {
 }
 
 func (c *Client) addOperationCreateDomainMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateDomain{}, middleware.After)
 	if err != nil {
 		return err
@@ -156,6 +155,10 @@ func (c *Client) addOperationCreateDomainMiddlewares(stack *middleware.Stack, op
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateDomain"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -177,9 +180,6 @@ func (c *Client) addOperationCreateDomainMiddlewares(stack *middleware.Stack, op
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (c *Client) addOperationCreateDomainMiddlewares(stack *middleware.Stack, op
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateDomainResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateDomainValidationMiddleware(stack); err != nil {
@@ -216,7 +216,7 @@ func (c *Client) addOperationCreateDomainMiddlewares(stack *middleware.Stack, op
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -226,130 +226,6 @@ func newServiceMetadataMiddleware_opCreateDomain(region string) *awsmiddleware.R
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "sagemaker",
 		OperationName: "CreateDomain",
 	}
-}
-
-type opCreateDomainResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateDomainResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateDomainResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "sagemaker"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "sagemaker"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("sagemaker")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateDomainResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateDomainResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

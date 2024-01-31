@@ -4,14 +4,10 @@ package cloud9
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/cloud9/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -35,6 +31,31 @@ func (c *Client) CreateEnvironmentEC2(ctx context.Context, params *CreateEnviron
 }
 
 type CreateEnvironmentEC2Input struct {
+
+	// The identifier for the Amazon Machine Image (AMI) that's used to create the EC2
+	// instance. To choose an AMI for the instance, you must specify a valid AMI alias
+	// or a valid Amazon EC2 Systems Manager (SSM) path. From December 04, 2023, you
+	// will be required to include the imageId parameter for the CreateEnvironmentEC2
+	// action. This change will be reflected across all direct methods of communicating
+	// with the API, such as Amazon Web Services SDK, Amazon Web Services CLI and
+	// Amazon Web Services CloudFormation. This change will only affect direct API
+	// consumers, and not Cloud9 console users. We recommend using Amazon Linux 2023 as
+	// the AMI to create your environment as it is fully supported. Since Ubuntu 18.04
+	// has ended standard support as of May 31, 2023, we recommend you choose Ubuntu
+	// 22.04. AMI aliases
+	//   - Amazon Linux 2: amazonlinux-2-x86_64
+	//   - Amazon Linux 2023 (recommended): amazonlinux-2023-x86_64
+	//   - Ubuntu 18.04: ubuntu-18.04-x86_64
+	//   - Ubuntu 22.04: ubuntu-22.04-x86_64
+	// SSM paths
+	//   - Amazon Linux 2: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
+	//   - Amazon Linux 2023 (recommended):
+	//   resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2023-x86_64
+	//   - Ubuntu 18.04: resolve:ssm:/aws/service/cloud9/amis/ubuntu-18.04-x86_64
+	//   - Ubuntu 22.04: resolve:ssm:/aws/service/cloud9/amis/ubuntu-22.04-x86_64
+	//
+	// This member is required.
+	ImageId *string
 
 	// The type of instance to connect to the environment (for example, t2.micro ).
 	//
@@ -72,33 +93,6 @@ type CreateEnvironmentEC2Input struct {
 	// UnauthorizedOperation .
 	DryRun *bool
 
-	// The identifier for the Amazon Machine Image (AMI) that's used to create the EC2
-	// instance. To choose an AMI for the instance, you must specify a valid AMI alias
-	// or a valid Amazon EC2 Systems Manager (SSM) path. From November 20, 2023, you
-	// will be required to include the imageId parameter for the CreateEnvironmentEC2
-	// action. This change will be reflected across all direct methods of communicating
-	// with the API, such as Amazon Web Services SDK, Amazon Web Services CLI and
-	// Amazon Web Services CloudFormation. This change will only affect direct API
-	// consumers, and not Cloud9 console users. From January 22, 2024, Amazon Linux
-	// (AL1) will be removed from the list of available image IDs for Cloud9. This is
-	// necessary as AL1 will reach the end of maintenance support in December 2023, and
-	// as a result will no longer receive security updates. We recommend using Amazon
-	// Linux 2 as the AMI to create your environment as it is fully supported. This
-	// change will only affect direct API consumers, and not Cloud9 console users.
-	// Since Ubuntu 18.04 has ended standard support as of May 31, 2023, we recommend
-	// you choose Ubuntu 22.04. AMI aliases
-	//   - Amazon Linux (default): amazonlinux-1-x86_64
-	//   - Amazon Linux 2: amazonlinux-2-x86_64
-	//   - Ubuntu 18.04: ubuntu-18.04-x86_64
-	//   - Ubuntu 22.04: ubuntu-22.04-x86_64
-	// SSM paths
-	//   - Amazon Linux (default):
-	//   resolve:ssm:/aws/service/cloud9/amis/amazonlinux-1-x86_64
-	//   - Amazon Linux 2: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
-	//   - Ubuntu 18.04: resolve:ssm:/aws/service/cloud9/amis/ubuntu-18.04-x86_64
-	//   - Ubuntu 22.04: resolve:ssm:/aws/service/cloud9/amis/ubuntu-22.04-x86_64
-	ImageId *string
-
 	// The Amazon Resource Name (ARN) of the environment owner. This ARN can be the
 	// ARN of any IAM principal. If this value is not specified, the ARN defaults to
 	// this environment's creator.
@@ -127,6 +121,9 @@ type CreateEnvironmentEC2Output struct {
 }
 
 func (c *Client) addOperationCreateEnvironmentEC2Middlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateEnvironmentEC2{}, middleware.After)
 	if err != nil {
 		return err
@@ -135,6 +132,10 @@ func (c *Client) addOperationCreateEnvironmentEC2Middlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateEnvironmentEC2"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -156,9 +157,6 @@ func (c *Client) addOperationCreateEnvironmentEC2Middlewares(stack *middleware.S
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -174,7 +172,7 @@ func (c *Client) addOperationCreateEnvironmentEC2Middlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateEnvironmentEC2ResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateEnvironmentEC2ValidationMiddleware(stack); err != nil {
@@ -195,7 +193,7 @@ func (c *Client) addOperationCreateEnvironmentEC2Middlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -205,130 +203,6 @@ func newServiceMetadataMiddleware_opCreateEnvironmentEC2(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "cloud9",
 		OperationName: "CreateEnvironmentEC2",
 	}
-}
-
-type opCreateEnvironmentEC2ResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateEnvironmentEC2ResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateEnvironmentEC2ResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "cloud9"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "cloud9"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("cloud9")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateEnvironmentEC2ResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateEnvironmentEC2ResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

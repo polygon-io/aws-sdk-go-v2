@@ -274,7 +274,7 @@ type ColumnInfo struct {
 	// A column label.
 	Label *string
 
-	// Indicates the column's nullable status.
+	// Unsupported constraint. This value always shows as UNKNOWN .
 	Nullable ColumnNullable
 
 	// For DECIMAL data types, specifies the total number of digits, up to 38. For
@@ -294,11 +294,13 @@ type ColumnInfo struct {
 	noSmithyDocumentSerde
 }
 
-// Specifies the KMS key that is used to encrypt the user's data stores in Athena.
-// This setting does not apply to Athena SQL workgroups.
+// Specifies the customer managed KMS key that is used to encrypt the user's data
+// stores in Athena. When an Amazon Web Services managed key is used, this value is
+// null. This setting does not apply to Athena SQL workgroups.
 type CustomerContentEncryptionConfiguration struct {
 
-	// The KMS key that is used to encrypt the user's data stores in Athena.
+	// The customer managed KMS key that is used to encrypt the user's data stores in
+	// Athena.
 	//
 	// This member is required.
 	KmsKey *string
@@ -365,8 +367,6 @@ type DataCatalog struct {
 	//   - The GLUE data catalog type also applies to the default AwsDataCatalog that
 	//   already exists in your account, of which you can have only one and cannot
 	//   modify.
-	//   - Queries that specify a Glue Data Catalog other than the default
-	//   AwsDataCatalog must be run on Athena engine version 2.
 	Parameters map[string]string
 
 	noSmithyDocumentSerde
@@ -511,6 +511,18 @@ type FilterDefinition struct {
 	noSmithyDocumentSerde
 }
 
+// Specifies whether the workgroup is IAM Identity Center supported.
+type IdentityCenterConfiguration struct {
+
+	// Specifies whether the workgroup is IAM Identity Center supported.
+	EnableIdentityCenter *bool
+
+	// The IAM Identity Center instance ARN that the workgroup associates to.
+	IdentityCenterInstanceArn *string
+
+	noSmithyDocumentSerde
+}
+
 // A query, where QueryString contains the SQL statements that make up the query.
 type NamedQuery struct {
 
@@ -631,6 +643,9 @@ type QueryExecution struct {
 	// The unique identifier for each query execution.
 	QueryExecutionId *string
 
+	// Specifies whether Amazon S3 access grants are enabled for query results.
+	QueryResultsS3AccessGrantsConfiguration *QueryResultsS3AccessGrantsConfiguration
+
 	// The location in Amazon S3 where query and calculation results are stored and
 	// the encryption option, if any, used for query results. These are known as
 	// "client-side settings". If workgroup settings override client-side settings,
@@ -711,6 +726,10 @@ type QueryExecutionStatistics struct {
 	// query.
 	ResultReuseInformation *ResultReuseInformation
 
+	// The number of milliseconds that Athena took to preprocess the query before
+	// submitting the query to the query engine.
+	ServicePreProcessingTimeInMillis *int64
+
 	// The number of milliseconds that Athena took to finalize and publish the query
 	// results after the query engine finished running the query.
 	ServiceProcessingTimeInMillis *int64
@@ -746,6 +765,27 @@ type QueryExecutionStatus struct {
 
 	// The date and time that the query was submitted.
 	SubmissionDateTime *time.Time
+
+	noSmithyDocumentSerde
+}
+
+// Specifies whether Amazon S3 access grants are enabled for query results.
+type QueryResultsS3AccessGrantsConfiguration struct {
+
+	// The authentication type used for Amazon S3 access grants. Currently, only
+	// DIRECTORY_IDENTITY is supported.
+	//
+	// This member is required.
+	AuthenticationType AuthenticationType
+
+	// Specifies whether Amazon S3 access grants are enabled for query results.
+	//
+	// This member is required.
+	EnableS3AccessGrants *bool
+
+	// When enabled, appends the user ID as an Amazon S3 path prefix to the query
+	// result output location.
+	CreateUserLevelPrefix *bool
 
 	noSmithyDocumentSerde
 }
@@ -805,6 +845,10 @@ type QueryRuntimeStatisticsTimeline struct {
 	// resources. Note that if transient errors occur, Athena might automatically add
 	// the query back to the queue.
 	QueryQueueTimeInMillis *int64
+
+	// The number of milliseconds that Athena spends on preprocessing before it
+	// submits the query to the engine.
+	ServicePreProcessingTimeInMillis *int64
 
 	// The number of milliseconds that Athena took to finalize and publish the query
 	// results after the query engine finished running the query.
@@ -1081,7 +1125,9 @@ type SessionConfiguration struct {
 	// encryption option used (for example, SSE_KMS or CSE_KMS ) and key information.
 	EncryptionConfiguration *EncryptionConfiguration
 
-	// The ARN of the execution role used for the session.
+	// The ARN of the execution role used to access user resources for Spark sessions
+	// and Identity Center enabled workgroups. This property applies only to Spark
+	// enabled workgroups and Identity Center enabled workgroups.
 	ExecutionRole *string
 
 	// The idle timeout in seconds for the session.
@@ -1300,6 +1346,10 @@ type WorkGroup struct {
 	// The workgroup description.
 	Description *string
 
+	// The ARN of the IAM Identity Center enabled application associated with the
+	// workgroup.
+	IdentityCenterApplicationArn *string
+
 	// The state of the workgroup: ENABLED or DISABLED.
 	State WorkGroupState
 
@@ -1348,11 +1398,20 @@ type WorkGroupConfiguration struct {
 	// regardless of this setting.
 	EngineVersion *EngineVersion
 
-	// Role used in a session for accessing the user's resources.
+	// The ARN of the execution role used to access user resources for Spark sessions
+	// and IAM Identity Center enabled workgroups. This property applies only to Spark
+	// enabled workgroups and IAM Identity Center enabled workgroups. The property is
+	// required for IAM Identity Center enabled workgroups.
 	ExecutionRole *string
+
+	// Specifies whether the workgroup is IAM Identity Center supported.
+	IdentityCenterConfiguration *IdentityCenterConfiguration
 
 	// Indicates that the Amazon CloudWatch metrics are enabled for the workgroup.
 	PublishCloudWatchMetricsEnabled *bool
+
+	// Specifies whether Amazon S3 access grants are enabled for query results.
+	QueryResultsS3AccessGrantsConfiguration *QueryResultsS3AccessGrantsConfiguration
 
 	// If set to true , allows members assigned to a workgroup to reference Amazon S3
 	// Requester Pays buckets in queries. If set to false , workgroup members cannot
@@ -1391,8 +1450,9 @@ type WorkGroupConfigurationUpdates struct {
 	// is allowed to scan.
 	BytesScannedCutoffPerQuery *int64
 
-	// Specifies the KMS key that is used to encrypt the user's data stores in Athena.
-	// This setting does not apply to Athena SQL workgroups.
+	// Specifies the customer managed KMS key that is used to encrypt the user's data
+	// stores in Athena. When an Amazon Web Services managed key is used, this value is
+	// null. This setting does not apply to Athena SQL workgroups.
 	CustomerContentEncryptionConfiguration *CustomerContentEncryptionConfiguration
 
 	// Enforces a minimal level of encryption for the workgroup for query and
@@ -1418,12 +1478,17 @@ type WorkGroupConfigurationUpdates struct {
 	// of this setting.
 	EngineVersion *EngineVersion
 
-	// Contains the ARN of the execution role for the workgroup
+	// The ARN of the execution role used to access user resources for Spark sessions
+	// and Identity Center enabled workgroups. This property applies only to Spark
+	// enabled workgroups and Identity Center enabled workgroups.
 	ExecutionRole *string
 
 	// Indicates whether this workgroup enables publishing metrics to Amazon
 	// CloudWatch.
 	PublishCloudWatchMetricsEnabled *bool
+
+	// Specifies whether Amazon S3 access grants are enabled for query results.
+	QueryResultsS3AccessGrantsConfiguration *QueryResultsS3AccessGrantsConfiguration
 
 	// Indicates that the data usage control limit per query is removed.
 	// WorkGroupConfiguration$BytesScannedCutoffPerQuery
@@ -1463,6 +1528,10 @@ type WorkGroupSummary struct {
 	// AmazonAthenaPreviewFunctionality workgroup run on the preview engine regardless
 	// of this setting.
 	EngineVersion *EngineVersion
+
+	// The ARN of the IAM Identity Center enabled application associated with the
+	// workgroup.
+	IdentityCenterApplicationArn *string
 
 	// The name of the workgroup.
 	Name *string

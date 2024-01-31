@@ -676,6 +676,24 @@ func (ColumnDataRole) Values() []ColumnDataRole {
 	}
 }
 
+type ColumnDataSubType string
+
+// Enum values for ColumnDataSubType
+const (
+	ColumnDataSubTypeFloat ColumnDataSubType = "FLOAT"
+	ColumnDataSubTypeFixed ColumnDataSubType = "FIXED"
+)
+
+// Values returns all known values for ColumnDataSubType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (ColumnDataSubType) Values() []ColumnDataSubType {
+	return []ColumnDataSubType{
+		"FLOAT",
+		"FIXED",
+	}
+}
+
 type ColumnDataType string
 
 // Enum values for ColumnDataType
@@ -1213,6 +1231,9 @@ const (
 	DataSourceTypeAmazonOpensearch    DataSourceType = "AMAZON_OPENSEARCH"
 	DataSourceTypeExasol              DataSourceType = "EXASOL"
 	DataSourceTypeDatabricks          DataSourceType = "DATABRICKS"
+	DataSourceTypeStarburst           DataSourceType = "STARBURST"
+	DataSourceTypeTrino               DataSourceType = "TRINO"
+	DataSourceTypeBigquery            DataSourceType = "BIGQUERY"
 )
 
 // Values returns all known values for DataSourceType. Note that this can be
@@ -1246,6 +1267,9 @@ func (DataSourceType) Values() []DataSourceType {
 		"AMAZON_OPENSEARCH",
 		"EXASOL",
 		"DATABRICKS",
+		"STARBURST",
+		"TRINO",
+		"BIGQUERY",
 	}
 }
 
@@ -1268,6 +1292,34 @@ func (DateAggregationFunction) Values() []DateAggregationFunction {
 		"DISTINCT_COUNT",
 		"MIN",
 		"MAX",
+	}
+}
+
+type DayOfTheWeek string
+
+// Enum values for DayOfTheWeek
+const (
+	DayOfTheWeekSunday    DayOfTheWeek = "SUNDAY"
+	DayOfTheWeekMonday    DayOfTheWeek = "MONDAY"
+	DayOfTheWeekTuesday   DayOfTheWeek = "TUESDAY"
+	DayOfTheWeekWednesday DayOfTheWeek = "WEDNESDAY"
+	DayOfTheWeekThursday  DayOfTheWeek = "THURSDAY"
+	DayOfTheWeekFriday    DayOfTheWeek = "FRIDAY"
+	DayOfTheWeekSaturday  DayOfTheWeek = "SATURDAY"
+)
+
+// Values returns all known values for DayOfTheWeek. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (DayOfTheWeek) Values() []DayOfTheWeek {
+	return []DayOfTheWeek{
+		"SUNDAY",
+		"MONDAY",
+		"TUESDAY",
+		"WEDNESDAY",
+		"THURSDAY",
+		"FRIDAY",
+		"SATURDAY",
 	}
 }
 
@@ -3240,6 +3292,26 @@ func (ResourceStatus) Values() []ResourceStatus {
 	}
 }
 
+type Role string
+
+// Enum values for Role
+const (
+	RoleAdmin  Role = "ADMIN"
+	RoleAuthor Role = "AUTHOR"
+	RoleReader Role = "READER"
+)
+
+// Values returns all known values for Role. Note that this can be expanded in the
+// future, and so it is only as up to date as the client. The ordering of this
+// slice is not guaranteed to be stable across updates.
+func (Role) Values() []Role {
+	return []Role{
+		"ADMIN",
+		"AUTHOR",
+		"READER",
+	}
+}
+
 type RowLevelPermissionFormatVersion string
 
 // Enum values for RowLevelPermissionFormatVersion
@@ -3342,6 +3414,22 @@ func (SelectedTooltipType) Values() []SelectedTooltipType {
 	return []SelectedTooltipType{
 		"BASIC",
 		"DETAILED",
+	}
+}
+
+type ServiceType string
+
+// Enum values for ServiceType
+const (
+	ServiceTypeRedshift ServiceType = "REDSHIFT"
+)
+
+// Values returns all known values for ServiceType. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
+func (ServiceType) Values() []ServiceType {
+	return []ServiceType{
+		"REDSHIFT",
 	}
 }
 
@@ -3514,6 +3602,22 @@ func (SimpleTotalAggregationFunction) Values() []SimpleTotalAggregationFunction 
 		"MIN",
 		"MAX",
 		"NONE",
+	}
+}
+
+type SingleYAxisOption string
+
+// Enum values for SingleYAxisOption
+const (
+	SingleYAxisOptionPrimaryYAxis SingleYAxisOption = "PRIMARY_Y_AXIS"
+)
+
+// Values returns all known values for SingleYAxisOption. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (SingleYAxisOption) Values() []SingleYAxisOption {
+	return []SingleYAxisOption{
+		"PRIMARY_Y_AXIS",
 	}
 }
 
@@ -4131,6 +4235,24 @@ func (TopicTimeGranularity) Values() []TopicTimeGranularity {
 		"MONTH",
 		"QUARTER",
 		"YEAR",
+	}
+}
+
+type TopicUserExperienceVersion string
+
+// Enum values for TopicUserExperienceVersion
+const (
+	TopicUserExperienceVersionLegacy              TopicUserExperienceVersion = "LEGACY"
+	TopicUserExperienceVersionNewReaderExperience TopicUserExperienceVersion = "NEW_READER_EXPERIENCE"
+)
+
+// Values returns all known values for TopicUserExperienceVersion. Note that this
+// can be expanded in the future, and so it is only as up to date as the client.
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (TopicUserExperienceVersion) Values() []TopicUserExperienceVersion {
+	return []TopicUserExperienceVersion{
+		"LEGACY",
+		"NEW_READER_EXPERIENCE",
 	}
 }
 

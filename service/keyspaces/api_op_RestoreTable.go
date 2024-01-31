@@ -4,20 +4,16 @@ package keyspaces
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/keyspaces/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
 )
 
-// Restores the specified table to the specified point in time within the
+// Restores the table to the specified point in time within the
 // earliest_restorable_timestamp and the current time. For more information about
 // restore points, see Time window for PITR continuous backups (https://docs.aws.amazon.com/keyspaces/latest/devguide/PointInTimeRecovery_HowItWorks.html#howitworks_backup_window)
 // in the Amazon Keyspaces Developer Guide. Any number of users can execute up to 4
@@ -27,20 +23,20 @@ import (
 // (day:hour:minute:second) to a new table. The Time to Live (TTL) settings are
 // also restored to the state based on the selected timestamp. In addition to the
 // table's schema, data, and TTL settings, RestoreTable restores the capacity
-// mode, encryption, and point-in-time recovery settings from the source table.
-// Unlike the table's schema data and TTL settings, which are restored based on the
-// selected timestamp, these settings are always restored based on the table's
-// settings as of the current time or when the table was deleted. You can also
-// overwrite these settings during restore:
+// mode, auto scaling settings, encryption settings, and point-in-time recovery
+// settings from the source table. Unlike the table's schema data and TTL settings,
+// which are restored based on the selected timestamp, these settings are always
+// restored based on the table's settings as of the current time or when the table
+// was deleted. You can also overwrite these settings during restore:
 //   - Read/write capacity mode
-//   - Provisioned throughput capacity settings
+//   - Provisioned throughput capacity units
+//   - Auto scaling settings
 //   - Point-in-time (PITR) settings
 //   - Tags
 //
 // For more information, see PITR restore settings (https://docs.aws.amazon.com/keyspaces/latest/devguide/PointInTimeRecovery_HowItWorks.html#howitworks_backup_settings)
 // in the Amazon Keyspaces Developer Guide. Note that the following settings are
 // not restored, and you must configure them manually for the new table:
-//   - Automatic scaling policies (for tables that use provisioned capacity mode)
 //   - Identity and Access Management (IAM) policies
 //   - Amazon CloudWatch metrics and alarms
 func (c *Client) RestoreTable(ctx context.Context, params *RestoreTableInput, optFns ...func(*Options)) (*RestoreTableOutput, error) {
@@ -80,6 +76,16 @@ type RestoreTableInput struct {
 	// This member is required.
 	TargetTableName *string
 
+	// The optional auto scaling settings for the restored table in provisioned
+	// capacity mode. Specifies if the service can manage throughput capacity of a
+	// provisioned table automatically on your behalf. Amazon Keyspaces auto scaling
+	// helps you provision throughput capacity for variable workloads efficiently by
+	// increasing and decreasing your table's read and write capacity automatically in
+	// response to application traffic. For more information, see Managing throughput
+	// capacity automatically with Amazon Keyspaces auto scaling (https://docs.aws.amazon.com/keyspaces/latest/devguide/autoscaling.html)
+	// in the Amazon Keyspaces Developer Guide.
+	AutoScalingSpecification *types.AutoScalingSpecification
+
 	// Specifies the read/write throughput capacity mode for the target table. The
 	// options are:
 	//   - throughputMode:PAY_PER_REQUEST
@@ -111,6 +117,9 @@ type RestoreTableInput struct {
 	// in the Amazon Keyspaces Developer Guide.
 	PointInTimeRecoveryOverride *types.PointInTimeRecovery
 
+	// The optional Region specific settings of a multi-Regional table.
+	ReplicaSpecifications []types.ReplicaSpecification
+
 	// The restore timestamp in ISO 8601 format.
 	RestoreTimestamp *time.Time
 
@@ -136,6 +145,9 @@ type RestoreTableOutput struct {
 }
 
 func (c *Client) addOperationRestoreTableMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpRestoreTable{}, middleware.After)
 	if err != nil {
 		return err
@@ -144,6 +156,10 @@ func (c *Client) addOperationRestoreTableMiddlewares(stack *middleware.Stack, op
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RestoreTable"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -165,9 +181,6 @@ func (c *Client) addOperationRestoreTableMiddlewares(stack *middleware.Stack, op
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -183,7 +196,7 @@ func (c *Client) addOperationRestoreTableMiddlewares(stack *middleware.Stack, op
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addRestoreTableResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpRestoreTableValidationMiddleware(stack); err != nil {
@@ -204,7 +217,7 @@ func (c *Client) addOperationRestoreTableMiddlewares(stack *middleware.Stack, op
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -214,130 +227,6 @@ func newServiceMetadataMiddleware_opRestoreTable(region string) *awsmiddleware.R
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "cassandra",
 		OperationName: "RestoreTable",
 	}
-}
-
-type opRestoreTableResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opRestoreTableResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opRestoreTableResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "cassandra"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "cassandra"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("cassandra")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addRestoreTableResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opRestoreTableResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

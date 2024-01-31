@@ -21760,6 +21760,19 @@ func awsAwsjson11_deserializeDocumentAssociation(v **types.Association, value in
 				sv.DocumentVersion = ptr.String(jtv)
 			}
 
+		case "Duration":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected Duration to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Duration = ptr.Int32(int32(i64))
+			}
+
 		case "InstanceId":
 			if value != nil {
 				jtv, ok := value.(string)
@@ -21980,6 +21993,19 @@ func awsAwsjson11_deserializeDocumentAssociationDescription(v **types.Associatio
 					return fmt.Errorf("expected DocumentVersion to be of type string, got %T instead", value)
 				}
 				sv.DocumentVersion = ptr.String(jtv)
+			}
+
+		case "Duration":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected Duration to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Duration = ptr.Int32(int32(i64))
 			}
 
 		case "InstanceId":
@@ -22900,6 +22926,19 @@ func awsAwsjson11_deserializeDocumentAssociationVersionInfo(v **types.Associatio
 				sv.DocumentVersion = ptr.String(jtv)
 			}
 
+		case "Duration":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected Duration to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Duration = ptr.Int32(int32(i64))
+			}
+
 		case "MaxConcurrency":
 			if value != nil {
 				jtv, ok := value.(string)
@@ -23667,6 +23706,11 @@ func awsAwsjson11_deserializeDocumentAutomationExecution(v **types.AutomationExe
 
 		case "TriggeredAlarms":
 			if err := awsAwsjson11_deserializeDocumentAlarmStateInformationList(&sv.TriggeredAlarms, value); err != nil {
+				return err
+			}
+
+		case "Variables":
+			if err := awsAwsjson11_deserializeDocumentAutomationParameterMap(&sv.Variables, value); err != nil {
 				return err
 			}
 
@@ -25541,6 +25585,19 @@ func awsAwsjson11_deserializeDocumentCreateAssociationBatchRequestEntry(v **type
 					return fmt.Errorf("expected DocumentVersion to be of type string, got %T instead", value)
 				}
 				sv.DocumentVersion = ptr.String(jtv)
+			}
+
+		case "Duration":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected Duration to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Duration = ptr.Int32(int32(i64))
 			}
 
 		case "InstanceId":
@@ -36554,6 +36611,86 @@ func awsAwsjson11_deserializeDocumentParameterVersionNotFound(v **types.Paramete
 	return nil
 }
 
+func awsAwsjson11_deserializeDocumentParentStepDetails(v **types.ParentStepDetails, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.ParentStepDetails
+	if *v == nil {
+		sv = &types.ParentStepDetails{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "Action":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected AutomationActionName to be of type string, got %T instead", value)
+				}
+				sv.Action = ptr.String(jtv)
+			}
+
+		case "Iteration":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected Integer to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Iteration = ptr.Int32(int32(i64))
+			}
+
+		case "IteratorValue":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected String to be of type string, got %T instead", value)
+				}
+				sv.IteratorValue = ptr.String(jtv)
+			}
+
+		case "StepExecutionId":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected String to be of type string, got %T instead", value)
+				}
+				sv.StepExecutionId = ptr.String(jtv)
+			}
+
+		case "StepName":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected String to be of type string, got %T instead", value)
+				}
+				sv.StepName = ptr.String(jtv)
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
 func awsAwsjson11_deserializeDocumentPatch(v **types.Patch, value interface{}) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -40396,6 +40533,11 @@ func awsAwsjson11_deserializeDocumentStepExecution(v **types.StepExecution, valu
 
 		case "OverriddenParameters":
 			if err := awsAwsjson11_deserializeDocumentAutomationParameterMap(&sv.OverriddenParameters, value); err != nil {
+				return err
+			}
+
+		case "ParentStepDetails":
+			if err := awsAwsjson11_deserializeDocumentParentStepDetails(&sv.ParentStepDetails, value); err != nil {
 				return err
 			}
 

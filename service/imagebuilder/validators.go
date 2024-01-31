@@ -30,6 +30,26 @@ func (m *validateOpCancelImageCreation) HandleInitialize(ctx context.Context, in
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpCancelLifecycleExecution struct {
+}
+
+func (*validateOpCancelLifecycleExecution) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCancelLifecycleExecution) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CancelLifecycleExecutionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCancelLifecycleExecutionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpCreateComponent struct {
 }
 
@@ -170,6 +190,46 @@ func (m *validateOpCreateInfrastructureConfiguration) HandleInitialize(ctx conte
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpCreateLifecyclePolicy struct {
+}
+
+func (*validateOpCreateLifecyclePolicy) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCreateLifecyclePolicy) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CreateLifecyclePolicyInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCreateLifecyclePolicyInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpCreateWorkflow struct {
+}
+
+func (*validateOpCreateWorkflow) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCreateWorkflow) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CreateWorkflowInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCreateWorkflowInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDeleteComponent struct {
 }
 
@@ -305,6 +365,46 @@ func (m *validateOpDeleteInfrastructureConfiguration) HandleInitialize(ctx conte
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpDeleteInfrastructureConfigurationInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpDeleteLifecyclePolicy struct {
+}
+
+func (*validateOpDeleteLifecyclePolicy) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDeleteLifecyclePolicy) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DeleteLifecyclePolicyInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDeleteLifecyclePolicyInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpDeleteWorkflow struct {
+}
+
+func (*validateOpDeleteWorkflow) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDeleteWorkflow) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DeleteWorkflowInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDeleteWorkflowInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -530,6 +630,46 @@ func (m *validateOpGetInfrastructureConfiguration) HandleInitialize(ctx context.
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpGetLifecycleExecution struct {
+}
+
+func (*validateOpGetLifecycleExecution) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpGetLifecycleExecution) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*GetLifecycleExecutionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpGetLifecycleExecutionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpGetLifecyclePolicy struct {
+}
+
+func (*validateOpGetLifecyclePolicy) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpGetLifecyclePolicy) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*GetLifecyclePolicyInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpGetLifecyclePolicyInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpGetWorkflowExecution struct {
 }
 
@@ -545,6 +685,26 @@ func (m *validateOpGetWorkflowExecution) HandleInitialize(ctx context.Context, i
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpGetWorkflowExecutionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpGetWorkflow struct {
+}
+
+func (*validateOpGetWorkflow) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpGetWorkflow) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*GetWorkflowInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpGetWorkflowInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -690,6 +850,46 @@ func (m *validateOpListImagePipelineImages) HandleInitialize(ctx context.Context
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpListLifecycleExecutionResources struct {
+}
+
+func (*validateOpListLifecycleExecutionResources) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListLifecycleExecutionResources) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListLifecycleExecutionResourcesInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListLifecycleExecutionResourcesInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpListLifecycleExecutions struct {
+}
+
+func (*validateOpListLifecycleExecutions) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListLifecycleExecutions) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListLifecycleExecutionsInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListLifecycleExecutionsInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpListTagsForResource struct {
 }
 
@@ -705,6 +905,26 @@ func (m *validateOpListTagsForResource) HandleInitialize(ctx context.Context, in
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpListTagsForResourceInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpListWorkflowBuildVersions struct {
+}
+
+func (*validateOpListWorkflowBuildVersions) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListWorkflowBuildVersions) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListWorkflowBuildVersionsInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListWorkflowBuildVersionsInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -830,6 +1050,26 @@ func (m *validateOpPutImageRecipePolicy) HandleInitialize(ctx context.Context, i
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpSendWorkflowStepAction struct {
+}
+
+func (*validateOpSendWorkflowStepAction) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpSendWorkflowStepAction) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*SendWorkflowStepActionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpSendWorkflowStepActionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpStartImagePipelineExecution struct {
 }
 
@@ -845,6 +1085,26 @@ func (m *validateOpStartImagePipelineExecution) HandleInitialize(ctx context.Con
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpStartImagePipelineExecutionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpStartResourceStateUpdate struct {
+}
+
+func (*validateOpStartResourceStateUpdate) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpStartResourceStateUpdate) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*StartResourceStateUpdateInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpStartResourceStateUpdateInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -950,8 +1210,32 @@ func (m *validateOpUpdateInfrastructureConfiguration) HandleInitialize(ctx conte
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpUpdateLifecyclePolicy struct {
+}
+
+func (*validateOpUpdateLifecyclePolicy) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpUpdateLifecyclePolicy) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*UpdateLifecyclePolicyInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpUpdateLifecyclePolicyInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 func addOpCancelImageCreationValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpCancelImageCreation{}, middleware.After)
+}
+
+func addOpCancelLifecycleExecutionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCancelLifecycleExecution{}, middleware.After)
 }
 
 func addOpCreateComponentValidationMiddleware(stack *middleware.Stack) error {
@@ -982,6 +1266,14 @@ func addOpCreateInfrastructureConfigurationValidationMiddleware(stack *middlewar
 	return stack.Initialize.Add(&validateOpCreateInfrastructureConfiguration{}, middleware.After)
 }
 
+func addOpCreateLifecyclePolicyValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCreateLifecyclePolicy{}, middleware.After)
+}
+
+func addOpCreateWorkflowValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCreateWorkflow{}, middleware.After)
+}
+
 func addOpDeleteComponentValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeleteComponent{}, middleware.After)
 }
@@ -1008,6 +1300,14 @@ func addOpDeleteImageRecipeValidationMiddleware(stack *middleware.Stack) error {
 
 func addOpDeleteInfrastructureConfigurationValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeleteInfrastructureConfiguration{}, middleware.After)
+}
+
+func addOpDeleteLifecyclePolicyValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDeleteLifecyclePolicy{}, middleware.After)
+}
+
+func addOpDeleteWorkflowValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDeleteWorkflow{}, middleware.After)
 }
 
 func addOpGetComponentValidationMiddleware(stack *middleware.Stack) error {
@@ -1054,8 +1354,20 @@ func addOpGetInfrastructureConfigurationValidationMiddleware(stack *middleware.S
 	return stack.Initialize.Add(&validateOpGetInfrastructureConfiguration{}, middleware.After)
 }
 
+func addOpGetLifecycleExecutionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpGetLifecycleExecution{}, middleware.After)
+}
+
+func addOpGetLifecyclePolicyValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpGetLifecyclePolicy{}, middleware.After)
+}
+
 func addOpGetWorkflowExecutionValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpGetWorkflowExecution{}, middleware.After)
+}
+
+func addOpGetWorkflowValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpGetWorkflow{}, middleware.After)
 }
 
 func addOpGetWorkflowStepExecutionValidationMiddleware(stack *middleware.Stack) error {
@@ -1086,8 +1398,20 @@ func addOpListImagePipelineImagesValidationMiddleware(stack *middleware.Stack) e
 	return stack.Initialize.Add(&validateOpListImagePipelineImages{}, middleware.After)
 }
 
+func addOpListLifecycleExecutionResourcesValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListLifecycleExecutionResources{}, middleware.After)
+}
+
+func addOpListLifecycleExecutionsValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListLifecycleExecutions{}, middleware.After)
+}
+
 func addOpListTagsForResourceValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpListTagsForResource{}, middleware.After)
+}
+
+func addOpListWorkflowBuildVersionsValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListWorkflowBuildVersions{}, middleware.After)
 }
 
 func addOpListWorkflowExecutionsValidationMiddleware(stack *middleware.Stack) error {
@@ -1114,8 +1438,16 @@ func addOpPutImageRecipePolicyValidationMiddleware(stack *middleware.Stack) erro
 	return stack.Initialize.Add(&validateOpPutImageRecipePolicy{}, middleware.After)
 }
 
+func addOpSendWorkflowStepActionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpSendWorkflowStepAction{}, middleware.After)
+}
+
 func addOpStartImagePipelineExecutionValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpStartImagePipelineExecution{}, middleware.After)
+}
+
+func addOpStartResourceStateUpdateValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpStartResourceStateUpdate{}, middleware.After)
 }
 
 func addOpTagResourceValidationMiddleware(stack *middleware.Stack) error {
@@ -1136,6 +1468,10 @@ func addOpUpdateImagePipelineValidationMiddleware(stack *middleware.Stack) error
 
 func addOpUpdateInfrastructureConfigurationValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpUpdateInfrastructureConfiguration{}, middleware.After)
+}
+
+func addOpUpdateLifecyclePolicyValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpUpdateLifecyclePolicy{}, middleware.After)
 }
 
 func validateComponentConfiguration(v *types.ComponentConfiguration) error {
@@ -1342,6 +1678,208 @@ func validateLaunchTemplateConfigurationList(v []types.LaunchTemplateConfigurati
 	}
 }
 
+func validateLifecyclePolicyDetail(v *types.LifecyclePolicyDetail) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetail"}
+	if v.Action == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Action"))
+	} else if v.Action != nil {
+		if err := validateLifecyclePolicyDetailAction(v.Action); err != nil {
+			invalidParams.AddNested("Action", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.Filter == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Filter"))
+	} else if v.Filter != nil {
+		if err := validateLifecyclePolicyDetailFilter(v.Filter); err != nil {
+			invalidParams.AddNested("Filter", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.ExclusionRules != nil {
+		if err := validateLifecyclePolicyDetailExclusionRules(v.ExclusionRules); err != nil {
+			invalidParams.AddNested("ExclusionRules", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyDetailAction(v *types.LifecyclePolicyDetailAction) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetailAction"}
+	if len(v.Type) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("Type"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyDetailExclusionRules(v *types.LifecyclePolicyDetailExclusionRules) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetailExclusionRules"}
+	if v.Amis != nil {
+		if err := validateLifecyclePolicyDetailExclusionRulesAmis(v.Amis); err != nil {
+			invalidParams.AddNested("Amis", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyDetailExclusionRulesAmis(v *types.LifecyclePolicyDetailExclusionRulesAmis) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetailExclusionRulesAmis"}
+	if v.LastLaunched != nil {
+		if err := validateLifecyclePolicyDetailExclusionRulesAmisLastLaunched(v.LastLaunched); err != nil {
+			invalidParams.AddNested("LastLaunched", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyDetailExclusionRulesAmisLastLaunched(v *types.LifecyclePolicyDetailExclusionRulesAmisLastLaunched) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetailExclusionRulesAmisLastLaunched"}
+	if v.Value == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Value"))
+	}
+	if len(v.Unit) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("Unit"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyDetailFilter(v *types.LifecyclePolicyDetailFilter) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetailFilter"}
+	if len(v.Type) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("Type"))
+	}
+	if v.Value == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Value"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyDetails(v []types.LifecyclePolicyDetail) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyDetails"}
+	for i := range v {
+		if err := validateLifecyclePolicyDetail(&v[i]); err != nil {
+			invalidParams.AddNested(fmt.Sprintf("[%d]", i), err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyResourceSelection(v *types.LifecyclePolicyResourceSelection) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyResourceSelection"}
+	if v.Recipes != nil {
+		if err := validateLifecyclePolicyResourceSelectionRecipes(v.Recipes); err != nil {
+			invalidParams.AddNested("Recipes", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyResourceSelectionRecipe(v *types.LifecyclePolicyResourceSelectionRecipe) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyResourceSelectionRecipe"}
+	if v.Name == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if v.SemanticVersion == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("SemanticVersion"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateLifecyclePolicyResourceSelectionRecipes(v []types.LifecyclePolicyResourceSelectionRecipe) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "LifecyclePolicyResourceSelectionRecipes"}
+	for i := range v {
+		if err := validateLifecyclePolicyResourceSelectionRecipe(&v[i]); err != nil {
+			invalidParams.AddNested(fmt.Sprintf("[%d]", i), err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateResourceStateUpdateExclusionRules(v *types.ResourceStateUpdateExclusionRules) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ResourceStateUpdateExclusionRules"}
+	if v.Amis != nil {
+		if err := validateLifecyclePolicyDetailExclusionRulesAmis(v.Amis); err != nil {
+			invalidParams.AddNested("Amis", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateS3ExportConfiguration(v *types.S3ExportConfiguration) error {
 	if v == nil {
 		return nil
@@ -1381,6 +1919,78 @@ func validateTargetContainerRepository(v *types.TargetContainerRepository) error
 	}
 }
 
+func validateWorkflowConfiguration(v *types.WorkflowConfiguration) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "WorkflowConfiguration"}
+	if v.WorkflowArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WorkflowArn"))
+	}
+	if v.Parameters != nil {
+		if err := validateWorkflowParameterList(v.Parameters); err != nil {
+			invalidParams.AddNested("Parameters", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateWorkflowConfigurationList(v []types.WorkflowConfiguration) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "WorkflowConfigurationList"}
+	for i := range v {
+		if err := validateWorkflowConfiguration(&v[i]); err != nil {
+			invalidParams.AddNested(fmt.Sprintf("[%d]", i), err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateWorkflowParameter(v *types.WorkflowParameter) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "WorkflowParameter"}
+	if v.Name == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if v.Value == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Value"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateWorkflowParameterList(v []types.WorkflowParameter) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "WorkflowParameterList"}
+	for i := range v {
+		if err := validateWorkflowParameter(&v[i]); err != nil {
+			invalidParams.AddNested(fmt.Sprintf("[%d]", i), err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpCancelImageCreationInput(v *CancelImageCreationInput) error {
 	if v == nil {
 		return nil
@@ -1388,6 +1998,24 @@ func validateOpCancelImageCreationInput(v *CancelImageCreationInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "CancelImageCreationInput"}
 	if v.ImageBuildVersionArn == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ImageBuildVersionArn"))
+	}
+	if v.ClientToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpCancelLifecycleExecutionInput(v *CancelLifecycleExecutionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CancelLifecycleExecutionInput"}
+	if v.LifecycleExecutionId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("LifecycleExecutionId"))
 	}
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
@@ -1500,6 +2128,11 @@ func validateOpCreateImageInput(v *CreateImageInput) error {
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
 	}
+	if v.Workflows != nil {
+		if err := validateWorkflowConfigurationList(v.Workflows); err != nil {
+			invalidParams.AddNested("Workflows", err.(smithy.InvalidParamsError))
+		}
+	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	} else {
@@ -1520,6 +2153,11 @@ func validateOpCreateImagePipelineInput(v *CreateImagePipelineInput) error {
 	}
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if v.Workflows != nil {
+		if err := validateWorkflowConfigurationList(v.Workflows); err != nil {
+			invalidParams.AddNested("Workflows", err.(smithy.InvalidParamsError))
+		}
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1572,6 +2210,68 @@ func validateOpCreateInfrastructureConfigurationInput(v *CreateInfrastructureCon
 	}
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpCreateLifecyclePolicyInput(v *CreateLifecyclePolicyInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CreateLifecyclePolicyInput"}
+	if v.Name == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if v.ExecutionRole == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ExecutionRole"))
+	}
+	if len(v.ResourceType) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("ResourceType"))
+	}
+	if v.PolicyDetails == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyDetails"))
+	} else if v.PolicyDetails != nil {
+		if err := validateLifecyclePolicyDetails(v.PolicyDetails); err != nil {
+			invalidParams.AddNested("PolicyDetails", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.ResourceSelection == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ResourceSelection"))
+	} else if v.ResourceSelection != nil {
+		if err := validateLifecyclePolicyResourceSelection(v.ResourceSelection); err != nil {
+			invalidParams.AddNested("ResourceSelection", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.ClientToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpCreateWorkflowInput(v *CreateWorkflowInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CreateWorkflowInput"}
+	if v.Name == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if v.SemanticVersion == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("SemanticVersion"))
+	}
+	if v.ClientToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if len(v.Type) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("Type"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1677,6 +2377,36 @@ func validateOpDeleteInfrastructureConfigurationInput(v *DeleteInfrastructureCon
 	invalidParams := smithy.InvalidParamsError{Context: "DeleteInfrastructureConfigurationInput"}
 	if v.InfrastructureConfigurationArn == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("InfrastructureConfigurationArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDeleteLifecyclePolicyInput(v *DeleteLifecyclePolicyInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DeleteLifecyclePolicyInput"}
+	if v.LifecyclePolicyArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("LifecyclePolicyArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDeleteWorkflowInput(v *DeleteWorkflowInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DeleteWorkflowInput"}
+	if v.WorkflowBuildVersionArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WorkflowBuildVersionArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1850,6 +2580,36 @@ func validateOpGetInfrastructureConfigurationInput(v *GetInfrastructureConfigura
 	}
 }
 
+func validateOpGetLifecycleExecutionInput(v *GetLifecycleExecutionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "GetLifecycleExecutionInput"}
+	if v.LifecycleExecutionId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("LifecycleExecutionId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpGetLifecyclePolicyInput(v *GetLifecyclePolicyInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "GetLifecyclePolicyInput"}
+	if v.LifecyclePolicyArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("LifecyclePolicyArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpGetWorkflowExecutionInput(v *GetWorkflowExecutionInput) error {
 	if v == nil {
 		return nil
@@ -1857,6 +2617,21 @@ func validateOpGetWorkflowExecutionInput(v *GetWorkflowExecutionInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "GetWorkflowExecutionInput"}
 	if v.WorkflowExecutionId == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("WorkflowExecutionId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpGetWorkflowInput(v *GetWorkflowInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "GetWorkflowInput"}
+	if v.WorkflowBuildVersionArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WorkflowBuildVersionArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1997,6 +2772,36 @@ func validateOpListImagePipelineImagesInput(v *ListImagePipelineImagesInput) err
 	}
 }
 
+func validateOpListLifecycleExecutionResourcesInput(v *ListLifecycleExecutionResourcesInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListLifecycleExecutionResourcesInput"}
+	if v.LifecycleExecutionId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("LifecycleExecutionId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpListLifecycleExecutionsInput(v *ListLifecycleExecutionsInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListLifecycleExecutionsInput"}
+	if v.ResourceArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ResourceArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpListTagsForResourceInput(v *ListTagsForResourceInput) error {
 	if v == nil {
 		return nil
@@ -2004,6 +2809,21 @@ func validateOpListTagsForResourceInput(v *ListTagsForResourceInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "ListTagsForResourceInput"}
 	if v.ResourceArn == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ResourceArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpListWorkflowBuildVersionsInput(v *ListWorkflowBuildVersionsInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListWorkflowBuildVersionsInput"}
+	if v.WorkflowVersionArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WorkflowVersionArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2114,6 +2934,30 @@ func validateOpPutImageRecipePolicyInput(v *PutImageRecipePolicyInput) error {
 	}
 }
 
+func validateOpSendWorkflowStepActionInput(v *SendWorkflowStepActionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "SendWorkflowStepActionInput"}
+	if v.StepExecutionId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("StepExecutionId"))
+	}
+	if v.ImageBuildVersionArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ImageBuildVersionArn"))
+	}
+	if len(v.Action) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("Action"))
+	}
+	if v.ClientToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpStartImagePipelineExecutionInput(v *StartImagePipelineExecutionInput) error {
 	if v == nil {
 		return nil
@@ -2121,6 +2965,32 @@ func validateOpStartImagePipelineExecutionInput(v *StartImagePipelineExecutionIn
 	invalidParams := smithy.InvalidParamsError{Context: "StartImagePipelineExecutionInput"}
 	if v.ImagePipelineArn == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ImagePipelineArn"))
+	}
+	if v.ClientToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpStartResourceStateUpdateInput(v *StartResourceStateUpdateInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "StartResourceStateUpdateInput"}
+	if v.ResourceArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ResourceArn"))
+	}
+	if v.State == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("State"))
+	}
+	if v.ExclusionRules != nil {
+		if err := validateResourceStateUpdateExclusionRules(v.ExclusionRules); err != nil {
+			invalidParams.AddNested("ExclusionRules", err.(smithy.InvalidParamsError))
+		}
 	}
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
@@ -2207,6 +3077,11 @@ func validateOpUpdateImagePipelineInput(v *UpdateImagePipelineInput) error {
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
 	}
+	if v.Workflows != nil {
+		if err := validateWorkflowConfigurationList(v.Workflows); err != nil {
+			invalidParams.AddNested("Workflows", err.(smithy.InvalidParamsError))
+		}
+	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	} else {
@@ -2224,6 +3099,44 @@ func validateOpUpdateInfrastructureConfigurationInput(v *UpdateInfrastructureCon
 	}
 	if v.InstanceProfileName == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("InstanceProfileName"))
+	}
+	if v.ClientToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpUpdateLifecyclePolicyInput(v *UpdateLifecyclePolicyInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "UpdateLifecyclePolicyInput"}
+	if v.LifecyclePolicyArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("LifecyclePolicyArn"))
+	}
+	if v.ExecutionRole == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ExecutionRole"))
+	}
+	if len(v.ResourceType) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("ResourceType"))
+	}
+	if v.PolicyDetails == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyDetails"))
+	} else if v.PolicyDetails != nil {
+		if err := validateLifecyclePolicyDetails(v.PolicyDetails); err != nil {
+			invalidParams.AddNested("PolicyDetails", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.ResourceSelection == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ResourceSelection"))
+	} else if v.ResourceSelection != nil {
+		if err := validateLifecyclePolicyResourceSelection(v.ResourceSelection); err != nil {
+			invalidParams.AddNested("ResourceSelection", err.(smithy.InvalidParamsError))
+		}
 	}
 	if v.ClientToken == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClientToken"))

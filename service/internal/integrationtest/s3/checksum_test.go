@@ -7,21 +7,47 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"strings"
-	"testing"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go/logging"
 	"github.com/google/go-cmp/cmp"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"testing"
 )
+
+type retryClient struct {
+	isRetriedCall bool
+	baseClient    aws.HTTPClient
+}
+
+type mockConnectionError struct{ err error }
+
+func (m mockConnectionError) ConnectionError() bool {
+	return true
+}
+func (m mockConnectionError) Error() string {
+	return fmt.Sprintf("request error: %v", m.err)
+}
+func (m mockConnectionError) Unwrap() error {
+	return m.err
+}
+
+func (c *retryClient) Do(req *http.Request) (*http.Response, error) {
+	if !c.isRetriedCall {
+		c.isRetriedCall = true
+		return nil, mockConnectionError{}
+	}
+	return c.baseClient.Do(req)
+}
 
 func TestInteg_ObjectChecksums(t *testing.T) {
 	cases := map[string]map[string]struct {
 		disableHTTPS bool
+		retry        bool
 		params       *s3.PutObjectInput
 		expectErr    string
 
@@ -86,6 +112,7 @@ func TestInteg_ObjectChecksums(t *testing.T) {
 				},
 			},
 			"autofill trailing checksum": {
+				retry: true,
 				params: &s3.PutObjectInput{
 					Body:              strings.NewReader("hello world"),
 					ChecksumAlgorithm: s3types.ChecksumAlgorithmCrc32c,
@@ -104,7 +131,7 @@ func TestInteg_ObjectChecksums(t *testing.T) {
 			"content length preset": {
 				params: &s3.PutObjectInput{
 					Body:              strings.NewReader("hello world"),
-					ContentLength:     11,
+					ContentLength:     aws.Int64(11),
 					ChecksumAlgorithm: s3types.ChecksumAlgorithmCrc32c,
 				},
 				getObjectChecksumMode: s3types.ChecksumModeEnabled,
@@ -198,7 +225,7 @@ func TestInteg_ObjectChecksums(t *testing.T) {
 			"content length preset": {
 				params: &s3.PutObjectInput{
 					Body:              ioutil.NopCloser(strings.NewReader("hello world")),
-					ContentLength:     11,
+					ContentLength:     aws.Int64(11),
 					ChecksumAlgorithm: s3types.ChecksumAlgorithmCrc32c,
 				},
 				getObjectChecksumMode: s3types.ChecksumModeEnabled,
@@ -343,6 +370,14 @@ func TestInteg_ObjectChecksums(t *testing.T) {
 						o.EndpointOptions.DisableHTTPS = c.disableHTTPS
 					}
 
+					if c.retry {
+						opts := s3client.Options()
+						opts.HTTPClient = &retryClient{
+							baseClient: opts.HTTPClient,
+						}
+						s3client = s3.New(opts)
+					}
+
 					t.Logf("putting bucket: %q, object: %q", *c.params.Bucket, *c.params.Key)
 					putResult, err := s3client.PutObject(ctx, c.params, s3Options)
 					if err == nil && len(c.expectErr) != 0 {
@@ -449,7 +484,7 @@ func TestInteg_RequireChecksum(t *testing.T) {
 					Objects: []s3types.ObjectIdentifier{
 						{Key: aws.String(t.Name())},
 					},
-					Quiet: true,
+					Quiet: aws.Bool(true),
 				},
 				ChecksumAlgorithm: c.checksumAlgorithm,
 			})

@@ -123,6 +123,24 @@ func (CustomLineItemType) Values() []CustomLineItemType {
 	}
 }
 
+type GroupByAttributeName string
+
+// Enum values for GroupByAttributeName
+const (
+	GroupByAttributeNameProductName   GroupByAttributeName = "PRODUCT_NAME"
+	GroupByAttributeNameBillingPeriod GroupByAttributeName = "BILLING_PERIOD"
+)
+
+// Values returns all known values for GroupByAttributeName. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (GroupByAttributeName) Values() []GroupByAttributeName {
+	return []GroupByAttributeName{
+		"PRODUCT_NAME",
+		"BILLING_PERIOD",
+	}
+}
+
 type LineItemFilterAttributeName string
 
 // Enum values for LineItemFilterAttributeName
@@ -276,6 +294,7 @@ const (
 	ValidationExceptionReasonInvalidFilter                         ValidationExceptionReason = "INVALID_FILTER"
 	ValidationExceptionReasonTooManyAutoAssociateBillingGroups     ValidationExceptionReason = "TOO_MANY_AUTO_ASSOCIATE_BILLING_GROUPS"
 	ValidationExceptionReasonCannotDeleteAutoAssociateBillingGroup ValidationExceptionReason = "CANNOT_DELETE_AUTO_ASSOCIATE_BILLING_GROUP"
+	ValidationExceptionReasonIllegalAccountId                      ValidationExceptionReason = "ILLEGAL_ACCOUNT_ID"
 )
 
 // Values returns all known values for ValidationExceptionReason. Note that this
@@ -342,5 +361,6 @@ func (ValidationExceptionReason) Values() []ValidationExceptionReason {
 		"INVALID_FILTER",
 		"TOO_MANY_AUTO_ASSOCIATE_BILLING_GROUPS",
 		"CANNOT_DELETE_AUTO_ASSOCIATE_BILLING_GROUP",
+		"ILLEGAL_ACCOUNT_ID",
 	}
 }

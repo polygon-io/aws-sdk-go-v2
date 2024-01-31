@@ -4,31 +4,28 @@ package arczonalshift
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/arczonalshift/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
 )
 
 // You start a zonal shift to temporarily move load balancer traffic away from an
-// Availability Zone in a AWS Region, to help your application recover immediately,
-// for example, from a developer's bad code deployment or from an AWS
-// infrastructure failure in a single Availability Zone. You can start a zonal
-// shift in Route 53 ARC only for managed resources in your account in an AWS
-// Region. Resources are automatically registered with Route 53 ARC by AWS
-// services. At this time, you can only start a zonal shift for Network Load
-// Balancers and Application Load Balancers with cross-zone load balancing turned
-// off. When you start a zonal shift, traffic for the resource is no longer routed
-// to the Availability Zone. The zonal shift is created immediately in Route 53
-// ARC. However, it can take a short time, typically up to a few minutes, for
-// existing, in-progress connections in the Availability Zone to complete. For more
+// Availability Zone in an Amazon Web Services Region, to help your application
+// recover immediately, for example, from a developer's bad code deployment or from
+// an Amazon Web Services infrastructure failure in a single Availability Zone. You
+// can start a zonal shift in Route 53 ARC only for managed resources in your
+// Amazon Web Services account in an Amazon Web Services Region. Resources are
+// automatically registered with Route 53 ARC by Amazon Web Services services. At
+// this time, you can only start a zonal shift for Network Load Balancers and
+// Application Load Balancers with cross-zone load balancing turned off. When you
+// start a zonal shift, traffic for the resource is no longer routed to the
+// Availability Zone. The zonal shift is created immediately in Route 53 ARC.
+// However, it can take a short time, typically up to a few minutes, for existing,
+// in-progress connections in the Availability Zone to complete. For more
 // information, see Zonal shift (https://docs.aws.amazon.com/r53recovery/latest/dg/arc-zonal-shift.html)
 // in the Amazon Route 53 Application Recovery Controller Developer Guide.
 func (c *Client) StartZonalShift(ctx context.Context, params *StartZonalShiftInput, optFns ...func(*Options)) (*StartZonalShiftOutput, error) {
@@ -50,7 +47,8 @@ type StartZonalShiftInput struct {
 
 	// The Availability Zone that traffic is moved away from for a resource when you
 	// start a zonal shift. Until the zonal shift expires or you cancel it, traffic for
-	// the resource is instead moved to other Availability Zones in the AWS Region.
+	// the resource is instead moved to other Availability Zones in the Amazon Web
+	// Services Region.
 	//
 	// This member is required.
 	AwayFrom *string
@@ -78,10 +76,10 @@ type StartZonalShiftInput struct {
 	// This member is required.
 	ExpiresIn *string
 
-	// The identifier for the resource to include in a zonal shift. The identifier is
-	// the Amazon Resource Name (ARN) for the resource. At this time, you can only
-	// start a zonal shift for Network Load Balancers and Application Load Balancers
-	// with cross-zone load balancing turned off.
+	// The identifier for the resource to shift away traffic for. The identifier is
+	// the Amazon Resource Name (ARN) for the resource. At this time, supported
+	// resources are Network Load Balancers and Application Load Balancers with
+	// cross-zone load balancing turned off.
 	//
 	// This member is required.
 	ResourceIdentifier *string
@@ -93,7 +91,8 @@ type StartZonalShiftOutput struct {
 
 	// The Availability Zone that traffic is moved away from for a resource when you
 	// start a zonal shift. Until the zonal shift expires or you cancel it, traffic for
-	// the resource is instead moved to other Availability Zones in the AWS Region.
+	// the resource is instead moved to other Availability Zones in the Amazon Web
+	// Services Region.
 	//
 	// This member is required.
 	AwayFrom *string
@@ -105,35 +104,35 @@ type StartZonalShiftOutput struct {
 	// This member is required.
 	Comment *string
 
-	// The expiry time (expiration time) for the zonal shift. A zonal shift is
-	// temporary and must be set to expire when you start the zonal shift. You can
-	// initially set a zonal shift to expire in a maximum of three days (72 hours).
+	// The expiry time (expiration time) for a customer-started zonal shift. A zonal
+	// shift is temporary and must be set to expire when you start the zonal shift. You
+	// can initially set a zonal shift to expire in a maximum of three days (72 hours).
 	// However, you can update a zonal shift to set a new expiration at any time. When
 	// you start a zonal shift, you specify how long you want it to be active, which
 	// Route 53 ARC converts to an expiry time (expiration time). You can cancel a
-	// zonal shift, for example, if you're ready to restore traffic to the Availability
-	// Zone. Or you can update the zonal shift to specify another length of time to
-	// expire in.
+	// zonal shift when you're ready to restore traffic to the Availability Zone, or
+	// just wait for it to expire. Or you can update the zonal shift to specify another
+	// length of time to expire in.
 	//
 	// This member is required.
 	ExpiryTime *time.Time
 
-	// The identifier for the resource to include in a zonal shift. The identifier is
-	// the Amazon Resource Name (ARN) for the resource. At this time, you can only
-	// start a zonal shift for Network Load Balancers and Application Load Balancers
-	// with cross-zone load balancing turned off.
+	// The identifier for the resource to shift away traffic for. The identifier is
+	// the Amazon Resource Name (ARN) for the resource. At this time, supported
+	// resources are Network Load Balancers and Application Load Balancers with
+	// cross-zone load balancing turned off.
 	//
 	// This member is required.
 	ResourceIdentifier *string
 
-	// The time (UTC) when the zonal shift is started.
+	// The time (UTC) when the zonal shift starts.
 	//
 	// This member is required.
 	StartTime *time.Time
 
 	// A status for a zonal shift. The Status for a zonal shift can have one of the
 	// following values:
-	//   - ACTIVE: The zonal shift is started and active.
+	//   - ACTIVE: The zonal shift has been started and active.
 	//   - EXPIRED: The zonal shift has expired (the expiry time was exceeded).
 	//   - CANCELED: The zonal shift was canceled.
 	//
@@ -152,6 +151,9 @@ type StartZonalShiftOutput struct {
 }
 
 func (c *Client) addOperationStartZonalShiftMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpStartZonalShift{}, middleware.After)
 	if err != nil {
 		return err
@@ -160,6 +162,10 @@ func (c *Client) addOperationStartZonalShiftMiddlewares(stack *middleware.Stack,
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "StartZonalShift"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -181,9 +187,6 @@ func (c *Client) addOperationStartZonalShiftMiddlewares(stack *middleware.Stack,
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -199,7 +202,7 @@ func (c *Client) addOperationStartZonalShiftMiddlewares(stack *middleware.Stack,
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addStartZonalShiftResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpStartZonalShiftValidationMiddleware(stack); err != nil {
@@ -220,7 +223,7 @@ func (c *Client) addOperationStartZonalShiftMiddlewares(stack *middleware.Stack,
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -230,130 +233,6 @@ func newServiceMetadataMiddleware_opStartZonalShift(region string) *awsmiddlewar
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "arc-zonal-shift",
 		OperationName: "StartZonalShift",
 	}
-}
-
-type opStartZonalShiftResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opStartZonalShiftResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opStartZonalShiftResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "arc-zonal-shift"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "arc-zonal-shift"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("arc-zonal-shift")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addStartZonalShiftResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opStartZonalShiftResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

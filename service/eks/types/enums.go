@@ -2,6 +2,24 @@
 
 package types
 
+type AccessScopeType string
+
+// Enum values for AccessScopeType
+const (
+	AccessScopeTypeCluster   AccessScopeType = "cluster"
+	AccessScopeTypeNamespace AccessScopeType = "namespace"
+)
+
+// Values returns all known values for AccessScopeType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (AccessScopeType) Values() []AccessScopeType {
+	return []AccessScopeType{
+		"cluster",
+		"namespace",
+	}
+}
+
 type AddonIssueCode string
 
 // Enum values for AddonIssueCode
@@ -100,6 +118,26 @@ func (AMITypes) Values() []AMITypes {
 	}
 }
 
+type AuthenticationMode string
+
+// Enum values for AuthenticationMode
+const (
+	AuthenticationModeApi             AuthenticationMode = "API"
+	AuthenticationModeApiAndConfigMap AuthenticationMode = "API_AND_CONFIG_MAP"
+	AuthenticationModeConfigMap       AuthenticationMode = "CONFIG_MAP"
+)
+
+// Values returns all known values for AuthenticationMode. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (AuthenticationMode) Values() []AuthenticationMode {
+	return []AuthenticationMode{
+		"API",
+		"API_AND_CONFIG_MAP",
+		"CONFIG_MAP",
+	}
+}
+
 type CapacityTypes string
 
 // Enum values for CapacityTypes
@@ -115,6 +153,22 @@ func (CapacityTypes) Values() []CapacityTypes {
 	return []CapacityTypes{
 		"ON_DEMAND",
 		"SPOT",
+	}
+}
+
+type Category string
+
+// Enum values for Category
+const (
+	CategoryUpgradeReadiness Category = "UPGRADE_READINESS"
+)
+
+// Values returns all known values for Category. Note that this can be expanded in
+// the future, and so it is only as up to date as the client. The ordering of this
+// slice is not guaranteed to be stable across updates.
+func (Category) Values() []Category {
+	return []Category{
+		"UPGRADE_READINESS",
 	}
 }
 
@@ -248,6 +302,67 @@ func (ConnectorConfigProvider) Values() []ConnectorConfigProvider {
 	}
 }
 
+type EksAnywhereSubscriptionLicenseType string
+
+// Enum values for EksAnywhereSubscriptionLicenseType
+const (
+	EksAnywhereSubscriptionLicenseTypeCluster EksAnywhereSubscriptionLicenseType = "Cluster"
+)
+
+// Values returns all known values for EksAnywhereSubscriptionLicenseType. Note
+// that this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (EksAnywhereSubscriptionLicenseType) Values() []EksAnywhereSubscriptionLicenseType {
+	return []EksAnywhereSubscriptionLicenseType{
+		"Cluster",
+	}
+}
+
+type EksAnywhereSubscriptionStatus string
+
+// Enum values for EksAnywhereSubscriptionStatus
+const (
+	EksAnywhereSubscriptionStatusCreating EksAnywhereSubscriptionStatus = "CREATING"
+	EksAnywhereSubscriptionStatusActive   EksAnywhereSubscriptionStatus = "ACTIVE"
+	EksAnywhereSubscriptionStatusUpdating EksAnywhereSubscriptionStatus = "UPDATING"
+	EksAnywhereSubscriptionStatusExpiring EksAnywhereSubscriptionStatus = "EXPIRING"
+	EksAnywhereSubscriptionStatusExpired  EksAnywhereSubscriptionStatus = "EXPIRED"
+	EksAnywhereSubscriptionStatusDeleting EksAnywhereSubscriptionStatus = "DELETING"
+)
+
+// Values returns all known values for EksAnywhereSubscriptionStatus. Note that
+// this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (EksAnywhereSubscriptionStatus) Values() []EksAnywhereSubscriptionStatus {
+	return []EksAnywhereSubscriptionStatus{
+		"CREATING",
+		"ACTIVE",
+		"UPDATING",
+		"EXPIRING",
+		"EXPIRED",
+		"DELETING",
+	}
+}
+
+type EksAnywhereSubscriptionTermUnit string
+
+// Enum values for EksAnywhereSubscriptionTermUnit
+const (
+	EksAnywhereSubscriptionTermUnitMonths EksAnywhereSubscriptionTermUnit = "MONTHS"
+)
+
+// Values returns all known values for EksAnywhereSubscriptionTermUnit. Note that
+// this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (EksAnywhereSubscriptionTermUnit) Values() []EksAnywhereSubscriptionTermUnit {
+	return []EksAnywhereSubscriptionTermUnit{
+		"MONTHS",
+	}
+}
+
 type ErrorCode string
 
 // Enum values for ErrorCode
@@ -317,6 +432,28 @@ func (FargateProfileStatus) Values() []FargateProfileStatus {
 		"DELETING",
 		"CREATE_FAILED",
 		"DELETE_FAILED",
+	}
+}
+
+type InsightStatusValue string
+
+// Enum values for InsightStatusValue
+const (
+	InsightStatusValuePassing InsightStatusValue = "PASSING"
+	InsightStatusValueWarning InsightStatusValue = "WARNING"
+	InsightStatusValueError   InsightStatusValue = "ERROR"
+	InsightStatusValueUnknown InsightStatusValue = "UNKNOWN"
+)
+
+// Values returns all known values for InsightStatusValue. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (InsightStatusValue) Values() []InsightStatusValue {
+	return []InsightStatusValue{
+		"PASSING",
+		"WARNING",
+		"ERROR",
+		"UNKNOWN",
 	}
 }
 
@@ -540,6 +677,7 @@ const (
 	UpdateParamTypeConfigurationValues      UpdateParamType = "ConfigurationValues"
 	UpdateParamTypeSecurityGroups           UpdateParamType = "SecurityGroups"
 	UpdateParamTypeSubnets                  UpdateParamType = "Subnets"
+	UpdateParamTypeAuthenticationMode       UpdateParamType = "AuthenticationMode"
 )
 
 // Values returns all known values for UpdateParamType. Note that this can be
@@ -573,6 +711,7 @@ func (UpdateParamType) Values() []UpdateParamType {
 		"ConfigurationValues",
 		"SecurityGroups",
 		"Subnets",
+		"AuthenticationMode",
 	}
 }
 
@@ -611,6 +750,7 @@ const (
 	UpdateTypeAssociateEncryptionConfig          UpdateType = "AssociateEncryptionConfig"
 	UpdateTypeAddonUpdate                        UpdateType = "AddonUpdate"
 	UpdateTypeVpcConfigUpdate                    UpdateType = "VpcConfigUpdate"
+	UpdateTypeAccessConfigUpdate                 UpdateType = "AccessConfigUpdate"
 )
 
 // Values returns all known values for UpdateType. Note that this can be expanded
@@ -627,5 +767,6 @@ func (UpdateType) Values() []UpdateType {
 		"AssociateEncryptionConfig",
 		"AddonUpdate",
 		"VpcConfigUpdate",
+		"AccessConfigUpdate",
 	}
 }

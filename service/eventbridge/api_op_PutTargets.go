@@ -4,69 +4,41 @@ package eventbridge
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
-	"github.com/aws/aws-sdk-go-v2/internal/v4a"
-	ebcust "github.com/aws/aws-sdk-go-v2/service/eventbridge/internal/customizations"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Adds the specified targets to the specified rule, or updates the targets if
 // they are already associated with the rule. Targets are the resources that are
-// invoked when a rule is triggered. Each rule can have up to five (5) targets
-// associated with it at one time. You can configure the following as targets for
-// Events:
-//   - API destination (https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-api-destinations.html)
-//   - API Gateway (https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-api-gateway-target.html)
-//   - Batch job queue
-//   - CloudWatch group
-//   - CodeBuild project
-//   - CodePipeline
-//   - EC2 CreateSnapshot API call
-//   - EC2 Image Builder
-//   - EC2 RebootInstances API call
-//   - EC2 StopInstances API call
-//   - EC2 TerminateInstances API call
-//   - ECS task
-//   - Event bus in a different account or Region (https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-cross-account.html)
-//   - Event bus in the same account and Region (https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-bus-to-bus.html)
-//   - Firehose delivery stream
-//   - Glue workflow
-//   - Incident Manager response plan (https://docs.aws.amazon.com/incident-manager/latest/userguide/incident-creation.html#incident-tracking-auto-eventbridge)
-//   - Inspector assessment template
-//   - Kinesis stream
-//   - Lambda function
-//   - Redshift cluster
-//   - Redshift Serverless workgroup
-//   - SageMaker Pipeline
-//   - SNS topic
-//   - SQS queue
-//   - Step Functions state machine
-//   - Systems Manager Automation
-//   - Systems Manager OpsItem
-//   - Systems Manager Run Command
+// invoked when a rule is triggered. The maximum number of entries per request is
+// 10. Each rule can have up to five (5) targets associated with it at one time.
+// For a list of services you can configure as targets for events, see EventBridge
+// targets (https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-targets.html)
+// in the Amazon EventBridge User Guide. Creating rules with built-in targets is
+// supported only in the Amazon Web Services Management Console. The built-in
+// targets are:
+//   - Amazon EBS CreateSnapshot API call
+//   - Amazon EC2 RebootInstances API call
+//   - Amazon EC2 StopInstances API call
+//   - Amazon EC2 TerminateInstances API call
 //
-// Creating rules with built-in targets is supported only in the Amazon Web
-// Services Management Console. The built-in targets are EC2 CreateSnapshot API
-// call , EC2 RebootInstances API call , EC2 StopInstances API call , and EC2
-// TerminateInstances API call . For some target types, PutTargets provides
-// target-specific parameters. If the target is a Kinesis data stream, you can
-// optionally specify which shard the event goes to by using the KinesisParameters
-// argument. To invoke a command on multiple EC2 instances with one rule, you can
-// use the RunCommandParameters field. To be able to make API calls against the
-// resources that you own, Amazon EventBridge needs the appropriate permissions.
-// For Lambda and Amazon SNS resources, EventBridge relies on resource-based
-// policies. For EC2 instances, Kinesis Data Streams, Step Functions state machines
-// and API Gateway APIs, EventBridge relies on IAM roles that you specify in the
-// RoleARN argument in PutTargets . For more information, see Authentication and
-// Access Control (https://docs.aws.amazon.com/eventbridge/latest/userguide/auth-and-access-control-eventbridge.html)
+// For some target types, PutTargets provides target-specific parameters. If the
+// target is a Kinesis data stream, you can optionally specify which shard the
+// event goes to by using the KinesisParameters argument. To invoke a command on
+// multiple EC2 instances with one rule, you can use the RunCommandParameters
+// field. To be able to make API calls against the resources that you own, Amazon
+// EventBridge needs the appropriate permissions:
+//   - For Lambda and Amazon SNS resources, EventBridge relies on resource-based
+//     policies.
+//   - For EC2 instances, Kinesis Data Streams, Step Functions state machines and
+//     API Gateway APIs, EventBridge relies on IAM roles that you specify in the
+//     RoleARN argument in PutTargets .
+//
+// For more information, see Authentication and Access Control (https://docs.aws.amazon.com/eventbridge/latest/userguide/auth-and-access-control-eventbridge.html)
 // in the Amazon EventBridge User Guide. If another Amazon Web Services account is
 // in the same region and has granted you permission (using PutPermission ), you
 // can send events to that account. Set that account's event bus as a target of the
@@ -83,7 +55,9 @@ import (
 // account ID, then you must specify a RoleArn with proper permissions in the
 // Target structure. For more information, see Sending and Receiving Events
 // Between Amazon Web Services Accounts (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-cross-account-event-delivery.html)
-// in the Amazon EventBridge User Guide. For more information about enabling
+// in the Amazon EventBridge User Guide. If you have an IAM role on a cross-account
+// event bus target, a PutTargets call without a role on the same target (same Id
+// and Arn ) will not remove the role. For more information about enabling
 // cross-account events, see PutPermission (https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_PutPermission.html)
 // . Input, InputPath, and InputTransformer are mutually exclusive and optional
 // parameters of a target. When a rule is triggered due to a matched event:
@@ -156,6 +130,9 @@ type PutTargetsOutput struct {
 }
 
 func (c *Client) addOperationPutTargetsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutTargets{}, middleware.After)
 	if err != nil {
 		return err
@@ -164,6 +141,10 @@ func (c *Client) addOperationPutTargetsMiddlewares(stack *middleware.Stack, opti
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "PutTargets"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -185,9 +166,6 @@ func (c *Client) addOperationPutTargetsMiddlewares(stack *middleware.Stack, opti
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -203,7 +181,7 @@ func (c *Client) addOperationPutTargetsMiddlewares(stack *middleware.Stack, opti
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addPutTargetsResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpPutTargetsValidationMiddleware(stack); err != nil {
@@ -224,7 +202,7 @@ func (c *Client) addOperationPutTargetsMiddlewares(stack *middleware.Stack, opti
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -234,132 +212,6 @@ func newServiceMetadataMiddleware_opPutTargets(region string) *awsmiddleware.Reg
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "events",
 		OperationName: "PutTargets",
 	}
-}
-
-type opPutTargetsResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opPutTargetsResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opPutTargetsResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "events"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			ctx = ebcust.SetSignerVersion(ctx, internalauth.SigV4)
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "events"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			ctx = ebcust.SetSignerVersion(ctx, v4Scheme.Name)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("events")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			ctx = ebcust.SetSignerVersion(ctx, v4a.Version)
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addPutTargetsResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opPutTargetsResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

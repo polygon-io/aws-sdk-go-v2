@@ -63,7 +63,7 @@ public class AssembleMiddlewareStack implements GoIntegration {
                 // Add streaming events payload middleware to operation stack
                 RuntimeClientPlugin.builder()
                         .operationPredicate((model, service, operation) -> {
-                            if (!AwsSignatureVersion4.hasSigV4AuthScheme(
+                            if (!AwsSignatureVersion4.hasSigV4X(
                                     model, service, operation)) {
                                 return false;
                             }
@@ -79,7 +79,7 @@ public class AssembleMiddlewareStack implements GoIntegration {
                 // Add unsigned payload middleware to operation stack
                 RuntimeClientPlugin.builder()
                         .operationPredicate((model, service, operation) -> {
-                            if (!AwsSignatureVersion4.hasSigV4AuthScheme(
+                            if (!AwsSignatureVersion4.hasSigV4X(
                                     model, service, operation)) {
                                 return false;
                             }
@@ -96,7 +96,7 @@ public class AssembleMiddlewareStack implements GoIntegration {
                 // Add signed payload middleware to operation stack
                 RuntimeClientPlugin.builder()
                         .operationPredicate((model, service, operation) -> {
-                            if (!AwsSignatureVersion4.hasSigV4AuthScheme(
+                            if (!AwsSignatureVersion4.hasSigV4X(
                                     model, service, operation)) {
                                 return false;
                             }
@@ -113,7 +113,7 @@ public class AssembleMiddlewareStack implements GoIntegration {
                 // Add content-sha256 payload header middleware to operation stack
                 RuntimeClientPlugin.builder()
                         .operationPredicate((model, service, operation) -> {
-                            if (!AwsSignatureVersion4.hasSigV4AuthScheme(
+                            if (!AwsSignatureVersion4.hasSigV4X(
                                     model, service, operation)) {
                                 return false;
                             }
@@ -137,15 +137,6 @@ public class AssembleMiddlewareStack implements GoIntegration {
                                 .build())
                         .build(),
 
-                // Add HTTPSigner middleware to operation stack
-                RuntimeClientPlugin.builder()
-                        .operationPredicate(AwsSignatureVersion4::hasSigV4AuthScheme)
-                        .registerMiddleware(MiddlewareRegistrar.builder()
-                                .resolvedFunction(SymbolUtils.createValueSymbolBuilder(
-                                        AwsSignatureVersion4.REGISTER_MIDDLEWARE_FUNCTION).build())
-                                .useClientOptions()
-                                .build())
-                        .build(),
                 // Add middleware to store raw response omn metadata
                 RuntimeClientPlugin.builder()
                         .registerMiddleware(MiddlewareRegistrar.builder()

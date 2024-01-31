@@ -11094,6 +11094,42 @@ func awsRestjson1_deserializeDocumentCountryCodeList(v *[]string, value interfac
 	return nil
 }
 
+func awsRestjson1_deserializeDocumentCustomLayerList(v *[]string, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.([]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var cv []string
+	if *v == nil {
+		cv = []string{}
+	} else {
+		cv = *v
+	}
+
+	for _, value := range shape {
+		var col string
+		if value != nil {
+			jtv, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("expected CustomLayer to be of type string, got %T instead", value)
+			}
+			col = jtv
+		}
+		cv = append(cv, col)
+
+	}
+	*v = cv
+	return nil
+}
+
 func awsRestjson1_deserializeDocumentDataSourceConfiguration(v **types.DataSourceConfiguration, value interface{}) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -12692,6 +12728,11 @@ func awsRestjson1_deserializeDocumentMapConfiguration(v **types.MapConfiguration
 
 	for key, value := range shape {
 		switch key {
+		case "CustomLayers":
+			if err := awsRestjson1_deserializeDocumentCustomLayerList(&sv.CustomLayers, value); err != nil {
+				return err
+			}
+
 		case "PoliticalView":
 			if value != nil {
 				jtv, ok := value.(string)
@@ -12830,6 +12871,15 @@ func awsRestjson1_deserializeDocumentPlace(v **types.Place, value interface{}) e
 					return fmt.Errorf("expected String to be of type string, got %T instead", value)
 				}
 				sv.Street = ptr.String(jtv)
+			}
+
+		case "SubMunicipality":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected String to be of type string, got %T instead", value)
+				}
+				sv.SubMunicipality = ptr.String(jtv)
 			}
 
 		case "SubRegion":
@@ -13878,7 +13928,7 @@ func awsRestjson1_deserializeDocumentSearchPlaceIndexForPositionSummary(v **type
 				if err != nil {
 					return err
 				}
-				sv.MaxResults = int32(i64)
+				sv.MaxResults = ptr.Int32(int32(i64))
 			}
 
 		case "Position":
@@ -14056,7 +14106,7 @@ func awsRestjson1_deserializeDocumentSearchPlaceIndexForTextSummary(v **types.Se
 				if err != nil {
 					return err
 				}
-				sv.MaxResults = int32(i64)
+				sv.MaxResults = ptr.Int32(int32(i64))
 			}
 
 		case "ResultBBox":

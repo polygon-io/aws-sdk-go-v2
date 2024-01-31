@@ -8250,6 +8250,11 @@ func awsAwsjson11_deserializeDocumentDescribedConnector(v **types.DescribedConne
 				sv.LoggingRole = ptr.String(jtv)
 			}
 
+		case "ServiceManagedEgressIpAddresses":
+			if err := awsAwsjson11_deserializeDocumentServiceManagedEgressIpAddresses(&sv.ServiceManagedEgressIpAddresses, value); err != nil {
+				return err
+			}
+
 		case "SftpConfig":
 			if err := awsAwsjson11_deserializeDocumentSftpConnectorConfig(&sv.SftpConfig, value); err != nil {
 				return err
@@ -8635,6 +8640,11 @@ func awsAwsjson11_deserializeDocumentDescribedServer(v **types.DescribedServer, 
 				sv.Arn = ptr.String(jtv)
 			}
 
+		case "As2ServiceManagedEgressIpAddresses":
+			if err := awsAwsjson11_deserializeDocumentServiceManagedEgressIpAddresses(&sv.As2ServiceManagedEgressIpAddresses, value); err != nil {
+				return err
+			}
+
 		case "Certificate":
 			if value != nil {
 				jtv, ok := value.(string)
@@ -8724,6 +8734,11 @@ func awsAwsjson11_deserializeDocumentDescribedServer(v **types.DescribedServer, 
 
 		case "Protocols":
 			if err := awsAwsjson11_deserializeDocumentProtocols(&sv.Protocols, value); err != nil {
+				return err
+			}
+
+		case "S3StorageOptions":
+			if err := awsAwsjson11_deserializeDocumentS3StorageOptions(&sv.S3StorageOptions, value); err != nil {
 				return err
 			}
 
@@ -9339,6 +9354,15 @@ func awsAwsjson11_deserializeDocumentHomeDirectoryMapEntry(v **types.HomeDirecto
 					return fmt.Errorf("expected MapTarget to be of type string, got %T instead", value)
 				}
 				sv.Target = ptr.String(jtv)
+			}
+
+		case "Type":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected MapType to be of type string, got %T instead", value)
+				}
+				sv.Type = types.MapType(jtv)
 			}
 
 		default:
@@ -11279,6 +11303,46 @@ func awsAwsjson11_deserializeDocumentS3InputFileLocation(v **types.S3InputFileLo
 	return nil
 }
 
+func awsAwsjson11_deserializeDocumentS3StorageOptions(v **types.S3StorageOptions, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.S3StorageOptions
+	if *v == nil {
+		sv = &types.S3StorageOptions{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "DirectoryListingOptimization":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected DirectoryListingOptimization to be of type string, got %T instead", value)
+				}
+				sv.DirectoryListingOptimization = types.DirectoryListingOptimization(jtv)
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
 func awsAwsjson11_deserializeDocumentS3Tag(v **types.S3Tag, value interface{}) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -11500,6 +11564,42 @@ func awsAwsjson11_deserializeDocumentSecurityPolicyOptions(v *[]string, value in
 			jtv, ok := value.(string)
 			if !ok {
 				return fmt.Errorf("expected SecurityPolicyOption to be of type string, got %T instead", value)
+			}
+			col = jtv
+		}
+		cv = append(cv, col)
+
+	}
+	*v = cv
+	return nil
+}
+
+func awsAwsjson11_deserializeDocumentServiceManagedEgressIpAddresses(v *[]string, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.([]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var cv []string
+	if *v == nil {
+		cv = []string{}
+	} else {
+		cv = *v
+	}
+
+	for _, value := range shape {
+		var col string
+		if value != nil {
+			jtv, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("expected ServiceManagedEgressIpAddress to be of type string, got %T instead", value)
 			}
 			col = jtv
 		}

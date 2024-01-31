@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/internal/awstesting"
 	"github.com/aws/aws-sdk-go-v2/internal/awstesting/unit"
 	"github.com/aws/aws-sdk-go-v2/internal/v4a"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -52,6 +53,24 @@ func Test_UpdateEndpointBuild(t *testing.T) {
 					{"a.b.c", "key", "https://s3.mock-region.amazonaws.com/a.b.c/key?x-id=GetObject", ""},
 					{"a..bc", "key", "https://s3.mock-region.amazonaws.com/a..bc/key?x-id=GetObject", ""},
 					{"abc", "k:e,y", "https://abc.s3.mock-region.amazonaws.com/k%3Ae%2Cy?x-id=GetObject", ""},
+				},
+			},
+			"VirtualHostStyleBucketV1EndpointHTTPS": {
+				customEndpoint: &aws.Endpoint{
+					URL: "https://foo.bar",
+				},
+				tests: []s3BucketTest{
+					{"abc", "key", "https://abc.foo.bar/key?x-id=GetObject", ""},
+					{"a.b.c", "key", "https://foo.bar/a.b.c/key?x-id=GetObject", ""},
+				},
+			},
+			"VirtualHostStyleBucketV1EndpointHTTP": {
+				customEndpoint: &aws.Endpoint{
+					URL: "http://foo.bar",
+				},
+				tests: []s3BucketTest{
+					{"abc", "key", "http://abc.foo.bar/key?x-id=GetObject", ""},
+					{"a.b.c", "key", "http://a.b.c.foo.bar/key?x-id=GetObject", ""},
 				},
 			},
 			"Accelerate": {
@@ -134,9 +153,9 @@ func Test_UpdateEndpointBuild(t *testing.T) {
 				},
 				tests: []s3BucketTest{
 					{"abc", "key", "https://example.region.amazonaws.com/abc/key?x-id=GetObject", ""},
-					{"a$b$c", "key", "https://example.region.amazonaws.com/a%24b%24c/key?x-id=GetObject", ""},
-					{"a.b.c", "key", "https://example.region.amazonaws.com/a.b.c/key?x-id=GetObject", ""},
-					{"a..bc", "key", "https://example.region.amazonaws.com/a..bc/key?x-id=GetObject", ""},
+					{"a$b$c", "key", "", "cannot be used with"},
+					{"a.b.c", "key", "", "cannot be used with"},
+					{"a..bc", "key", "", "cannot be used with"},
 				},
 			},
 			"AccelerateNoSSLTests": {
@@ -148,8 +167,8 @@ func Test_UpdateEndpointBuild(t *testing.T) {
 				},
 				tests: []s3BucketTest{
 					{"abc", "key", "https://example.region.amazonaws.com/abc/key?x-id=GetObject", ""},
-					{"a.b.c", "key", "https://example.region.amazonaws.com/a.b.c/key?x-id=GetObject", ""},
-					{"a$b$c", "key", "https://example.region.amazonaws.com/a%24b%24c/key?x-id=GetObject", ""},
+					{"a.b.c", "key", "", "cannot be used with"},
+					{"a$b$c", "key", "", "cannot be used with"},
 				},
 			},
 		},
@@ -1003,7 +1022,7 @@ func TestVPC_CustomEndpoint(t *testing.T) {
 			operation: func(ctx context.Context, svc *s3.Client, fm *requestRetriever) (interface{}, error) {
 				return svc.ListBuckets(ctx, &s3.ListBucketsInput{}, addRequestRetriever(fm))
 			},
-			expectedReqURL:        "https://bucket.vpce-123-abc.s3.us-west-2.vpce.amazonaws.com/",
+			expectedReqURL:        "https://bucket.vpce-123-abc.s3.us-west-2.vpce.amazonaws.com/?x-id=ListBuckets",
 			expectedSigningName:   "s3",
 			expectedSigningRegion: "us-west-2",
 		},
@@ -1543,11 +1562,11 @@ func runValidations(t *testing.T, c testCaseForEndpointCustomization, operation 
 		t.Fatalf("expect url %s, got %s", e, a)
 	}
 
-	if e, a := c.expectedSigningRegion, serializedRequest.signingRegion; !strings.EqualFold(e, a) {
+	if e, a := c.expectedSigningRegion, signedRequest.signingRegion; !strings.EqualFold(e, a) {
 		t.Fatalf("expect signing region as %s, got %s", e, a)
 	}
 
-	if e, a := c.expectedSigningName, serializedRequest.signingName; !strings.EqualFold(e, a) {
+	if e, a := c.expectedSigningName, signedRequest.signingName; !strings.EqualFold(e, a) {
 		t.Fatalf("expect signing name as %s, got %s", e, a)
 	}
 
@@ -1602,8 +1621,9 @@ func (rm *requestRetrieverMiddleware) HandleFinalize(
 	}
 	rm.request = req
 
-	rm.signingName = awsmiddleware.GetSigningName(ctx)
-	rm.signingRegion = awsmiddleware.GetSigningRegion(ctx)
+	signature := awstesting.ParseSigV4Signature(req.Header)
+	rm.signingName = signature.SigningName
+	rm.signingRegion = signature.SigningRegion
 
 	return next.HandleFinalize(ctx, in)
 }

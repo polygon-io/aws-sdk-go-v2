@@ -138,9 +138,10 @@ func TestNewSharedConfig(t *testing.T) {
 		"Invalid INI file": {
 			ConfigFilenames: []string{filepath.Join("testdata", "shared_config_invalid_ini")},
 			Profile:         "profile_name",
-			Err: SharedConfigLoadError{
-				Filename: filepath.Join("testdata", "shared_config_invalid_ini"),
-				Err:      fmt.Errorf("invalid state"),
+			Err: SharedConfigProfileNotExistError{
+				Filename: []string{filepath.Join("testdata", "shared_config_invalid_ini")},
+				Profile:  "profile_name",
+				Err:      nil,
 			},
 		},
 		"S3UseARNRegion property on profile": {
@@ -660,7 +661,76 @@ func TestNewSharedConfig(t *testing.T) {
 				BaseEndpoint:              "https://example.com",
 				IgnoreConfiguredEndpoints: ptr.Bool(true),
 			},
-		}}
+		},
+		"imdsv1 disabled = false": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "ec2-metadata-v1-disabled-false",
+			Expected: SharedConfig{
+				Profile:           "ec2-metadata-v1-disabled-false",
+				EC2IMDSv1Disabled: aws.Bool(false),
+			},
+		},
+		"imdsv1 disabled = true": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "ec2-metadata-v1-disabled-true",
+			Expected: SharedConfig{
+				Profile:           "ec2-metadata-v1-disabled-true",
+				EC2IMDSv1Disabled: aws.Bool(true),
+			},
+		},
+		"imdsv1 disabled = invalid": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "ec2-metadata-v1-disabled-invalid",
+			Expected: SharedConfig{
+				Profile:           "ec2-metadata-v1-disabled-invalid",
+				EC2IMDSv1Disabled: aws.Bool(false),
+			},
+		},
+		"profile configuring request compression": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "request_compression",
+			Expected: SharedConfig{
+				Profile:                     "request_compression",
+				DisableRequestCompression:   aws.Bool(true),
+				RequestMinCompressSizeBytes: aws.Int64(12345),
+			},
+		},
+		"profile with invalid disableRequestCompression": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "request_compression_invalid_disable",
+			Err: fmt.Errorf("invalid value for shared config profile field, %s=%s, need true or false",
+				disableRequestCompression, "blabla"),
+		},
+		"profile with non-int requestMinCompressSizeBytes": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "request_compression_non_int_min_request",
+			Err:             fmt.Errorf("invalid value for min request compression size bytes hahaha, need int64"),
+		},
+		"profile with requestMinCompressSizeBytes out of bounds": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "request_compression_min_request_out_of_bounds",
+			Err:             fmt.Errorf("invalid range for min request compression size bytes 10485761, must be within 0 and 10485760 inclusively"),
+		},
+		"services section": {
+			ConfigFilenames: []string{testConfigFilename},
+			Profile:         "service_endpoint_url",
+			Expected: SharedConfig{
+				Profile:             "service_endpoint_url",
+				ServicesSectionName: "service_endpoint_url_services",
+				Services: Services{
+					ServiceValues: map[string]map[string]string{
+						"s3": {
+							"endpoint_url": "http://127.0.0.1",
+							"other":        "foo",
+						},
+						"ec2": {
+							"endpoint_url": "http://127.0.0.1:81",
+						},
+					},
+				},
+			},
+		},
+	}
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {

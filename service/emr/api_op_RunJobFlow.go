@@ -4,14 +4,10 @@ package emr
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/emr/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -32,7 +28,7 @@ import (
 // submitting queries directly to the software running on the master node, such as
 // Hive and Hadoop. For long-running clusters, we recommend that you periodically
 // store your results. The instance fleets configuration is available only in
-// Amazon EMR releases 4.8.0 and higher, excluding 5.0.x versions. The RunJobFlow
+// Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. The RunJobFlow
 // request can contain InstanceFleets parameters or InstanceGroups parameters, but
 // not both.
 func (c *Client) RunJobFlow(ctx context.Context, params *RunJobFlowInput, optFns ...func(*Options)) (*RunJobFlowOutput, error) {
@@ -67,10 +63,10 @@ type RunJobFlowInput struct {
 	AdditionalInfo *string
 
 	// Applies only to Amazon EMR AMI versions 3.x and 2.x. For Amazon EMR releases
-	// 4.0 and higher, ReleaseLabel is used. To specify a custom AMI, use CustomAmiID .
+	// 4.0 and later, ReleaseLabel is used. To specify a custom AMI, use CustomAmiID .
 	AmiVersion *string
 
-	// Applies to Amazon EMR releases 4.0 and higher. A case-insensitive list of
+	// Applies to Amazon EMR releases 4.0 and later. A case-insensitive list of
 	// applications for Amazon EMR to install and configure when launching the cluster.
 	// For a list of applications available for each Amazon EMR release version, see
 	// the Amazon EMRRelease Guide (https://docs.aws.amazon.com/emr/latest/ReleaseGuide/)
@@ -93,11 +89,11 @@ type RunJobFlowInput struct {
 	// A list of bootstrap actions to run before Hadoop starts on the cluster nodes.
 	BootstrapActions []types.BootstrapActionConfig
 
-	// For Amazon EMR releases 4.0 and higher. The list of configurations supplied for
+	// For Amazon EMR releases 4.0 and later. The list of configurations supplied for
 	// the Amazon EMR cluster that you are creating.
 	Configurations []types.Configuration
 
-	// Available only in Amazon EMR releases 5.7.0 and higher. The ID of a custom
+	// Available only in Amazon EMR releases 5.7.0 and later. The ID of a custom
 	// Amazon EBS-backed Linux AMI. If specified, Amazon EMR uses this AMI when it
 	// launches cluster Amazon EC2 instances. For more information about custom AMIs in
 	// Amazon EMR, see Using a Custom AMI (https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-custom-ami.html)
@@ -110,17 +106,18 @@ type RunJobFlowInput struct {
 	// .
 	CustomAmiId *string
 
-	// The IOPS for the Amazon EBS root device volume for the Linux AMI that each
-	// Amazon EC2 instance uses. Available in Amazon EMR releases 6.15.0 and higher.
+	// The IOPS, of the Amazon EBS root device volume of the Linux AMI that is used
+	// for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.
 	EbsRootVolumeIops *int32
 
-	// The size, in GiB, of the Amazon EBS root device volume for the Linux AMI that
-	// each Amazon EC2 instance uses. Available in Amazon EMR releases 4.x and higher.
+	// The size, in GiB, of the Amazon EBS root device volume of the Linux AMI that is
+	// used for each Amazon EC2 instance. Available in Amazon EMR releases 4.x and
+	// later.
 	EbsRootVolumeSize *int32
 
-	// The throughput, in MiB/s, of the Amazon EBS root device volume for the Linux
-	// AMI that each Amazon EC2 instance uses. Available in Amazon EMR releases 6.15.0
-	// and higher.
+	// The throughput, in MiB/s, of the Amazon EBS root device volume of the Linux AMI
+	// that is used for each Amazon EC2 instance. Available in Amazon EMR releases
+	// 6.15.0 and later.
 	EbsRootVolumeThroughput *int32
 
 	// Also called instance profile and Amazon EC2 role. An IAM role for an Amazon EMR
@@ -137,7 +134,7 @@ type RunJobFlowInput struct {
 
 	// The KMS key used for encrypting log files. If a value is not provided, the logs
 	// remain encrypted by AES-256. This attribute is only available with Amazon EMR
-	// releases 5.30.0 and higher, excluding Amazon EMR 6.0.0.
+	// releases 5.30.0 and later, excluding Amazon EMR 6.0.0.
 	LogEncryptionKmsKeyId *string
 
 	// The location in Amazon S3 to write the log files of the job flow. If a value is
@@ -147,12 +144,12 @@ type RunJobFlowInput struct {
 	// The specified managed scaling policy for an Amazon EMR cluster.
 	ManagedScalingPolicy *types.ManagedScalingPolicy
 
-	// For Amazon EMR releases 3.x and 2.x. For Amazon EMR releases 4.x and higher,
-	// use Applications. A list of strings that indicates third-party software to use
-	// with the job flow that accepts a user argument list. Amazon EMR accepts and
-	// forwards the argument list to the corresponding installation script as bootstrap
-	// action arguments. For more information, see "Launch a Job Flow on the MapR
-	// Distribution for Hadoop" in the Amazon EMR Developer Guide (https://docs.aws.amazon.com/emr/latest/DeveloperGuide/emr-dg.pdf)
+	// For Amazon EMR releases 3.x and 2.x. For Amazon EMR releases 4.x and later, use
+	// Applications. A list of strings that indicates third-party software to use with
+	// the job flow that accepts a user argument list. Amazon EMR accepts and forwards
+	// the argument list to the corresponding installation script as bootstrap action
+	// arguments. For more information, see "Launch a Job Flow on the MapR Distribution
+	// for Hadoop" in the Amazon EMR Developer Guide (https://docs.aws.amazon.com/emr/latest/DeveloperGuide/emr-dg.pdf)
 	// . Supported values are:
 	//   - "mapr-m3" - launch the cluster using MapR M3 Edition.
 	//   - "mapr-m5" - launch the cluster using MapR M5 Edition.
@@ -179,7 +176,7 @@ type RunJobFlowInput struct {
 	// emr-x.x.x , where x.x.x is an Amazon EMR release version such as emr-5.14.0 .
 	// For more information about Amazon EMR release versions and included application
 	// versions and features, see https://docs.aws.amazon.com/emr/latest/ReleaseGuide/ (https://docs.aws.amazon.com/emr/latest/ReleaseGuide/)
-	// . The release label applies only to Amazon EMR releases version 4.0 and higher.
+	// . The release label applies only to Amazon EMR releases version 4.0 and later.
 	// Earlier versions use AmiVersion .
 	ReleaseLabel *string
 
@@ -194,14 +191,14 @@ type RunJobFlowInput struct {
 	// automatic scale-in activity occurs or an instance group is resized.
 	// TERMINATE_AT_INSTANCE_HOUR indicates that Amazon EMR terminates nodes at the
 	// instance-hour boundary, regardless of when the request to terminate the instance
-	// was submitted. This option is only available with Amazon EMR 5.1.0 and higher
-	// and is the default for clusters created using that version.
+	// was submitted. This option is only available with Amazon EMR 5.1.0 and later and
+	// is the default for clusters created using that version.
 	// TERMINATE_AT_TASK_COMPLETION indicates that Amazon EMR adds nodes to a deny list
 	// and drains tasks from nodes before terminating the Amazon EC2 instances,
 	// regardless of the instance-hour boundary. With either behavior, Amazon EMR
 	// removes the least active nodes first and blocks instance termination if it could
 	// lead to HDFS corruption. TERMINATE_AT_TASK_COMPLETION available only in Amazon
-	// EMR releases 4.1.0 and higher, and is the default for releases of Amazon EMR
+	// EMR releases 4.1.0 and later, and is the default for releases of Amazon EMR
 	// earlier than 5.1.0.
 	ScaleDownBehavior types.ScaleDownBehavior
 
@@ -220,9 +217,9 @@ type RunJobFlowInput struct {
 	// A list of steps to run.
 	Steps []types.StepConfig
 
-	// For Amazon EMR releases 3.x and 2.x. For Amazon EMR releases 4.x and higher,
-	// use Applications. A list of strings that indicates third-party software to use.
-	// For more information, see the Amazon EMR Developer Guide (https://docs.aws.amazon.com/emr/latest/DeveloperGuide/emr-dg.pdf)
+	// For Amazon EMR releases 3.x and 2.x. For Amazon EMR releases 4.x and later, use
+	// Applications. A list of strings that indicates third-party software to use. For
+	// more information, see the Amazon EMR Developer Guide (https://docs.aws.amazon.com/emr/latest/DeveloperGuide/emr-dg.pdf)
 	// . Currently supported values are:
 	//   - "mapr-m3" - launch the job flow using MapR M3 Edition.
 	//   - "mapr-m5" - launch the job flow using MapR M5 Edition.
@@ -265,6 +262,9 @@ type RunJobFlowOutput struct {
 }
 
 func (c *Client) addOperationRunJobFlowMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpRunJobFlow{}, middleware.After)
 	if err != nil {
 		return err
@@ -273,6 +273,10 @@ func (c *Client) addOperationRunJobFlowMiddlewares(stack *middleware.Stack, opti
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RunJobFlow"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -294,9 +298,6 @@ func (c *Client) addOperationRunJobFlowMiddlewares(stack *middleware.Stack, opti
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -312,7 +313,7 @@ func (c *Client) addOperationRunJobFlowMiddlewares(stack *middleware.Stack, opti
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addRunJobFlowResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpRunJobFlowValidationMiddleware(stack); err != nil {
@@ -333,7 +334,7 @@ func (c *Client) addOperationRunJobFlowMiddlewares(stack *middleware.Stack, opti
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -343,130 +344,6 @@ func newServiceMetadataMiddleware_opRunJobFlow(region string) *awsmiddleware.Reg
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "elasticmapreduce",
 		OperationName: "RunJobFlow",
 	}
-}
-
-type opRunJobFlowResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opRunJobFlowResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opRunJobFlowResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "elasticmapreduce"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "elasticmapreduce"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("elasticmapreduce")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addRunJobFlowResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opRunJobFlowResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

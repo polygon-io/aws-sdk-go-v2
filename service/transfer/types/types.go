@@ -422,6 +422,10 @@ type DescribedConnector struct {
 	// set, you can view connector activity in your CloudWatch logs.
 	LoggingRole *string
 
+	// The list of egress IP addresses of this connector. These IP addresses are
+	// assigned automatically when you create the connector.
+	ServiceManagedEgressIpAddresses []string
+
 	// A structure that contains the parameters for an SFTP connector object.
 	SftpConfig *SftpConnectorConfig
 
@@ -584,6 +588,13 @@ type DescribedServer struct {
 	// This member is required.
 	Arn *string
 
+	// The list of egress IP addresses of this server. These IP addresses are only
+	// relevant for servers that use the AS2 protocol. They are used for sending
+	// asynchronous MDNs. These IP addresses are assigned automatically when you create
+	// an AS2 server. Additionally, if you update an existing server and add the AS2
+	// protocol, static IP addresses are assigned as well.
+	As2ServiceManagedEgressIpAddresses []string
+
 	// Specifies the ARN of the Amazon Web ServicesCertificate Manager (ACM)
 	// certificate. Required when Protocols is set to FTPS .
 	Certificate *string
@@ -687,6 +698,13 @@ type DescribedServer struct {
 	//   - If Protocol includes AS2 , then the EndpointType must be VPC , and domain
 	//   must be Amazon S3.
 	Protocols []Protocol
+
+	// Specifies whether or not performance for your Amazon S3 directories is
+	// optimized. This is disabled by default. By default, home directory mappings have
+	// a TYPE of DIRECTORY . If you enable this option, you would then need to
+	// explicitly set the HomeDirectoryMapEntry Type to FILE if you want a mapping to
+	// have a file target.
+	S3StorageOptions *S3StorageOptions
 
 	// Specifies the name of the security policy that is attached to the server.
 	SecurityPolicyName *string
@@ -990,10 +1008,17 @@ type HomeDirectoryMapEntry struct {
 	// This member is required.
 	Entry *string
 
-	// Represents the map target that is used in a HomeDirectorymapEntry .
+	// Represents the map target that is used in a HomeDirectoryMapEntry .
 	//
 	// This member is required.
 	Target *string
+
+	// Specifies the type of mapping. Set the type to FILE if you want the mapping to
+	// point to a file, or DIRECTORY for the directory to point to a directory. By
+	// default, home directory mappings have a Type of DIRECTORY when you create a
+	// Transfer Family server. You would need to explicitly set Type to FILE if you
+	// want a mapping to have a file target.
+	Type MapType
 
 	noSmithyDocumentSerde
 }
@@ -1003,7 +1028,8 @@ type HomeDirectoryMapEntry struct {
 // method of authentication.
 type IdentityProviderDetails struct {
 
-	// The identifier of the Directory Service directory that you want to stop sharing.
+	// The identifier of the Directory Service directory that you want to use as your
+	// identity provider.
 	DirectoryId *string
 
 	// The ARN for a Lambda function to use for the Identity provider.
@@ -1518,6 +1544,19 @@ type S3InputFileLocation struct {
 	// The name assigned to the file when it was created in Amazon S3. You use the
 	// object key to retrieve the object.
 	Key *string
+
+	noSmithyDocumentSerde
+}
+
+// The Amazon S3 storage options that are configured for your server.
+type S3StorageOptions struct {
+
+	// Specifies whether or not performance for your Amazon S3 directories is
+	// optimized. This is disabled by default. By default, home directory mappings have
+	// a TYPE of DIRECTORY . If you enable this option, you would then need to
+	// explicitly set the HomeDirectoryMapEntry Type to FILE if you want a mapping to
+	// have a file target.
+	DirectoryListingOptimization DirectoryListingOptimization
 
 	noSmithyDocumentSerde
 }

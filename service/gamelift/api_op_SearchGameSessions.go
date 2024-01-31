@@ -4,29 +4,24 @@ package gamelift
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/gamelift/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves all active game sessions that match a set of search criteria and
-// sorts them into a specified order. This operation is not designed to be
-// continually called to track game session status. This practice can cause you to
-// exceed your API limit, which results in errors. Instead, you must configure
-// configure an Amazon Simple Notification Service (SNS) topic to receive
-// notifications from FlexMatch or queues. Continuously polling game session status
-// with DescribeGameSessions should only be used for games in development with low
-// game session usage. When searching for game sessions, you specify exactly where
-// you want to search and provide a search filter expression, a sort expression, or
-// both. A search request can search only one fleet, but it can search all of a
-// fleet's locations. This operation can be used in the following ways:
+// sorts them into a specified order. This operation is not designed to continually
+// track game session status because that practice can cause you to exceed your API
+// limit and generate errors. Instead, configure an Amazon Simple Notification
+// Service (Amazon SNS) topic to receive notifications from a matchmaker or game
+// session placement queue. When searching for game sessions, you specify exactly
+// where you want to search and provide a search filter expression, a sort
+// expression, or both. A search request can search only one fleet, but it can
+// search all of a fleet's locations. This operation can be used in the following
+// ways:
 //   - To search all game sessions that are currently running on all locations in
 //     a fleet, provide a fleet or alias ID. This approach returns game sessions in the
 //     fleet's home Region and all remote locations that fit the search criteria.
@@ -39,18 +34,22 @@ import (
 // matches the request. Search finds game sessions that are in ACTIVE status only.
 // To retrieve information on game sessions in other statuses, use
 // DescribeGameSessions (https://docs.aws.amazon.com/gamelift/latest/apireference/API_DescribeGameSessions.html)
-// . You can search or sort by the following game session attributes:
+// . To set search and sort criteria, create a filter expression using the
+// following game session attributes. For game session search examples, see the
+// Examples section of this topic.
 //   - gameSessionId -- A unique identifier for the game session. You can use
 //     either a GameSessionId or GameSessionArn value.
 //   - gameSessionName -- Name assigned to a game session. Game session names do
 //     not need to be unique to a game session.
-//   - gameSessionProperties -- Custom data defined in a game session's
-//     GameProperty parameter. GameProperty values are stored as key:value pairs; the
-//     filter expression must indicate the key and a string to search the data values
-//     for. For example, to search for game sessions with custom data containing the
-//     key:value pair "gameMode:brawl", specify the following:
-//     gameSessionProperties.gameMode = "brawl" . All custom data values are searched
-//     as strings.
+//   - gameSessionProperties -- A set of key-value pairs that can store custom
+//     data in a game session. For example: {"Key": "difficulty", "Value": "novice"}
+//     . The filter expression must specify the GameProperty -- a Key and a string
+//     Value to search for the game sessions. For example, to search for the above
+//     key-value pair, specify the following search filter:
+//     gameSessionProperties.difficulty = "novice" . All game property values are
+//     searched as strings. For examples of searching game sessions, see the ones
+//     below, and also see Search game sessions by game property (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-client-api.html#game-properties-search)
+//     .
 //   - maximumSessions -- Maximum number of player sessions allowed for a game
 //     session.
 //   - creationTimeMillis -- Value indicating when a game session was created. It
@@ -169,6 +168,9 @@ type SearchGameSessionsOutput struct {
 }
 
 func (c *Client) addOperationSearchGameSessionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpSearchGameSessions{}, middleware.After)
 	if err != nil {
 		return err
@@ -177,6 +179,10 @@ func (c *Client) addOperationSearchGameSessionsMiddlewares(stack *middleware.Sta
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "SearchGameSessions"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -198,9 +204,6 @@ func (c *Client) addOperationSearchGameSessionsMiddlewares(stack *middleware.Sta
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -216,7 +219,7 @@ func (c *Client) addOperationSearchGameSessionsMiddlewares(stack *middleware.Sta
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSearchGameSessionsResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opSearchGameSessions(options.Region), middleware.Before); err != nil {
@@ -234,7 +237,7 @@ func (c *Client) addOperationSearchGameSessionsMiddlewares(stack *middleware.Sta
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -337,130 +340,6 @@ func newServiceMetadataMiddleware_opSearchGameSessions(region string) *awsmiddle
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "gamelift",
 		OperationName: "SearchGameSessions",
 	}
-}
-
-type opSearchGameSessionsResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opSearchGameSessionsResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opSearchGameSessionsResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "gamelift"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "gamelift"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("gamelift")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addSearchGameSessionsResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opSearchGameSessionsResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

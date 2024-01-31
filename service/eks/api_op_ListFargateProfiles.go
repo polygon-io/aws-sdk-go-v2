@@ -4,19 +4,15 @@ package eks
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lists the Fargate profiles associated with the specified cluster in your Amazon
-// Web Services account in the specified Region.
+// Web Services account in the specified Amazon Web Services Region.
 func (c *Client) ListFargateProfiles(ctx context.Context, params *ListFargateProfilesInput, optFns ...func(*Options)) (*ListFargateProfilesOutput, error) {
 	if params == nil {
 		params = &ListFargateProfilesInput{}
@@ -34,26 +30,25 @@ func (c *Client) ListFargateProfiles(ctx context.Context, params *ListFargatePro
 
 type ListFargateProfilesInput struct {
 
-	// The name of the Amazon EKS cluster that you would like to list Fargate profiles
-	// in.
+	// The name of your cluster.
 	//
 	// This member is required.
 	ClusterName *string
 
-	// The maximum number of Fargate profile results returned by ListFargateProfiles
-	// in paginated output. When you use this parameter, ListFargateProfiles returns
-	// only maxResults results in a single page along with a nextToken response
-	// element. You can see the remaining results of the initial request by sending
-	// another ListFargateProfiles request with the returned nextToken value. This
-	// value can be between 1 and 100. If you don't use this parameter,
-	// ListFargateProfiles returns up to 100 results and a nextToken value if
-	// applicable.
+	// The maximum number of results, returned in paginated output. You receive
+	// maxResults in a single page, along with a nextToken response element. You can
+	// see the remaining results of the initial request by sending another request with
+	// the returned nextToken value. This value can be between 1 and 100. If you don't
+	// use this parameter, 100 results and a nextToken value, if applicable, are
+	// returned.
 	MaxResults *int32
 
-	// The nextToken value returned from a previous paginated ListFargateProfiles
-	// request where maxResults was used and the results exceeded the value of that
-	// parameter. Pagination continues from the end of the previous results that
-	// returned the nextToken value.
+	// The nextToken value returned from a previous paginated request, where maxResults
+	// was used and the results exceeded the value of that parameter. Pagination
+	// continues from the end of the previous results that returned the nextToken
+	// value. This value is null when there are no more results to return. This token
+	// should be treated as an opaque identifier that is used only to retrieve the next
+	// items in a list and not for other programmatic purposes.
 	NextToken *string
 
 	noSmithyDocumentSerde
@@ -64,10 +59,12 @@ type ListFargateProfilesOutput struct {
 	// A list of all of the Fargate profiles associated with the specified cluster.
 	FargateProfileNames []string
 
-	// The nextToken value to include in a future ListFargateProfiles request. When
-	// the results of a ListFargateProfiles request exceed maxResults , you can use
-	// this value to retrieve the next page of results. This value is null when there
-	// are no more results to return.
+	// The nextToken value returned from a previous paginated request, where maxResults
+	// was used and the results exceeded the value of that parameter. Pagination
+	// continues from the end of the previous results that returned the nextToken
+	// value. This value is null when there are no more results to return. This token
+	// should be treated as an opaque identifier that is used only to retrieve the next
+	// items in a list and not for other programmatic purposes.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
@@ -77,6 +74,9 @@ type ListFargateProfilesOutput struct {
 }
 
 func (c *Client) addOperationListFargateProfilesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpListFargateProfiles{}, middleware.After)
 	if err != nil {
 		return err
@@ -85,6 +85,10 @@ func (c *Client) addOperationListFargateProfilesMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListFargateProfiles"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -106,9 +110,6 @@ func (c *Client) addOperationListFargateProfilesMiddlewares(stack *middleware.St
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -124,7 +125,7 @@ func (c *Client) addOperationListFargateProfilesMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addListFargateProfilesResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpListFargateProfilesValidationMiddleware(stack); err != nil {
@@ -145,7 +146,7 @@ func (c *Client) addOperationListFargateProfilesMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -162,14 +163,12 @@ var _ ListFargateProfilesAPIClient = (*Client)(nil)
 // ListFargateProfilesPaginatorOptions is the paginator options for
 // ListFargateProfiles
 type ListFargateProfilesPaginatorOptions struct {
-	// The maximum number of Fargate profile results returned by ListFargateProfiles
-	// in paginated output. When you use this parameter, ListFargateProfiles returns
-	// only maxResults results in a single page along with a nextToken response
-	// element. You can see the remaining results of the initial request by sending
-	// another ListFargateProfiles request with the returned nextToken value. This
-	// value can be between 1 and 100. If you don't use this parameter,
-	// ListFargateProfiles returns up to 100 results and a nextToken value if
-	// applicable.
+	// The maximum number of results, returned in paginated output. You receive
+	// maxResults in a single page, along with a nextToken response element. You can
+	// see the remaining results of the initial request by sending another request with
+	// the returned nextToken value. This value can be between 1 and 100. If you don't
+	// use this parameter, 100 results and a nextToken value, if applicable, are
+	// returned.
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -253,130 +252,6 @@ func newServiceMetadataMiddleware_opListFargateProfiles(region string) *awsmiddl
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "eks",
 		OperationName: "ListFargateProfiles",
 	}
-}
-
-type opListFargateProfilesResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opListFargateProfilesResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opListFargateProfilesResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "eks"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "eks"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("eks")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addListFargateProfilesResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opListFargateProfilesResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

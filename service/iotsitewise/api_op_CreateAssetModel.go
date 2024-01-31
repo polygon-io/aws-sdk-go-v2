@@ -4,14 +4,10 @@ package iotsitewise
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/iotsitewise/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -21,7 +17,13 @@ import (
 // of the same type that have standardized definitions. Each asset created from a
 // model inherits the asset model's property and hierarchy definitions. For more
 // information, see Defining asset models (https://docs.aws.amazon.com/iot-sitewise/latest/userguide/define-models.html)
-// in the IoT SiteWise User Guide.
+// in the IoT SiteWise User Guide. You can create two types of asset models,
+// ASSET_MODEL or COMPONENT_MODEL .
+//   - ASSET_MODEL – (default) An asset model that you can use to create assets.
+//     Can't be included as a component in another asset model.
+//   - COMPONENT_MODEL – A reusable component that you can include in the
+//     composite models of other asset models. You can't create assets directly from
+//     this type of asset model.
 func (c *Client) CreateAssetModel(ctx context.Context, params *CreateAssetModelInput, optFns ...func(*Options)) (*CreateAssetModelOutput, error) {
 	if params == nil {
 		params = &CreateAssetModelInput{}
@@ -44,14 +46,23 @@ type CreateAssetModelInput struct {
 	// This member is required.
 	AssetModelName *string
 
-	// The composite asset models that are part of this asset model. Composite asset
-	// models are asset models that contain specific properties. Each composite model
-	// has a type that defines the properties that the composite model supports. Use
-	// composite asset models to define alarms on this asset model.
+	// The composite models that are part of this asset model. It groups properties
+	// (such as attributes, measurements, transforms, and metrics) and child composite
+	// models that model parts of your industrial equipment. Each composite model has a
+	// type that defines the properties that the composite model supports. Use
+	// composite models to define alarms on this asset model. When creating custom
+	// composite models, you need to use CreateAssetModelCompositeModel (https://docs.aws.amazon.com/iot-sitewise/latest/APIReference/API_CreateAssetModelCompositeModel.html)
+	// . For more information, see .
 	AssetModelCompositeModels []types.AssetModelCompositeModelDefinition
 
 	// A description for the asset model.
 	AssetModelDescription *string
+
+	// An external ID to assign to the asset model. The external ID must be unique
+	// within your Amazon Web Services account. For more information, see Using
+	// external IDs (https://docs.aws.amazon.com/iot-sitewise/latest/userguide/object-ids.html#external-ids)
+	// in the IoT SiteWise User Guide.
+	AssetModelExternalId *string
 
 	// The hierarchy definitions of the asset model. Each hierarchy specifies an asset
 	// model whose assets can be children of any other assets created from this asset
@@ -61,12 +72,26 @@ type CreateAssetModelInput struct {
 	// in the IoT SiteWise User Guide.
 	AssetModelHierarchies []types.AssetModelHierarchyDefinition
 
+	// The ID to assign to the asset model, if desired. IoT SiteWise automatically
+	// generates a unique ID for you, so this parameter is never required. However, if
+	// you prefer to supply your own ID instead, you can specify it here in UUID
+	// format. If you specify your own ID, it must be globally unique.
+	AssetModelId *string
+
 	// The property definitions of the asset model. For more information, see Asset
 	// properties (https://docs.aws.amazon.com/iot-sitewise/latest/userguide/asset-properties.html)
 	// in the IoT SiteWise User Guide. You can specify up to 200 properties per asset
 	// model. For more information, see Quotas (https://docs.aws.amazon.com/iot-sitewise/latest/userguide/quotas.html)
 	// in the IoT SiteWise User Guide.
 	AssetModelProperties []types.AssetModelPropertyDefinition
+
+	// The type of asset model.
+	//   - ASSET_MODEL – (default) An asset model that you can use to create assets.
+	//   Can't be included as a component in another asset model.
+	//   - COMPONENT_MODEL – A reusable component that you can include in the
+	//   composite models of other asset models. You can't create assets directly from
+	//   this type of asset model.
+	AssetModelType types.AssetModelType
 
 	// A unique case-sensitive identifier that you can provide to ensure the
 	// idempotency of the request. Don't reuse this client token if a new idempotent
@@ -90,8 +115,8 @@ type CreateAssetModelOutput struct {
 	// This member is required.
 	AssetModelArn *string
 
-	// The ID of the asset model. You can use this ID when you call other IoT SiteWise
-	// APIs.
+	// The ID of the asset model, in UUID format. You can use this ID when you call
+	// other IoT SiteWise API operations.
 	//
 	// This member is required.
 	AssetModelId *string
@@ -109,6 +134,9 @@ type CreateAssetModelOutput struct {
 }
 
 func (c *Client) addOperationCreateAssetModelMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateAssetModel{}, middleware.After)
 	if err != nil {
 		return err
@@ -117,6 +145,10 @@ func (c *Client) addOperationCreateAssetModelMiddlewares(stack *middleware.Stack
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateAssetModel"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -138,9 +170,6 @@ func (c *Client) addOperationCreateAssetModelMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -156,10 +185,10 @@ func (c *Client) addOperationCreateAssetModelMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addEndpointPrefix_opCreateAssetModelMiddleware(stack); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateAssetModelResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addEndpointPrefix_opCreateAssetModelMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreateAssetModelMiddleware(stack, options); err != nil {
@@ -183,7 +212,7 @@ func (c *Client) addOperationCreateAssetModelMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -196,11 +225,11 @@ func (*endpointPrefix_opCreateAssetModelMiddleware) ID() string {
 	return "EndpointHostPrefix"
 }
 
-func (m *endpointPrefix_opCreateAssetModelMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+func (m *endpointPrefix_opCreateAssetModelMiddleware) HandleFinalize(ctx context.Context, in middleware.FinalizeInput, next middleware.FinalizeHandler) (
+	out middleware.FinalizeOutput, metadata middleware.Metadata, err error,
 ) {
 	if smithyhttp.GetHostnameImmutable(ctx) || smithyhttp.IsEndpointHostPrefixDisabled(ctx) {
-		return next.HandleSerialize(ctx, in)
+		return next.HandleFinalize(ctx, in)
 	}
 
 	req, ok := in.Request.(*smithyhttp.Request)
@@ -210,10 +239,10 @@ func (m *endpointPrefix_opCreateAssetModelMiddleware) HandleSerialize(ctx contex
 
 	req.URL.Host = "api." + req.URL.Host
 
-	return next.HandleSerialize(ctx, in)
+	return next.HandleFinalize(ctx, in)
 }
 func addEndpointPrefix_opCreateAssetModelMiddleware(stack *middleware.Stack) error {
-	return stack.Serialize.Insert(&endpointPrefix_opCreateAssetModelMiddleware{}, `OperationSerializer`, middleware.After)
+	return stack.Finalize.Insert(&endpointPrefix_opCreateAssetModelMiddleware{}, "ResolveEndpointV2", middleware.After)
 }
 
 type idempotencyToken_initializeOpCreateAssetModel struct {
@@ -253,130 +282,6 @@ func newServiceMetadataMiddleware_opCreateAssetModel(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iotsitewise",
 		OperationName: "CreateAssetModel",
 	}
-}
-
-type opCreateAssetModelResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateAssetModelResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateAssetModelResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "iotsitewise"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "iotsitewise"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("iotsitewise")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateAssetModelResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateAssetModelResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

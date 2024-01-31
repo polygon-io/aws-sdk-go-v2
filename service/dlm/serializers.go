@@ -81,9 +81,38 @@ func awsRestjson1_serializeOpDocumentCreateLifecyclePolicyInput(v *CreateLifecyc
 	object := value.Object()
 	defer object.Close()
 
+	if v.CopyTags != nil {
+		ok := object.Key("CopyTags")
+		ok.Boolean(*v.CopyTags)
+	}
+
+	if v.CreateInterval != nil {
+		ok := object.Key("CreateInterval")
+		ok.Integer(*v.CreateInterval)
+	}
+
+	if v.CrossRegionCopyTargets != nil {
+		ok := object.Key("CrossRegionCopyTargets")
+		if err := awsRestjson1_serializeDocumentCrossRegionCopyTargetList(v.CrossRegionCopyTargets, ok); err != nil {
+			return err
+		}
+	}
+
+	if len(v.DefaultPolicy) > 0 {
+		ok := object.Key("DefaultPolicy")
+		ok.String(string(v.DefaultPolicy))
+	}
+
 	if v.Description != nil {
 		ok := object.Key("Description")
 		ok.String(*v.Description)
+	}
+
+	if v.Exclusions != nil {
+		ok := object.Key("Exclusions")
+		if err := awsRestjson1_serializeDocumentExclusions(v.Exclusions, ok); err != nil {
+			return err
+		}
 	}
 
 	if v.ExecutionRoleArn != nil {
@@ -91,11 +120,21 @@ func awsRestjson1_serializeOpDocumentCreateLifecyclePolicyInput(v *CreateLifecyc
 		ok.String(*v.ExecutionRoleArn)
 	}
 
+	if v.ExtendDeletion != nil {
+		ok := object.Key("ExtendDeletion")
+		ok.Boolean(*v.ExtendDeletion)
+	}
+
 	if v.PolicyDetails != nil {
 		ok := object.Key("PolicyDetails")
 		if err := awsRestjson1_serializeDocumentPolicyDetails(v.PolicyDetails, ok); err != nil {
 			return err
 		}
+	}
+
+	if v.RetainInterval != nil {
+		ok := object.Key("RetainInterval")
+		ok.Integer(*v.RetainInterval)
 	}
 
 	if len(v.State) > 0 {
@@ -229,6 +268,10 @@ func (m *awsRestjson1_serializeOpGetLifecyclePolicies) HandleSerialize(ctx conte
 func awsRestjson1_serializeOpHttpBindingsGetLifecyclePoliciesInput(v *GetLifecyclePoliciesInput, encoder *httpbinding.Encoder) error {
 	if v == nil {
 		return fmt.Errorf("unsupported serialization of nil %T", v)
+	}
+
+	if len(v.DefaultPolicyType) > 0 {
+		encoder.SetQuery("defaultPolicyType").String(string(v.DefaultPolicyType))
 	}
 
 	if v.PolicyIds != nil {
@@ -633,9 +676,33 @@ func awsRestjson1_serializeOpDocumentUpdateLifecyclePolicyInput(v *UpdateLifecyc
 	object := value.Object()
 	defer object.Close()
 
+	if v.CopyTags != nil {
+		ok := object.Key("CopyTags")
+		ok.Boolean(*v.CopyTags)
+	}
+
+	if v.CreateInterval != nil {
+		ok := object.Key("CreateInterval")
+		ok.Integer(*v.CreateInterval)
+	}
+
+	if v.CrossRegionCopyTargets != nil {
+		ok := object.Key("CrossRegionCopyTargets")
+		if err := awsRestjson1_serializeDocumentCrossRegionCopyTargetList(v.CrossRegionCopyTargets, ok); err != nil {
+			return err
+		}
+	}
+
 	if v.Description != nil {
 		ok := object.Key("Description")
 		ok.String(*v.Description)
+	}
+
+	if v.Exclusions != nil {
+		ok := object.Key("Exclusions")
+		if err := awsRestjson1_serializeDocumentExclusions(v.Exclusions, ok); err != nil {
+			return err
+		}
 	}
 
 	if v.ExecutionRoleArn != nil {
@@ -643,11 +710,21 @@ func awsRestjson1_serializeOpDocumentUpdateLifecyclePolicyInput(v *UpdateLifecyc
 		ok.String(*v.ExecutionRoleArn)
 	}
 
+	if v.ExtendDeletion != nil {
+		ok := object.Key("ExtendDeletion")
+		ok.Boolean(*v.ExtendDeletion)
+	}
+
 	if v.PolicyDetails != nil {
 		ok := object.Key("PolicyDetails")
 		if err := awsRestjson1_serializeDocumentPolicyDetails(v.PolicyDetails, ok); err != nil {
 			return err
 		}
+	}
+
+	if v.RetainInterval != nil {
+		ok := object.Key("RetainInterval")
+		ok.Integer(*v.RetainInterval)
 	}
 
 	if len(v.State) > 0 {
@@ -751,6 +828,13 @@ func awsRestjson1_serializeDocumentCreateRule(v *types.CreateRule, value smithyj
 	if len(v.Location) > 0 {
 		ok := object.Key("Location")
 		ok.String(string(v.Location))
+	}
+
+	if v.Scripts != nil {
+		ok := object.Key("Scripts")
+		if err := awsRestjson1_serializeDocumentScriptsList(v.Scripts, ok); err != nil {
+			return err
+		}
 	}
 
 	if v.Times != nil {
@@ -895,6 +979,31 @@ func awsRestjson1_serializeDocumentCrossRegionCopyRules(v []types.CrossRegionCop
 	return nil
 }
 
+func awsRestjson1_serializeDocumentCrossRegionCopyTarget(v *types.CrossRegionCopyTarget, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.TargetRegion != nil {
+		ok := object.Key("TargetRegion")
+		ok.String(*v.TargetRegion)
+	}
+
+	return nil
+}
+
+func awsRestjson1_serializeDocumentCrossRegionCopyTargetList(v []types.CrossRegionCopyTarget, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsRestjson1_serializeDocumentCrossRegionCopyTarget(&v[i], av); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func awsRestjson1_serializeDocumentDeprecateRule(v *types.DeprecateRule, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
@@ -990,6 +1099,56 @@ func awsRestjson1_serializeDocumentExcludeDataVolumeTagList(v []types.Tag, value
 	return nil
 }
 
+func awsRestjson1_serializeDocumentExcludeTagsList(v []types.Tag, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsRestjson1_serializeDocumentTag(&v[i], av); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func awsRestjson1_serializeDocumentExcludeVolumeTypesList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		av.String(v[i])
+	}
+	return nil
+}
+
+func awsRestjson1_serializeDocumentExclusions(v *types.Exclusions, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.ExcludeBootVolumes != nil {
+		ok := object.Key("ExcludeBootVolumes")
+		ok.Boolean(*v.ExcludeBootVolumes)
+	}
+
+	if v.ExcludeTags != nil {
+		ok := object.Key("ExcludeTags")
+		if err := awsRestjson1_serializeDocumentExcludeTagsList(v.ExcludeTags, ok); err != nil {
+			return err
+		}
+	}
+
+	if v.ExcludeVolumeTypes != nil {
+		ok := object.Key("ExcludeVolumeTypes")
+		if err := awsRestjson1_serializeDocumentExcludeVolumeTypesList(v.ExcludeVolumeTypes, ok); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func awsRestjson1_serializeDocumentFastRestoreRule(v *types.FastRestoreRule, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
@@ -1054,6 +1213,23 @@ func awsRestjson1_serializeDocumentPolicyDetails(v *types.PolicyDetails, value s
 		}
 	}
 
+	if v.CopyTags != nil {
+		ok := object.Key("CopyTags")
+		ok.Boolean(*v.CopyTags)
+	}
+
+	if v.CreateInterval != nil {
+		ok := object.Key("CreateInterval")
+		ok.Integer(*v.CreateInterval)
+	}
+
+	if v.CrossRegionCopyTargets != nil {
+		ok := object.Key("CrossRegionCopyTargets")
+		if err := awsRestjson1_serializeDocumentCrossRegionCopyTargetList(v.CrossRegionCopyTargets, ok); err != nil {
+			return err
+		}
+	}
+
 	if v.EventSource != nil {
 		ok := object.Key("EventSource")
 		if err := awsRestjson1_serializeDocumentEventSource(v.EventSource, ok); err != nil {
@@ -1061,11 +1237,28 @@ func awsRestjson1_serializeDocumentPolicyDetails(v *types.PolicyDetails, value s
 		}
 	}
 
+	if v.Exclusions != nil {
+		ok := object.Key("Exclusions")
+		if err := awsRestjson1_serializeDocumentExclusions(v.Exclusions, ok); err != nil {
+			return err
+		}
+	}
+
+	if v.ExtendDeletion != nil {
+		ok := object.Key("ExtendDeletion")
+		ok.Boolean(*v.ExtendDeletion)
+	}
+
 	if v.Parameters != nil {
 		ok := object.Key("Parameters")
 		if err := awsRestjson1_serializeDocumentParameters(v.Parameters, ok); err != nil {
 			return err
 		}
+	}
+
+	if len(v.PolicyLanguage) > 0 {
+		ok := object.Key("PolicyLanguage")
+		ok.String(string(v.PolicyLanguage))
 	}
 
 	if len(v.PolicyType) > 0 {
@@ -1080,11 +1273,21 @@ func awsRestjson1_serializeDocumentPolicyDetails(v *types.PolicyDetails, value s
 		}
 	}
 
+	if len(v.ResourceType) > 0 {
+		ok := object.Key("ResourceType")
+		ok.String(string(v.ResourceType))
+	}
+
 	if v.ResourceTypes != nil {
 		ok := object.Key("ResourceTypes")
 		if err := awsRestjson1_serializeDocumentResourceTypeValuesList(v.ResourceTypes, ok); err != nil {
 			return err
 		}
+	}
+
+	if v.RetainInterval != nil {
+		ok := object.Key("RetainInterval")
+		ok.Integer(*v.RetainInterval)
 	}
 
 	if v.Schedules != nil {
@@ -1263,6 +1466,58 @@ func awsRestjson1_serializeDocumentScheduleList(v []types.Schedule, value smithy
 	return nil
 }
 
+func awsRestjson1_serializeDocumentScript(v *types.Script, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.ExecuteOperationOnScriptFailure != nil {
+		ok := object.Key("ExecuteOperationOnScriptFailure")
+		ok.Boolean(*v.ExecuteOperationOnScriptFailure)
+	}
+
+	if v.ExecutionHandler != nil {
+		ok := object.Key("ExecutionHandler")
+		ok.String(*v.ExecutionHandler)
+	}
+
+	if len(v.ExecutionHandlerService) > 0 {
+		ok := object.Key("ExecutionHandlerService")
+		ok.String(string(v.ExecutionHandlerService))
+	}
+
+	if v.ExecutionTimeout != nil {
+		ok := object.Key("ExecutionTimeout")
+		ok.Integer(*v.ExecutionTimeout)
+	}
+
+	if v.MaximumRetryCount != nil {
+		ok := object.Key("MaximumRetryCount")
+		ok.Integer(*v.MaximumRetryCount)
+	}
+
+	if v.Stages != nil {
+		ok := object.Key("Stages")
+		if err := awsRestjson1_serializeDocumentStagesList(v.Stages, ok); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func awsRestjson1_serializeDocumentScriptsList(v []types.Script, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		if err := awsRestjson1_serializeDocumentScript(&v[i], av); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func awsRestjson1_serializeDocumentShareRule(v *types.ShareRule, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
@@ -1318,6 +1573,17 @@ func awsRestjson1_serializeDocumentSnapshotOwnerList(v []string, value smithyjso
 	for i := range v {
 		av := array.Value()
 		av.String(v[i])
+	}
+	return nil
+}
+
+func awsRestjson1_serializeDocumentStagesList(v []types.StageValues, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		av.String(string(v[i]))
 	}
 	return nil
 }

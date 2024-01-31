@@ -442,12 +442,67 @@ func addOpUpdateAliasValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpUpdateAlias{}, middleware.After)
 }
 
+func validateExportAttributes(v *types.ExportAttributes) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ExportAttributes"}
+	if v.ExportDukptInitialKey != nil {
+		if err := validateExportDukptInitialKey(v.ExportDukptInitialKey); err != nil {
+			invalidParams.AddNested("ExportDukptInitialKey", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateExportDukptInitialKey(v *types.ExportDukptInitialKey) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ExportDukptInitialKey"}
+	if v.KeySerialNumber == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("KeySerialNumber"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateExportKeyCryptogram(v *types.ExportKeyCryptogram) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ExportKeyCryptogram"}
+	if v.CertificateAuthorityPublicKeyIdentifier == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("CertificateAuthorityPublicKeyIdentifier"))
+	}
+	if v.WrappingKeyCertificate == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WrappingKeyCertificate"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateExportKeyMaterial(v types.ExportKeyMaterial) error {
 	if v == nil {
 		return nil
 	}
 	invalidParams := smithy.InvalidParamsError{Context: "ExportKeyMaterial"}
 	switch uv := v.(type) {
+	case *types.ExportKeyMaterialMemberKeyCryptogram:
+		if err := validateExportKeyCryptogram(&uv.Value); err != nil {
+			invalidParams.AddNested("[KeyCryptogram]", err.(smithy.InvalidParamsError))
+		}
+
 	case *types.ExportKeyMaterialMemberTr31KeyBlock:
 		if err := validateExportTr31KeyBlock(&uv.Value); err != nil {
 			invalidParams.AddNested("[Tr31KeyBlock]", err.(smithy.InvalidParamsError))
@@ -505,12 +560,45 @@ func validateExportTr34KeyBlock(v *types.ExportTr34KeyBlock) error {
 	}
 }
 
+func validateImportKeyCryptogram(v *types.ImportKeyCryptogram) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ImportKeyCryptogram"}
+	if v.KeyAttributes == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("KeyAttributes"))
+	} else if v.KeyAttributes != nil {
+		if err := validateKeyAttributes(v.KeyAttributes); err != nil {
+			invalidParams.AddNested("KeyAttributes", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.Exportable == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Exportable"))
+	}
+	if v.WrappedKeyCryptogram == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WrappedKeyCryptogram"))
+	}
+	if v.ImportToken == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ImportToken"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateImportKeyMaterial(v types.ImportKeyMaterial) error {
 	if v == nil {
 		return nil
 	}
 	invalidParams := smithy.InvalidParamsError{Context: "ImportKeyMaterial"}
 	switch uv := v.(type) {
+	case *types.ImportKeyMaterialMemberKeyCryptogram:
+		if err := validateImportKeyCryptogram(&uv.Value); err != nil {
+			invalidParams.AddNested("[KeyCryptogram]", err.(smithy.InvalidParamsError))
+		}
+
 	case *types.ImportKeyMaterialMemberRootCertificatePublicKey:
 		if err := validateRootCertificatePublicKey(&uv.Value); err != nil {
 			invalidParams.AddNested("[RootCertificatePublicKey]", err.(smithy.InvalidParamsError))
@@ -773,6 +861,11 @@ func validateOpExportKeyInput(v *ExportKeyInput) error {
 	}
 	if v.ExportKeyIdentifier == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ExportKeyIdentifier"))
+	}
+	if v.ExportAttributes != nil {
+		if err := validateExportAttributes(v.ExportAttributes); err != nil {
+			invalidParams.AddNested("ExportAttributes", err.(smithy.InvalidParamsError))
+		}
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams

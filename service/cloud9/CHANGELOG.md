@@ -1,3 +1,74 @@
+# v1.22.7 (2024-01-22)
+
+* **Documentation**: Doc-only update around removing AL1 from list of available AMIs for Cloud9
+
+# v1.22.6 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.5 (2023-12-15)
+
+* **Documentation**: Updated Cloud9 API documentation for AL2023 release
+
+# v1.22.4 (2023-12-12)
+
+* No change notes available for this release.
+
+# v1.22.3 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.22.2 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.1 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.22.0 (2023-12-04)
+
+* **Feature**: This release adds the requirement to include the imageId parameter in the CreateEnvironmentEC2 API call.
+
+# v1.21.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.6 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.5 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.20.4 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.3 (2023-11-17)
+
+* **Documentation**: A minor doc only update related to changing the date of an API change.
+
+# v1.20.2 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.20.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

@@ -367,6 +367,22 @@ func (DeviceCgroupPermission) Values() []DeviceCgroupPermission {
 	}
 }
 
+type EBSResourceType string
+
+// Enum values for EBSResourceType
+const (
+	EBSResourceTypeVolume EBSResourceType = "volume"
+)
+
+// Values returns all known values for EBSResourceType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (EBSResourceType) Values() []EBSResourceType {
+	return []EBSResourceType{
+		"volume",
+	}
+}
+
 type EFSAuthorizationConfigIAM string
 
 // Enum values for EFSAuthorizationConfigIAM
@@ -598,6 +614,24 @@ const (
 func (ManagedAgentName) Values() []ManagedAgentName {
 	return []ManagedAgentName{
 		"ExecuteCommandAgent",
+	}
+}
+
+type ManagedDraining string
+
+// Enum values for ManagedDraining
+const (
+	ManagedDrainingEnabled  ManagedDraining = "ENABLED"
+	ManagedDrainingDisabled ManagedDraining = "DISABLED"
+)
+
+// Values returns all known values for ManagedDraining. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (ManagedDraining) Values() []ManagedDraining {
+	return []ManagedDraining{
+		"ENABLED",
+		"DISABLED",
 	}
 }
 
@@ -896,6 +930,7 @@ const (
 	SettingNameFargateFipsMode                 SettingName = "fargateFIPSMode"
 	SettingNameTagResourceAuthorization        SettingName = "tagResourceAuthorization"
 	SettingNameFargateTaskRetirementWaitPeriod SettingName = "fargateTaskRetirementWaitPeriod"
+	SettingNameGuardDutyActivate               SettingName = "guardDutyActivate"
 )
 
 // Values returns all known values for SettingName. Note that this can be expanded
@@ -911,6 +946,25 @@ func (SettingName) Values() []SettingName {
 		"fargateFIPSMode",
 		"tagResourceAuthorization",
 		"fargateTaskRetirementWaitPeriod",
+		"guardDutyActivate",
+	}
+}
+
+type SettingType string
+
+// Enum values for SettingType
+const (
+	SettingTypeUser       SettingType = "user"
+	SettingTypeAwsManaged SettingType = "aws_managed"
+)
+
+// Values returns all known values for SettingType. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
+func (SettingType) Values() []SettingType {
+	return []SettingType{
+		"user",
+		"aws_managed",
 	}
 }
 
@@ -1052,6 +1106,26 @@ const (
 func (TaskField) Values() []TaskField {
 	return []TaskField{
 		"TAGS",
+	}
+}
+
+type TaskFilesystemType string
+
+// Enum values for TaskFilesystemType
+const (
+	TaskFilesystemTypeExt3 TaskFilesystemType = "ext3"
+	TaskFilesystemTypeExt4 TaskFilesystemType = "ext4"
+	TaskFilesystemTypeXfs  TaskFilesystemType = "xfs"
+)
+
+// Values returns all known values for TaskFilesystemType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (TaskFilesystemType) Values() []TaskFilesystemType {
+	return []TaskFilesystemType{
+		"ext3",
+		"ext4",
+		"xfs",
 	}
 }
 

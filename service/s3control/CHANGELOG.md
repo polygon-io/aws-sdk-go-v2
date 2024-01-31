@@ -1,3 +1,81 @@
+# v1.42.0 (2024-01-12)
+
+* **Feature**: S3 On Outposts team adds dualstack endpoints support for S3Control and S3Outposts API calls.
+
+# v1.41.8 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.7 (2023-12-20)
+
+* No change notes available for this release.
+
+# v1.41.6 (2023-12-18)
+
+* No change notes available for this release.
+
+# v1.41.5 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.41.4 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.3 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.41.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.40.0 (2023-11-28.2)
+
+* **Feature**: Adds support for S3 Express One Zone, and InvocationSchemaVersion 2.0 for S3 Batch Operations.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.39.1 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.39.0 (2023-11-27)
+
+* **Feature**: Introduce Amazon S3 Access Grants, a new S3 access control feature that maps identities in directories such as Active Directory, or AWS Identity and Access Management (IAM) Principals, to datasets in S3.
+
+# v1.38.0 (2023-11-22)
+
+* **Feature**: **BREAK FIX**: Convert S3Control PublicAccessBlock field types to nilable. See #2384, #2162.
+* **Feature**: Amazon S3 Batch Operations now manages buckets or prefixes in a single step.
+
+# v1.37.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.37.0 (2023-11-15)
+
+* **Feature**: Add 5 APIs to create, update, get, list, delete S3 Storage Lens group(eg. CreateStorageLensGroup), 3 APIs for tagging(TagResource,UntagResource,ListTagsForResource), and update to StorageLensConfiguration to allow metrics to be aggregated on Storage Lens groups.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.2 (2023-11-13)
+
+* No change notes available for this release.
+
+# v1.36.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.36.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

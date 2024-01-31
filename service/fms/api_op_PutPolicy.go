@@ -4,38 +4,42 @@ package fms
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/fms/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates an Firewall Manager policy. Firewall Manager provides the following
-// types of policies:
-//   - An WAF policy (type WAFV2), which defines rule groups to run first in the
-//     corresponding WAF web ACL and rule groups to run last in the web ACL.
-//   - An WAF Classic policy (type WAF), which defines a rule group.
-//   - A Shield Advanced policy, which applies Shield Advanced protection to
+// Creates an Firewall Manager policy. A Firewall Manager policy is specific to
+// the individual policy type. If you want to enforce multiple policy types across
+// accounts, you can create multiple policies. You can create more than one policy
+// for each type. If you add a new account to an organization that you created with
+// Organizations, Firewall Manager automatically applies the policy to the
+// resources in that account that are within scope of the policy. Firewall Manager
+// provides the following types of policies:
+//   - Shield Advanced policy - This policy applies Shield Advanced protection to
 //     specified accounts and resources.
-//   - A security group policy, which manages VPC security groups across your
-//     Amazon Web Services organization.
-//   - An Network Firewall policy, which provides firewall rules to filter network
-//     traffic in specified Amazon VPCs.
-//   - A DNS Firewall policy, which provides Route 53 Resolver DNS Firewall rules
-//     to filter DNS queries for specified VPCs.
-//
-// Each policy is specific to one of the types. If you want to enforce more than
-// one policy type across accounts, create multiple policies. You can create
-// multiple policies for each type. You must be subscribed to Shield Advanced to
-// create a Shield Advanced policy. For more information about subscribing to
-// Shield Advanced, see CreateSubscription (https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_CreateSubscription.html)
-// .
+//   - Security Groups policy - This type of policy gives you control over
+//     security groups that are in use throughout your organization in Organizations
+//     and lets you enforce a baseline set of rules across your organization.
+//   - Network Firewall policy - This policy applies Network Firewall protection
+//     to your organization's VPCs.
+//   - DNS Firewall policy - This policy applies Amazon Route 53 Resolver DNS
+//     Firewall protections to your organization's VPCs.
+//   - Third-party firewall policy - This policy applies third-party firewall
+//     protections. Third-party firewalls are available by subscription through the
+//     Amazon Web Services Marketplace console at Amazon Web Services Marketplace (https://aws.amazon.com/marketplace)
+//     .
+//   - Palo Alto Networks Cloud NGFW policy - This policy applies Palo Alto
+//     Networks Cloud Next Generation Firewall (NGFW) protections and Palo Alto
+//     Networks Cloud NGFW rulestacks to your organization's VPCs.
+//   - Fortigate CNF policy - This policy applies Fortigate Cloud Native Firewall
+//     (CNF) protections. Fortigate CNF is a cloud-centered solution that blocks
+//     Zero-Day threats and secures cloud infrastructures with industry-leading
+//     advanced threat prevention, smart web application firewalls (WAF), and API
+//     protection.
 func (c *Client) PutPolicy(ctx context.Context, params *PutPolicyInput, optFns ...func(*Options)) (*PutPolicyOutput, error) {
 	if params == nil {
 		params = &PutPolicyInput{}
@@ -79,6 +83,9 @@ type PutPolicyOutput struct {
 }
 
 func (c *Client) addOperationPutPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutPolicy{}, middleware.After)
 	if err != nil {
 		return err
@@ -87,6 +94,10 @@ func (c *Client) addOperationPutPolicyMiddlewares(stack *middleware.Stack, optio
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "PutPolicy"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -108,9 +119,6 @@ func (c *Client) addOperationPutPolicyMiddlewares(stack *middleware.Stack, optio
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -126,7 +134,7 @@ func (c *Client) addOperationPutPolicyMiddlewares(stack *middleware.Stack, optio
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addPutPolicyResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpPutPolicyValidationMiddleware(stack); err != nil {
@@ -147,7 +155,7 @@ func (c *Client) addOperationPutPolicyMiddlewares(stack *middleware.Stack, optio
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -157,130 +165,6 @@ func newServiceMetadataMiddleware_opPutPolicy(region string) *awsmiddleware.Regi
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "fms",
 		OperationName: "PutPolicy",
 	}
-}
-
-type opPutPolicyResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opPutPolicyResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opPutPolicyResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "fms"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "fms"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("fms")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addPutPolicyResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opPutPolicyResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

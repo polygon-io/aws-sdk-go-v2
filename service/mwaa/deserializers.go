@@ -475,6 +475,24 @@ func awsRestjson1_deserializeOpDocumentCreateWebLoginTokenOutput(v **CreateWebLo
 
 	for key, value := range shape {
 		switch key {
+		case "AirflowIdentity":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected AirflowIdentity to be of type string, got %T instead", value)
+				}
+				sv.AirflowIdentity = ptr.String(jtv)
+			}
+
+		case "IamIdentity":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected IamIdentity to be of type string, got %T instead", value)
+				}
+				sv.IamIdentity = ptr.String(jtv)
+			}
+
 		case "WebServerHostname":
 			if value != nil {
 				jtv, ok := value.(string)
@@ -1742,6 +1760,15 @@ func awsRestjson1_deserializeDocumentEnvironment(v **types.Environment, value in
 				sv.Arn = ptr.String(jtv)
 			}
 
+		case "CeleryExecutorQueue":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected CeleryExecutorQueue to be of type string, got %T instead", value)
+				}
+				sv.CeleryExecutorQueue = ptr.String(jtv)
+			}
+
 		case "CreatedAt":
 			if value != nil {
 				switch jtv := value.(type) {
@@ -1765,6 +1792,24 @@ func awsRestjson1_deserializeDocumentEnvironment(v **types.Environment, value in
 					return fmt.Errorf("expected RelativePath to be of type string, got %T instead", value)
 				}
 				sv.DagS3Path = ptr.String(jtv)
+			}
+
+		case "DatabaseVpcEndpointService":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected VpcEndpointServiceName to be of type string, got %T instead", value)
+				}
+				sv.DatabaseVpcEndpointService = ptr.String(jtv)
+			}
+
+		case "EndpointManagement":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected EndpointManagement to be of type string, got %T instead", value)
+				}
+				sv.EndpointManagement = types.EndpointManagement(jtv)
 			}
 
 		case "EnvironmentClass":
@@ -1959,6 +2004,15 @@ func awsRestjson1_deserializeDocumentEnvironment(v **types.Environment, value in
 					return fmt.Errorf("expected WebserverUrl to be of type string, got %T instead", value)
 				}
 				sv.WebserverUrl = ptr.String(jtv)
+			}
+
+		case "WebserverVpcEndpointService":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected VpcEndpointServiceName to be of type string, got %T instead", value)
+				}
+				sv.WebserverVpcEndpointService = ptr.String(jtv)
 			}
 
 		case "WeeklyMaintenanceWindowStart":

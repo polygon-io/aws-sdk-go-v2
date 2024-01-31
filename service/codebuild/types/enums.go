@@ -227,7 +227,13 @@ const (
 	ComputeTypeBuildGeneral1Small   ComputeType = "BUILD_GENERAL1_SMALL"
 	ComputeTypeBuildGeneral1Medium  ComputeType = "BUILD_GENERAL1_MEDIUM"
 	ComputeTypeBuildGeneral1Large   ComputeType = "BUILD_GENERAL1_LARGE"
+	ComputeTypeBuildGeneral1Xlarge  ComputeType = "BUILD_GENERAL1_XLARGE"
 	ComputeTypeBuildGeneral12xlarge ComputeType = "BUILD_GENERAL1_2XLARGE"
+	ComputeTypeBuildLambda1gb       ComputeType = "BUILD_LAMBDA_1GB"
+	ComputeTypeBuildLambda2gb       ComputeType = "BUILD_LAMBDA_2GB"
+	ComputeTypeBuildLambda4gb       ComputeType = "BUILD_LAMBDA_4GB"
+	ComputeTypeBuildLambda8gb       ComputeType = "BUILD_LAMBDA_8GB"
+	ComputeTypeBuildLambda10gb      ComputeType = "BUILD_LAMBDA_10GB"
 )
 
 // Values returns all known values for ComputeType. Note that this can be expanded
@@ -238,7 +244,13 @@ func (ComputeType) Values() []ComputeType {
 		"BUILD_GENERAL1_SMALL",
 		"BUILD_GENERAL1_MEDIUM",
 		"BUILD_GENERAL1_LARGE",
+		"BUILD_GENERAL1_XLARGE",
 		"BUILD_GENERAL1_2XLARGE",
+		"BUILD_LAMBDA_1GB",
+		"BUILD_LAMBDA_2GB",
+		"BUILD_LAMBDA_4GB",
+		"BUILD_LAMBDA_8GB",
+		"BUILD_LAMBDA_10GB",
 	}
 }
 
@@ -267,6 +279,8 @@ const (
 	EnvironmentTypeLinuxGpuContainer          EnvironmentType = "LINUX_GPU_CONTAINER"
 	EnvironmentTypeArmContainer               EnvironmentType = "ARM_CONTAINER"
 	EnvironmentTypeWindowsServer2019Container EnvironmentType = "WINDOWS_SERVER_2019_CONTAINER"
+	EnvironmentTypeLinuxLambdaContainer       EnvironmentType = "LINUX_LAMBDA_CONTAINER"
+	EnvironmentTypeArmLambdaContainer         EnvironmentType = "ARM_LAMBDA_CONTAINER"
 )
 
 // Values returns all known values for EnvironmentType. Note that this can be
@@ -279,6 +293,8 @@ func (EnvironmentType) Values() []EnvironmentType {
 		"LINUX_GPU_CONTAINER",
 		"ARM_CONTAINER",
 		"WINDOWS_SERVER_2019_CONTAINER",
+		"LINUX_LAMBDA_CONTAINER",
+		"ARM_LAMBDA_CONTAINER",
 	}
 }
 
@@ -315,6 +331,104 @@ const (
 func (FileSystemType) Values() []FileSystemType {
 	return []FileSystemType{
 		"EFS",
+	}
+}
+
+type FleetContextCode string
+
+// Enum values for FleetContextCode
+const (
+	FleetContextCodeCreateFailed FleetContextCode = "CREATE_FAILED"
+	FleetContextCodeUpdateFailed FleetContextCode = "UPDATE_FAILED"
+)
+
+// Values returns all known values for FleetContextCode. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (FleetContextCode) Values() []FleetContextCode {
+	return []FleetContextCode{
+		"CREATE_FAILED",
+		"UPDATE_FAILED",
+	}
+}
+
+type FleetScalingMetricType string
+
+// Enum values for FleetScalingMetricType
+const (
+	FleetScalingMetricTypeFleetUtilizationRate FleetScalingMetricType = "FLEET_UTILIZATION_RATE"
+)
+
+// Values returns all known values for FleetScalingMetricType. Note that this can
+// be expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (FleetScalingMetricType) Values() []FleetScalingMetricType {
+	return []FleetScalingMetricType{
+		"FLEET_UTILIZATION_RATE",
+	}
+}
+
+type FleetScalingType string
+
+// Enum values for FleetScalingType
+const (
+	FleetScalingTypeTargetTrackingScaling FleetScalingType = "TARGET_TRACKING_SCALING"
+)
+
+// Values returns all known values for FleetScalingType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (FleetScalingType) Values() []FleetScalingType {
+	return []FleetScalingType{
+		"TARGET_TRACKING_SCALING",
+	}
+}
+
+type FleetSortByType string
+
+// Enum values for FleetSortByType
+const (
+	FleetSortByTypeName             FleetSortByType = "NAME"
+	FleetSortByTypeCreatedTime      FleetSortByType = "CREATED_TIME"
+	FleetSortByTypeLastModifiedTime FleetSortByType = "LAST_MODIFIED_TIME"
+)
+
+// Values returns all known values for FleetSortByType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (FleetSortByType) Values() []FleetSortByType {
+	return []FleetSortByType{
+		"NAME",
+		"CREATED_TIME",
+		"LAST_MODIFIED_TIME",
+	}
+}
+
+type FleetStatusCode string
+
+// Enum values for FleetStatusCode
+const (
+	FleetStatusCodeCreating             FleetStatusCode = "CREATING"
+	FleetStatusCodeUpdating             FleetStatusCode = "UPDATING"
+	FleetStatusCodeRotating             FleetStatusCode = "ROTATING"
+	FleetStatusCodeDeleting             FleetStatusCode = "DELETING"
+	FleetStatusCodeCreateFailed         FleetStatusCode = "CREATE_FAILED"
+	FleetStatusCodeUpdateRollbackFailed FleetStatusCode = "UPDATE_ROLLBACK_FAILED"
+	FleetStatusCodeActive               FleetStatusCode = "ACTIVE"
+)
+
+// Values returns all known values for FleetStatusCode. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (FleetStatusCode) Values() []FleetStatusCode {
+	return []FleetStatusCode{
+		"CREATING",
+		"UPDATING",
+		"ROTATING",
+		"DELETING",
+		"CREATE_FAILED",
+		"UPDATE_ROLLBACK_FAILED",
+		"ACTIVE",
 	}
 }
 
