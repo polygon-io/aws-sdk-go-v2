@@ -1494,6 +1494,12 @@
         "com.amazonaws.docdb#BooleanOptional": {
             "type": "boolean"
         },
+        "com.amazonaws.docdb#CACertificateIdentifiersList": {
+            "type": "list",
+            "member": {
+                "target": "com.amazonaws.docdb#String"
+            }
+        },
         "com.amazonaws.docdb#Certificate": {
             "type": "structure",
             "members": {
@@ -1536,6 +1542,26 @@
             },
             "traits": {
                 "smithy.api#documentation": "<p>A certificate authority (CA) certificate for an Amazon Web Services account.</p>"
+            }
+        },
+        "com.amazonaws.docdb#CertificateDetails": {
+            "type": "structure",
+            "members": {
+                "CAIdentifier": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The CA identifier of the CA certificate used for the DB instance's server certificate.</p>"
+                    }
+                },
+                "ValidTill": {
+                    "target": "com.amazonaws.docdb#TStamp",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The expiration date of the DB instance’s server certificate.</p>"
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>Returns the details of the DB instance’s server certificate.</p>\n         <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS \n            Certificates</a> and \n            <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\">\n                Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer \n                    Guide</i>.</p>"
             }
         },
         "com.amazonaws.docdb#CertificateList": {
@@ -1960,6 +1986,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The cluster identifier of the new global cluster.</p>"
                     }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The storage type to associate with the DB cluster.</p>\n         <p>For information on storage types for Amazon DocumentDB clusters, see \n            Cluster storage configurations in the <i>Amazon DocumentDB Developer Guide</i>.</p>\n         <p>Valid values for storage type - <code>standard | iopt1</code>\n         </p>\n         <p>Default value is <code>standard </code>\n         </p>\n         <note>\n            <p>When you create a DocumentDB DB cluster with the storage type set to <code>iopt1</code>, the storage type is returned\n                    in the response. The storage type isn't returned when you set it to <code>standard</code>.</p>\n         </note>"
+                    }
                 }
             },
             "traits": {
@@ -2259,6 +2291,12 @@
                     "target": "com.amazonaws.docdb#String",
                     "traits": {
                         "smithy.api#documentation": "<p>The KMS key identifier for encryption of Performance Insights\n            data.</p>\n         <p>The KMS key identifier is the key ARN, key ID, alias ARN, or alias name\n            for the KMS key.</p>\n         <p>If you do not specify a value for PerformanceInsightsKMSKeyId, then Amazon DocumentDB uses your\n            default KMS key. There is a default KMS key for your\n            Amazon Web Services account. Your Amazon Web Services account has a different\n            default KMS key for each Amazon Web Services region.</p>"
+                    }
+                },
+                "CACertificateIdentifier": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The CA certificate identifier to use for the DB instance's server certificate.</p>\n         <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS \n            Certificates</a> and \n            <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\">\n                Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer \n                    Guide</i>.</p>"
                     }
                 }
             },
@@ -2742,6 +2780,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>Specifies whether this cluster can be deleted. If <code>DeletionProtection</code> is\n            enabled, the cluster cannot be deleted unless it is modified and\n                <code>DeletionProtection</code> is disabled. <code>DeletionProtection</code>\n            protects clusters from being accidentally deleted.</p>"
                     }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Storage type associated with your cluster</p>\n         <p>Storage type associated with your cluster</p>\n         <p>For information on storage types for Amazon DocumentDB clusters, see \n            Cluster storage configurations in the <i>Amazon DocumentDB Developer Guide</i>.</p>\n         <p>Valid values for storage type - <code>standard | iopt1</code>\n         </p>\n         <p>Default value is <code>standard </code>\n         </p>"
+                    }
                 }
             },
             "traits": {
@@ -3116,6 +3160,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>If the cluster snapshot was copied from a source cluster snapshot, the ARN for\n            the source cluster snapshot; otherwise, a null value.</p>"
                     }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Storage type associated with your cluster snapshot </p>\n         <p>For information on storage types for Amazon DocumentDB clusters, see \n            Cluster storage configurations in the <i>Amazon DocumentDB Developer Guide</i>.</p>\n         <p>Valid values for storage type - <code>standard | iopt1</code>\n         </p>\n         <p>Default value is <code>standard </code>\n         </p>"
+                    }
                 }
             },
             "traits": {
@@ -3284,6 +3334,18 @@
                     "target": "com.amazonaws.docdb#Boolean",
                     "traits": {
                         "smithy.api#documentation": "<p>A value that indicates whether the engine version supports exporting the log types\n            specified by <code>ExportableLogTypes</code> to CloudWatch Logs.</p>"
+                    }
+                },
+                "SupportedCACertificateIdentifiers": {
+                    "target": "com.amazonaws.docdb#CACertificateIdentifiersList",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A list of the supported CA certificate identifiers.</p>\n         <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS \n            Certificates</a> and \n            <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\">\n                Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer \n                    Guide</i>.</p>"
+                    }
+                },
+                "SupportsCertificateRotationWithoutRestart": {
+                    "target": "com.amazonaws.docdb#BooleanOptional",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Indicates whether the engine version supports rotating the server certificate without \n            rebooting the DB instance.</p>"
                     }
                 }
             },
@@ -3484,6 +3546,24 @@
                     "target": "com.amazonaws.docdb#LogTypeList",
                     "traits": {
                         "smithy.api#documentation": "<p>A list of log types that this instance is configured to export to CloudWatch Logs.</p>"
+                    }
+                },
+                "CertificateDetails": {
+                    "target": "com.amazonaws.docdb#CertificateDetails",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The details of the DB instance's server certificate.</p>"
+                    }
+                },
+                "PerformanceInsightsEnabled": {
+                    "target": "com.amazonaws.docdb#BooleanOptional",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Set to <code>true</code> if Amazon RDS Performance Insights is enabled for the DB instance, and otherwise <code>false</code>.</p>"
+                    }
+                },
+                "PerformanceInsightsKMSKeyId": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The KMS key identifier for encryption of Performance Insights data. The KMS key ID is the Amazon Resource Name (ARN), KMS key identifier, or the KMS key alias for the KMS encryption key.</p>"
                     }
                 }
             },
@@ -6409,6 +6489,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>Specifies whether this cluster can be deleted. If <code>DeletionProtection</code> is\n            enabled, the cluster cannot be deleted unless it is modified and\n                <code>DeletionProtection</code> is disabled. <code>DeletionProtection</code>\n            protects clusters from being accidentally deleted.</p>"
                     }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The storage type to associate with the DB cluster.</p>\n         <p>For information on storage types for Amazon DocumentDB clusters, see \n            Cluster storage configurations in the <i>Amazon DocumentDB Developer Guide</i>.</p>\n         <p>Valid values for storage type - <code>standard | iopt1</code>\n         </p>\n         <p>Default value is <code>standard </code>\n         </p>"
+                    }
                 }
             },
             "traits": {
@@ -6665,6 +6751,12 @@
                     "target": "com.amazonaws.docdb#String",
                     "traits": {
                         "smithy.api#documentation": "<p>The KMS key identifier for encryption of Performance Insights\n            data.</p>\n         <p>The KMS key identifier is the key ARN, key ID, alias ARN, or alias name\n            for the KMS key.</p>\n         <p>If you do not specify a value for PerformanceInsightsKMSKeyId, then Amazon DocumentDB uses your\n            default KMS key. There is a default KMS key for your\n            Amazon Web Services account. Your Amazon Web Services account has a different\n            default KMS key for each Amazon Web Services region.</p>"
+                    }
+                },
+                "CertificateRotationRestart": {
+                    "target": "com.amazonaws.docdb#BooleanOptional",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Specifies whether the DB instance is restarted when you rotate your \n            SSL/TLS certificate.</p>\n         <p>By default, the DB instance is restarted when you rotate your SSL/TLS certificate. The certificate \n            is not updated until the DB instance is restarted.</p>\n         <important>\n            <p>Set this parameter only if you are <i>not</i> using SSL/TLS to connect to the DB instance.</p>\n         </important>\n         <p>If you are using SSL/TLS to connect to the DB instance, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS \n            Certificates</a> and \n            <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\">\n                Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer \n                    Guide</i>.</p>"
                     }
                 }
             },
@@ -6936,6 +7028,12 @@
                     "target": "com.amazonaws.docdb#Boolean",
                     "traits": {
                         "smithy.api#documentation": "<p>Indicates whether an instance is in a virtual private cloud (VPC).</p>"
+                    }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The storage type to associate with the DB cluster</p>"
                     }
                 }
             },
@@ -7705,6 +7803,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The name of the DB cluster parameter group to associate with this DB cluster.</p>\n         <p>\n            <i>Type:</i> String.         <i>Required:</i> No.</p>\n         <p>If this argument is omitted, the default DB cluster parameter group is used.\n        If supplied, must match the name of an existing default DB cluster parameter group.\n        The string must consist of from 1 to 255 letters, numbers or hyphens. Its first\n        character must be a letter, and it cannot end with a hyphen or contain two consecutive\n        hyphens.</p>"
                     }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The storage type to associate with the DB cluster.</p>\n         <p>For information on storage types for Amazon DocumentDB clusters, see \n            Cluster storage configurations in the <i>Amazon DocumentDB Developer Guide</i>.</p>\n         <p>Valid values for storage type - <code>standard | iopt1</code>\n         </p>\n         <p>Default value is <code>standard </code>\n         </p>"
+                    }
                 }
             },
             "traits": {
@@ -7859,6 +7963,12 @@
                     "target": "com.amazonaws.docdb#BooleanOptional",
                     "traits": {
                         "smithy.api#documentation": "<p>Specifies whether this cluster can be deleted. If <code>DeletionProtection</code> is enabled, the cluster cannot be deleted unless it is modified and <code>DeletionProtection</code> is disabled. <code>DeletionProtection</code> protects clusters from being accidentally deleted.</p>"
+                    }
+                },
+                "StorageType": {
+                    "target": "com.amazonaws.docdb#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The storage type to associate with the DB cluster.</p>\n         <p>For information on storage types for Amazon DocumentDB clusters, see \n            Cluster storage configurations in the <i>Amazon DocumentDB Developer Guide</i>.</p>\n         <p>Valid values for storage type - <code>standard | iopt1</code>\n         </p>\n         <p>Default value is <code>standard </code>\n         </p>"
                     }
                 }
             },

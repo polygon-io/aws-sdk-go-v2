@@ -4,14 +4,10 @@ package macie2
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/macie2/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -52,17 +48,42 @@ type GetSensitiveDataOccurrencesAvailabilityOutput struct {
 
 	// Specifies why occurrences of sensitive data can't be retrieved for the finding.
 	// Possible values are:
-	//   - INVALID_CLASSIFICATION_RESULT - Amazon Macie can't verify the location of
-	//   the sensitive data to retrieve. There isn't a corresponding sensitive data
-	//   discovery result for the finding. Or the sensitive data discovery result
-	//   specified by the classificationDetails.detailedResultsLocation field of the
-	//   finding isn't available, is malformed or corrupted, or uses an unsupported
-	//   storage format.
+	//   - ACCOUNT_NOT_IN_ORGANIZATION - The affected account isn't currently part of
+	//   your organization. Or the account is part of your organization but Macie isn't
+	//   currently enabled for the account. You're not allowed to access the affected S3
+	//   object by using Macie.
+	//   - INVALID_CLASSIFICATION_RESULT - There isn't a corresponding sensitive data
+	//   discovery result for the finding. Or the corresponding sensitive data discovery
+	//   result isn't available in the current Amazon Web Services Region, is malformed
+	//   or corrupted, or uses an unsupported storage format. Macie can't verify the
+	//   location of the sensitive data to retrieve.
+	//   - INVALID_RESULT_SIGNATURE - The corresponding sensitive data discovery
+	//   result is stored in an S3 object that wasn't signed by Macie. Macie can't verify
+	//   the integrity and authenticity of the sensitive data discovery result.
+	//   Therefore, Macie can't verify the location of the sensitive data to retrieve.
+	//   - MEMBER_ROLE_TOO_PERMISSIVE - The trust or permissions policy for the IAM
+	//   role in the affected member account doesn't meet Macie requirements for
+	//   restricting access to the role. Or the role's trust policy doesn't specify the
+	//   correct external ID for your organization. Macie can't assume the role to
+	//   retrieve the sensitive data.
+	//   - MISSING_GET_MEMBER_PERMISSION - You're not allowed to retrieve information
+	//   about the association between your account and the affected account. Macie can't
+	//   determine whether you’re allowed to access the affected S3 object as the
+	//   delegated Macie administrator for the affected account.
 	//   - OBJECT_EXCEEDS_SIZE_QUOTA - The storage size of the affected S3 object
-	//   exceeds the size quota for retrieving occurrences of sensitive data.
-	//   - OBJECT_UNAVAILABLE - The affected S3 object isn't available. The object
-	//   might have been renamed, moved, or deleted. Or the object was changed after
-	//   Macie created the finding.
+	//   exceeds the size quota for retrieving occurrences of sensitive data from this
+	//   type of file.
+	//   - OBJECT_UNAVAILABLE - The affected S3 object isn't available. The object was
+	//   renamed, moved, deleted, or changed after Macie created the finding. Or the
+	//   object is encrypted with an KMS key that's currently disabled.
+	//   - RESULT_NOT_SIGNED - The corresponding sensitive data discovery result is
+	//   stored in an S3 object that hasn't been signed. Macie can't verify the integrity
+	//   and authenticity of the sensitive data discovery result. Therefore, Macie can't
+	//   verify the location of the sensitive data to retrieve.
+	//   - ROLE_TOO_PERMISSIVE - Your account is configured to retrieve occurrences of
+	//   sensitive data by using an IAM role whose trust or permissions policy doesn't
+	//   meet Macie requirements for restricting access to the role. Macie can’t assume
+	//   the role to retrieve the sensitive data.
 	//   - UNSUPPORTED_FINDING_TYPE - The specified finding isn't a sensitive data
 	//   finding.
 	//   - UNSUPPORTED_OBJECT_TYPE - The affected S3 object uses a file or storage
@@ -77,6 +98,9 @@ type GetSensitiveDataOccurrencesAvailabilityOutput struct {
 }
 
 func (c *Client) addOperationGetSensitiveDataOccurrencesAvailabilityMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetSensitiveDataOccurrencesAvailability{}, middleware.After)
 	if err != nil {
 		return err
@@ -85,6 +109,10 @@ func (c *Client) addOperationGetSensitiveDataOccurrencesAvailabilityMiddlewares(
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetSensitiveDataOccurrencesAvailability"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -106,9 +134,6 @@ func (c *Client) addOperationGetSensitiveDataOccurrencesAvailabilityMiddlewares(
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -124,7 +149,7 @@ func (c *Client) addOperationGetSensitiveDataOccurrencesAvailabilityMiddlewares(
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addGetSensitiveDataOccurrencesAvailabilityResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpGetSensitiveDataOccurrencesAvailabilityValidationMiddleware(stack); err != nil {
@@ -145,7 +170,7 @@ func (c *Client) addOperationGetSensitiveDataOccurrencesAvailabilityMiddlewares(
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -155,130 +180,6 @@ func newServiceMetadataMiddleware_opGetSensitiveDataOccurrencesAvailability(regi
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "macie2",
 		OperationName: "GetSensitiveDataOccurrencesAvailability",
 	}
-}
-
-type opGetSensitiveDataOccurrencesAvailabilityResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opGetSensitiveDataOccurrencesAvailabilityResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opGetSensitiveDataOccurrencesAvailabilityResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "macie2"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "macie2"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("macie2")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addGetSensitiveDataOccurrencesAvailabilityResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opGetSensitiveDataOccurrencesAvailabilityResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

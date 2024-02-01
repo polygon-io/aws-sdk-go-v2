@@ -4,14 +4,10 @@ package eks
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -27,7 +23,7 @@ import (
 // selectors in the Fargate profile, then that pod is run on Fargate. When you
 // create a Fargate profile, you must specify a pod execution role to use with the
 // pods that are scheduled with the profile. This role is added to the cluster's
-// Kubernetes Role Based Access Control (https://kubernetes.io/docs/admin/authorization/rbac/)
+// Kubernetes Role Based Access Control (https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 // (RBAC) for authorization so that the kubelet that is running on the Fargate
 // infrastructure can register with your Amazon EKS cluster so that it can appear
 // in your cluster as a node. The pod execution role also provides IAM permissions
@@ -38,7 +34,7 @@ import (
 // original after the updated profile has finished creating. If any Fargate
 // profiles in a cluster are in the DELETING status, you must wait for that
 // Fargate profile to finish deleting before you can create any other profiles in
-// that cluster. For more information, see Fargate Profile (https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html)
+// that cluster. For more information, see Fargate profile (https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html)
 // in the Amazon EKS User Guide.
 func (c *Client) CreateFargateProfile(ctx context.Context, params *CreateFargateProfileInput, optFns ...func(*Options)) (*CreateFargateProfileOutput, error) {
 	if params == nil {
@@ -57,7 +53,7 @@ func (c *Client) CreateFargateProfile(ctx context.Context, params *CreateFargate
 
 type CreateFargateProfileInput struct {
 
-	// The name of the Amazon EKS cluster to apply the Fargate profile to.
+	// The name of your cluster.
 	//
 	// This member is required.
 	ClusterName *string
@@ -67,34 +63,34 @@ type CreateFargateProfileInput struct {
 	// This member is required.
 	FargateProfileName *string
 
-	// The Amazon Resource Name (ARN) of the pod execution role to use for pods that
-	// match the selectors in the Fargate profile. The pod execution role allows
+	// The Amazon Resource Name (ARN) of the Pod execution role to use for a Pod that
+	// matches the selectors in the Fargate profile. The Pod execution role allows
 	// Fargate infrastructure to register with your cluster as a node, and it provides
 	// read access to Amazon ECR image repositories. For more information, see Pod
-	// Execution Role (https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html)
+	// execution role (https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html)
 	// in the Amazon EKS User Guide.
 	//
 	// This member is required.
 	PodExecutionRoleArn *string
 
-	// Unique, case-sensitive identifier that you provide to ensure the idempotency of
-	// the request.
+	// A unique, case-sensitive identifier that you provide to ensure the idempotency
+	// of the request.
 	ClientRequestToken *string
 
-	// The selectors to match for pods to use this Fargate profile. Each selector must
-	// have an associated namespace. Optionally, you can also specify labels for a
-	// namespace. You may specify up to five selectors in a Fargate profile.
+	// The selectors to match for a Pod to use this Fargate profile. Each selector
+	// must have an associated Kubernetes namespace . Optionally, you can also specify
+	// labels for a namespace . You may specify up to five selectors in a Fargate
+	// profile.
 	Selectors []types.FargateProfileSelector
 
-	// The IDs of subnets to launch your pods into. At this time, pods running on
-	// Fargate are not assigned public IP addresses, so only private subnets (with no
-	// direct route to an Internet Gateway) are accepted for this parameter.
+	// The IDs of subnets to launch a Pod into. A Pod running on Fargate isn't
+	// assigned a public IP address, so only private subnets (with no direct route to
+	// an Internet Gateway) are accepted for this parameter.
 	Subnets []string
 
-	// The metadata to apply to the Fargate profile to assist with categorization and
-	// organization. Each tag consists of a key and an optional value. You define both.
-	// Fargate profile tags do not propagate to any other resources associated with the
-	// Fargate profile, such as the pods that are scheduled with it.
+	// Metadata that assists with categorization and organization. Each tag consists
+	// of a key and an optional value. You define both. Tags don't propagate to any
+	// other cluster or Amazon Web Services resources.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -112,6 +108,9 @@ type CreateFargateProfileOutput struct {
 }
 
 func (c *Client) addOperationCreateFargateProfileMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateFargateProfile{}, middleware.After)
 	if err != nil {
 		return err
@@ -120,6 +119,10 @@ func (c *Client) addOperationCreateFargateProfileMiddlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateFargateProfile"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -141,9 +144,6 @@ func (c *Client) addOperationCreateFargateProfileMiddlewares(stack *middleware.S
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (c *Client) addOperationCreateFargateProfileMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateFargateProfileResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreateFargateProfileMiddleware(stack, options); err != nil {
@@ -183,7 +183,7 @@ func (c *Client) addOperationCreateFargateProfileMiddlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -226,130 +226,6 @@ func newServiceMetadataMiddleware_opCreateFargateProfile(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "eks",
 		OperationName: "CreateFargateProfile",
 	}
-}
-
-type opCreateFargateProfileResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateFargateProfileResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateFargateProfileResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "eks"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "eks"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("eks")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateFargateProfileResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateFargateProfileResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

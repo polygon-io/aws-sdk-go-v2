@@ -1,3 +1,59 @@
+# v1.23.1 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.23.0 (2023-12-19)
+
+* **Feature**: AWS Marketplace now supports a new API, BatchDescribeEntities, which returns metadata and content for multiple entities.
+
+# v1.22.4 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.22.3 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.2 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.22.1 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.0 (2023-11-30)
+
+* **Feature**: This release enhances the ListEntities API to support new entity type-specific strongly typed filters in the request and entity type-specific strongly typed summaries in the response.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.5 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.4 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.20.3 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.2 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.20.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

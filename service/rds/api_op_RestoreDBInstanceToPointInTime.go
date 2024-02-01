@@ -4,14 +4,10 @@ package rds
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
@@ -26,8 +22,9 @@ import (
 // group. By default, the new DB instance is created as a single-AZ deployment
 // except when the instance is a SQL Server instance that has an option group that
 // is associated with mirroring; in this case, the instance becomes a mirrored
-// deployment and not a single-AZ deployment. This command doesn't apply to Aurora
-// MySQL and Aurora PostgreSQL. For Aurora, use RestoreDBClusterToPointInTime .
+// deployment and not a single-AZ deployment. This operation doesn't apply to
+// Aurora MySQL and Aurora PostgreSQL. For Aurora, use
+// RestoreDBClusterToPointInTime .
 func (c *Client) RestoreDBInstanceToPointInTime(ctx context.Context, params *RestoreDBInstanceToPointInTimeInput, optFns ...func(*Options)) (*RestoreDBInstanceToPointInTimeOutput, error) {
 	if params == nil {
 		params = &RestoreDBInstanceToPointInTimeInput{}
@@ -71,10 +68,12 @@ type RestoreDBInstanceToPointInTimeInput struct {
 	// Example: us-east-1a
 	AvailabilityZone *string
 
-	// Specifies where automated backups and manual snapshots are stored for the
-	// restored DB instance. Possible values are outposts (Amazon Web Services
-	// Outposts) and region (Amazon Web Services Region). The default is region . For
-	// more information, see Working with Amazon RDS on Amazon Web Services Outposts (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html)
+	// The location for storing automated backups and manual snapshots for the
+	// restored DB instance. Valid Values:
+	//   - outposts (Amazon Web Services Outposts)
+	//   - region (Amazon Web Services Region)
+	// Default: region For more information, see Working with Amazon RDS on Amazon Web
+	// Services Outposts (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html)
 	// in the Amazon RDS User Guide.
 	BackupTarget *string
 
@@ -103,8 +102,12 @@ type RestoreDBInstanceToPointInTimeInput struct {
 	// original DB instance.
 	DBInstanceClass *string
 
-	// The database name for the restored DB instance. This parameter isn't supported
-	// for the MySQL or MariaDB engines. It also doesn't apply to RDS Custom.
+	// The database name for the restored DB instance. This parameter doesn't apply to
+	// the following DB instances:
+	//   - RDS Custom
+	//   - RDS for Db2
+	//   - RDS for MariaDB
+	//   - RDS for MySQL
 	DBName *string
 
 	// The name of the DB parameter group to associate with this DB instance. If you
@@ -199,6 +202,8 @@ type RestoreDBInstanceToPointInTimeInput struct {
 
 	// The database engine to use for the new instance. This setting doesn't apply to
 	// RDS Custom. Valid Values:
+	//   - db2-ae
+	//   - db2-se
 	//   - mariadb
 	//   - mysql
 	//   - oracle-ee
@@ -351,6 +356,9 @@ type RestoreDBInstanceToPointInTimeOutput struct {
 }
 
 func (c *Client) addOperationRestoreDBInstanceToPointInTimeMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpRestoreDBInstanceToPointInTime{}, middleware.After)
 	if err != nil {
 		return err
@@ -359,6 +367,10 @@ func (c *Client) addOperationRestoreDBInstanceToPointInTimeMiddlewares(stack *mi
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RestoreDBInstanceToPointInTime"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -380,9 +392,6 @@ func (c *Client) addOperationRestoreDBInstanceToPointInTimeMiddlewares(stack *mi
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -398,7 +407,7 @@ func (c *Client) addOperationRestoreDBInstanceToPointInTimeMiddlewares(stack *mi
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addRestoreDBInstanceToPointInTimeResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpRestoreDBInstanceToPointInTimeValidationMiddleware(stack); err != nil {
@@ -419,7 +428,7 @@ func (c *Client) addOperationRestoreDBInstanceToPointInTimeMiddlewares(stack *mi
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -429,130 +438,6 @@ func newServiceMetadataMiddleware_opRestoreDBInstanceToPointInTime(region string
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "rds",
 		OperationName: "RestoreDBInstanceToPointInTime",
 	}
-}
-
-type opRestoreDBInstanceToPointInTimeResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opRestoreDBInstanceToPointInTimeResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opRestoreDBInstanceToPointInTimeResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "rds"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "rds"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("rds")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addRestoreDBInstanceToPointInTimeResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opRestoreDBInstanceToPointInTimeResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

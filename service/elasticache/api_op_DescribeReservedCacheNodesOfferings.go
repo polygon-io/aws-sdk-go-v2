@@ -4,14 +4,10 @@ package elasticache
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -41,19 +37,20 @@ type DescribeReservedCacheNodesOfferingsInput struct {
 	// provide more memory and computational power at lower cost when compared to their
 	// equivalent previous generation counterparts.
 	//   - General purpose:
-	//   - Current generation: M6g node types (available only for Redis engine version
-	//   5.0.6 onward and for Memcached engine version 1.5.16 onward): cache.m6g.large
-	//   , cache.m6g.xlarge , cache.m6g.2xlarge , cache.m6g.4xlarge , cache.m6g.8xlarge
-	//   , cache.m6g.12xlarge , cache.m6g.16xlarge For region availability, see
-	//   Supported Node Types (https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheNodes.SupportedTypes.html#CacheNodes.SupportedTypesByRegion)
-	//   M5 node types: cache.m5.large , cache.m5.xlarge , cache.m5.2xlarge ,
-	//   cache.m5.4xlarge , cache.m5.12xlarge , cache.m5.24xlarge M4 node types:
-	//   cache.m4.large , cache.m4.xlarge , cache.m4.2xlarge , cache.m4.4xlarge ,
-	//   cache.m4.10xlarge T4g node types (available only for Redis engine version
-	//   5.0.6 onward and Memcached engine version 1.5.16 onward): cache.t4g.micro ,
-	//   cache.t4g.small , cache.t4g.medium T3 node types: cache.t3.micro ,
-	//   cache.t3.small , cache.t3.medium T2 node types: cache.t2.micro ,
-	//   cache.t2.small , cache.t2.medium
+	//   - Current generation: M7g node types: cache.m7g.large , cache.m7g.xlarge ,
+	//   cache.m7g.2xlarge , cache.m7g.4xlarge , cache.m7g.8xlarge , cache.m7g.12xlarge
+	//   , cache.m7g.16xlarge For region availability, see Supported Node Types (https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheNodes.SupportedTypes.html#CacheNodes.SupportedTypesByRegion)
+	//   M6g node types (available only for Redis engine version 5.0.6 onward and for
+	//   Memcached engine version 1.5.16 onward): cache.m6g.large , cache.m6g.xlarge ,
+	//   cache.m6g.2xlarge , cache.m6g.4xlarge , cache.m6g.8xlarge , cache.m6g.12xlarge
+	//   , cache.m6g.16xlarge M5 node types: cache.m5.large , cache.m5.xlarge ,
+	//   cache.m5.2xlarge , cache.m5.4xlarge , cache.m5.12xlarge , cache.m5.24xlarge M4
+	//   node types: cache.m4.large , cache.m4.xlarge , cache.m4.2xlarge ,
+	//   cache.m4.4xlarge , cache.m4.10xlarge T4g node types (available only for Redis
+	//   engine version 5.0.6 onward and Memcached engine version 1.5.16 onward):
+	//   cache.t4g.micro , cache.t4g.small , cache.t4g.medium T3 node types:
+	//   cache.t3.micro , cache.t3.small , cache.t3.medium T2 node types:
+	//   cache.t2.micro , cache.t2.small , cache.t2.medium
 	//   - Previous generation: (not recommended. Existing clusters are still
 	//   supported but creation of new clusters is not supported for these types.) T1
 	//   node types: cache.t1.micro M1 node types: cache.m1.small , cache.m1.medium ,
@@ -64,15 +61,16 @@ type DescribeReservedCacheNodesOfferingsInput struct {
 	//   supported but creation of new clusters is not supported for these types.) C1
 	//   node types: cache.c1.xlarge
 	//   - Memory optimized:
-	//   - Current generation: R6g node types (available only for Redis engine version
-	//   5.0.6 onward and for Memcached engine version 1.5.16 onward). cache.r6g.large
-	//   , cache.r6g.xlarge , cache.r6g.2xlarge , cache.r6g.4xlarge , cache.r6g.8xlarge
-	//   , cache.r6g.12xlarge , cache.r6g.16xlarge For region availability, see
-	//   Supported Node Types (https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheNodes.SupportedTypes.html#CacheNodes.SupportedTypesByRegion)
-	//   R5 node types: cache.r5.large , cache.r5.xlarge , cache.r5.2xlarge ,
-	//   cache.r5.4xlarge , cache.r5.12xlarge , cache.r5.24xlarge R4 node types:
-	//   cache.r4.large , cache.r4.xlarge , cache.r4.2xlarge , cache.r4.4xlarge ,
-	//   cache.r4.8xlarge , cache.r4.16xlarge
+	//   - Current generation: R7g node types: cache.r7g.large , cache.r7g.xlarge ,
+	//   cache.r7g.2xlarge , cache.r7g.4xlarge , cache.r7g.8xlarge , cache.r7g.12xlarge
+	//   , cache.r7g.16xlarge For region availability, see Supported Node Types (https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheNodes.SupportedTypes.html#CacheNodes.SupportedTypesByRegion)
+	//   R6g node types (available only for Redis engine version 5.0.6 onward and for
+	//   Memcached engine version 1.5.16 onward): cache.r6g.large , cache.r6g.xlarge ,
+	//   cache.r6g.2xlarge , cache.r6g.4xlarge , cache.r6g.8xlarge , cache.r6g.12xlarge
+	//   , cache.r6g.16xlarge R5 node types: cache.r5.large , cache.r5.xlarge ,
+	//   cache.r5.2xlarge , cache.r5.4xlarge , cache.r5.12xlarge , cache.r5.24xlarge R4
+	//   node types: cache.r4.large , cache.r4.xlarge , cache.r4.2xlarge ,
+	//   cache.r4.4xlarge , cache.r4.8xlarge , cache.r4.16xlarge
 	//   - Previous generation: (not recommended. Existing clusters are still
 	//   supported but creation of new clusters is not supported for these types.) M2
 	//   node types: cache.m2.xlarge , cache.m2.2xlarge , cache.m2.4xlarge R3 node
@@ -139,6 +137,9 @@ type DescribeReservedCacheNodesOfferingsOutput struct {
 }
 
 func (c *Client) addOperationDescribeReservedCacheNodesOfferingsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDescribeReservedCacheNodesOfferings{}, middleware.After)
 	if err != nil {
 		return err
@@ -147,6 +148,10 @@ func (c *Client) addOperationDescribeReservedCacheNodesOfferingsMiddlewares(stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeReservedCacheNodesOfferings"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -168,9 +173,6 @@ func (c *Client) addOperationDescribeReservedCacheNodesOfferingsMiddlewares(stac
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -186,7 +188,7 @@ func (c *Client) addOperationDescribeReservedCacheNodesOfferingsMiddlewares(stac
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addDescribeReservedCacheNodesOfferingsResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeReservedCacheNodesOfferings(options.Region), middleware.Before); err != nil {
@@ -204,7 +206,7 @@ func (c *Client) addOperationDescribeReservedCacheNodesOfferingsMiddlewares(stac
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -310,130 +312,6 @@ func newServiceMetadataMiddleware_opDescribeReservedCacheNodesOfferings(region s
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "elasticache",
 		OperationName: "DescribeReservedCacheNodesOfferings",
 	}
-}
-
-type opDescribeReservedCacheNodesOfferingsResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opDescribeReservedCacheNodesOfferingsResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opDescribeReservedCacheNodesOfferingsResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "elasticache"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "elasticache"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("elasticache")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addDescribeReservedCacheNodesOfferingsResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opDescribeReservedCacheNodesOfferingsResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

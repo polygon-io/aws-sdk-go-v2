@@ -364,7 +364,7 @@ type LaunchAction struct {
 	Optional *bool
 
 	// Launch action order.
-	Order int32
+	Order *int32
 
 	// Launch action parameters.
 	Parameters map[string]LaunchActionParameter
@@ -616,12 +616,12 @@ type PITPolicyRule struct {
 	// How often, in the chosen units, a snapshot should be taken.
 	//
 	// This member is required.
-	Interval int32
+	Interval *int32
 
 	// The duration to retain a snapshot for, in the chosen units.
 	//
 	// This member is required.
-	RetentionDuration int32
+	RetentionDuration *int32
 
 	// The units used to measure the interval and retentionDuration.
 	//
@@ -639,6 +639,9 @@ type PITPolicyRule struct {
 
 // A Recovery Instance is a replica of a Source Server running on EC2.
 type RecoveryInstance struct {
+
+	// The version of the DRS agent installed on the recovery instance
+	AgentVersion *string
 
 	// The ARN of the Recovery Instance.
 	Arn *string
@@ -1098,6 +1101,9 @@ type SourceProperties struct {
 }
 
 type SourceServer struct {
+
+	// The version of the DRS agent installed on the source server
+	AgentVersion *string
 
 	// The ARN of the Source Server.
 	Arn *string

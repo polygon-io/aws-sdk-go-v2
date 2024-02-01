@@ -39,7 +39,7 @@ func TestClient_HttpEnumPayload_awsRestjson1Serialize(t *testing.T) {
 		BodyMediaType string
 		BodyAssert    func(io.Reader) error
 	}{
-		"EnumPayloadRequest": {
+		"RestJsonEnumPayloadRequest": {
 			Params: &HttpEnumPayloadInput{
 				Payload: types.StringEnum("enumvalue"),
 			},
@@ -123,7 +123,7 @@ func TestClient_HttpEnumPayload_awsRestjson1Deserialize(t *testing.T) {
 		Body          []byte
 		ExpectResult  *HttpEnumPayloadOutput
 	}{
-		"EnumPayloadResponse": {
+		"RestJsonEnumPayloadResponse": {
 			StatusCode: 200,
 			Body:       []byte(`enumvalue`),
 			ExpectResult: &HttpEnumPayloadOutput{

@@ -294,6 +294,22 @@ type FirewallRule struct {
 	// priority, starting from the lowest setting.
 	Priority *int32
 
+	// The DNS query type you want the rule to evaluate. Allowed values are;
+	//   - A: Returns an IPv4 address.
+	//   - AAAA: Returns an Ipv6 address.
+	//   - CAA: Restricts CAs that can create SSL/TLS certifications for the domain.
+	//   - CNAME: Returns another domain name.
+	//   - DS: Record that identifies the DNSSEC signing key of a delegated zone.
+	//   - MX: Specifies mail servers.
+	//   - NAPTR: Regular-expression-based rewriting of domain names.
+	//   - NS: Authoritative name servers.
+	//   - PTR: Maps an IP address to a domain name.
+	//   - SOA: Start of authority record for the zone.
+	//   - SPF: Lists the servers authorized to send emails from a domain.
+	//   - SRV: Application specific values that identify servers.
+	//   - TXT: Verifies email senders and application-specific values.
+	Qtype *string
+
 	noSmithyDocumentSerde
 }
 
@@ -658,6 +674,21 @@ type ResolverEndpoint struct {
 	// The Amazon EC2 instance type.
 	PreferredInstanceType *string
 
+	// Protocols used for the endpoint. DoH-FIPS is applicable for inbound endpoints
+	// only. For an inbound endpoint you can apply the protocols as follows:
+	//   - Do53 and DoH in combination.
+	//   - Do53 and DoH-FIPS in combination.
+	//   - Do53 alone.
+	//   - DoH alone.
+	//   - DoH-FIPS alone.
+	//   - None, which is treated as Do53.
+	// For an outbound endpoint you can apply the protocols as follows:
+	//   - Do53 and DoH in combination.
+	//   - Do53 alone.
+	//   - DoH alone.
+	//   - None, which is treated as Do53.
+	Protocols []Protocol
+
 	// The Resolver endpoint IP address type.
 	ResolverEndpointType ResolverEndpointType
 
@@ -969,6 +1000,21 @@ type TargetAddress struct {
 
 	// The port at Ip that you want to forward DNS queries to.
 	Port *int32
+
+	// The protocols for the Resolver endpoints. DoH-FIPS is applicable for inbound
+	// endpoints only. For an inbound endpoint you can apply the protocols as follows:
+	//   - Do53 and DoH in combination.
+	//   - Do53 and DoH-FIPS in combination.
+	//   - Do53 alone.
+	//   - DoH alone.
+	//   - DoH-FIPS alone.
+	//   - None, which is treated as Do53.
+	// For an outbound endpoint you can apply the protocols as follows:
+	//   - Do53 and DoH in combination.
+	//   - Do53 alone.
+	//   - DoH alone.
+	//   - None, which is treated as Do53.
+	Protocol Protocol
 
 	noSmithyDocumentSerde
 }

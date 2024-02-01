@@ -2,6 +2,32 @@
 
 package types
 
+type ApplicationLogLevel string
+
+// Enum values for ApplicationLogLevel
+const (
+	ApplicationLogLevelTrace ApplicationLogLevel = "TRACE"
+	ApplicationLogLevelDebug ApplicationLogLevel = "DEBUG"
+	ApplicationLogLevelInfo  ApplicationLogLevel = "INFO"
+	ApplicationLogLevelWarn  ApplicationLogLevel = "WARN"
+	ApplicationLogLevelError ApplicationLogLevel = "ERROR"
+	ApplicationLogLevelFatal ApplicationLogLevel = "FATAL"
+)
+
+// Values returns all known values for ApplicationLogLevel. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (ApplicationLogLevel) Values() []ApplicationLogLevel {
+	return []ApplicationLogLevel{
+		"TRACE",
+		"DEBUG",
+		"INFO",
+		"WARN",
+		"ERROR",
+		"FATAL",
+	}
+}
+
 type Architecture string
 
 // Enum values for Architecture
@@ -256,6 +282,24 @@ func (LastUpdateStatusReasonCode) Values() []LastUpdateStatusReasonCode {
 	}
 }
 
+type LogFormat string
+
+// Enum values for LogFormat
+const (
+	LogFormatJson LogFormat = "JSON"
+	LogFormatText LogFormat = "Text"
+)
+
+// Values returns all known values for LogFormat. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
+func (LogFormat) Values() []LogFormat {
+	return []LogFormat{
+		"JSON",
+		"Text",
+	}
+}
+
 type LogType string
 
 // Enum values for LogType
@@ -336,38 +380,42 @@ type Runtime string
 
 // Enum values for Runtime
 const (
-	RuntimeNodejs       Runtime = "nodejs"
-	RuntimeNodejs43     Runtime = "nodejs4.3"
-	RuntimeNodejs610    Runtime = "nodejs6.10"
-	RuntimeNodejs810    Runtime = "nodejs8.10"
-	RuntimeNodejs10x    Runtime = "nodejs10.x"
-	RuntimeNodejs12x    Runtime = "nodejs12.x"
-	RuntimeNodejs14x    Runtime = "nodejs14.x"
-	RuntimeNodejs16x    Runtime = "nodejs16.x"
-	RuntimeJava8        Runtime = "java8"
-	RuntimeJava8al2     Runtime = "java8.al2"
-	RuntimeJava11       Runtime = "java11"
-	RuntimePython27     Runtime = "python2.7"
-	RuntimePython36     Runtime = "python3.6"
-	RuntimePython37     Runtime = "python3.7"
-	RuntimePython38     Runtime = "python3.8"
-	RuntimePython39     Runtime = "python3.9"
-	RuntimeDotnetcore10 Runtime = "dotnetcore1.0"
-	RuntimeDotnetcore20 Runtime = "dotnetcore2.0"
-	RuntimeDotnetcore21 Runtime = "dotnetcore2.1"
-	RuntimeDotnetcore31 Runtime = "dotnetcore3.1"
-	RuntimeDotnet6      Runtime = "dotnet6"
-	RuntimeNodejs43edge Runtime = "nodejs4.3-edge"
-	RuntimeGo1x         Runtime = "go1.x"
-	RuntimeRuby25       Runtime = "ruby2.5"
-	RuntimeRuby27       Runtime = "ruby2.7"
-	RuntimeProvided     Runtime = "provided"
-	RuntimeProvidedal2  Runtime = "provided.al2"
-	RuntimeNodejs18x    Runtime = "nodejs18.x"
-	RuntimePython310    Runtime = "python3.10"
-	RuntimeJava17       Runtime = "java17"
-	RuntimeRuby32       Runtime = "ruby3.2"
-	RuntimePython311    Runtime = "python3.11"
+	RuntimeNodejs         Runtime = "nodejs"
+	RuntimeNodejs43       Runtime = "nodejs4.3"
+	RuntimeNodejs610      Runtime = "nodejs6.10"
+	RuntimeNodejs810      Runtime = "nodejs8.10"
+	RuntimeNodejs10x      Runtime = "nodejs10.x"
+	RuntimeNodejs12x      Runtime = "nodejs12.x"
+	RuntimeNodejs14x      Runtime = "nodejs14.x"
+	RuntimeNodejs16x      Runtime = "nodejs16.x"
+	RuntimeJava8          Runtime = "java8"
+	RuntimeJava8al2       Runtime = "java8.al2"
+	RuntimeJava11         Runtime = "java11"
+	RuntimePython27       Runtime = "python2.7"
+	RuntimePython36       Runtime = "python3.6"
+	RuntimePython37       Runtime = "python3.7"
+	RuntimePython38       Runtime = "python3.8"
+	RuntimePython39       Runtime = "python3.9"
+	RuntimeDotnetcore10   Runtime = "dotnetcore1.0"
+	RuntimeDotnetcore20   Runtime = "dotnetcore2.0"
+	RuntimeDotnetcore21   Runtime = "dotnetcore2.1"
+	RuntimeDotnetcore31   Runtime = "dotnetcore3.1"
+	RuntimeDotnet6        Runtime = "dotnet6"
+	RuntimeNodejs43edge   Runtime = "nodejs4.3-edge"
+	RuntimeGo1x           Runtime = "go1.x"
+	RuntimeRuby25         Runtime = "ruby2.5"
+	RuntimeRuby27         Runtime = "ruby2.7"
+	RuntimeProvided       Runtime = "provided"
+	RuntimeProvidedal2    Runtime = "provided.al2"
+	RuntimeNodejs18x      Runtime = "nodejs18.x"
+	RuntimePython310      Runtime = "python3.10"
+	RuntimeJava17         Runtime = "java17"
+	RuntimeRuby32         Runtime = "ruby3.2"
+	RuntimePython311      Runtime = "python3.11"
+	RuntimeNodejs20x      Runtime = "nodejs20.x"
+	RuntimeProvidedal2023 Runtime = "provided.al2023"
+	RuntimePython312      Runtime = "python3.12"
+	RuntimeJava21         Runtime = "java21"
 )
 
 // Values returns all known values for Runtime. Note that this can be expanded in
@@ -407,6 +455,10 @@ func (Runtime) Values() []Runtime {
 		"java17",
 		"ruby3.2",
 		"python3.11",
+		"nodejs20.x",
+		"provided.al2023",
+		"python3.12",
+		"java21",
 	}
 }
 
@@ -557,6 +609,26 @@ func (StateReasonCode) Values() []StateReasonCode {
 		"InvalidRuntime",
 		"InvalidZipFileException",
 		"FunctionError",
+	}
+}
+
+type SystemLogLevel string
+
+// Enum values for SystemLogLevel
+const (
+	SystemLogLevelDebug SystemLogLevel = "DEBUG"
+	SystemLogLevelInfo  SystemLogLevel = "INFO"
+	SystemLogLevelWarn  SystemLogLevel = "WARN"
+)
+
+// Values returns all known values for SystemLogLevel. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (SystemLogLevel) Values() []SystemLogLevel {
+	return []SystemLogLevel{
+		"DEBUG",
+		"INFO",
+		"WARN",
 	}
 }
 

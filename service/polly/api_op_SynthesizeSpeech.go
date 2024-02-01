@@ -4,14 +4,10 @@ package polly
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/polly/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"io"
@@ -60,17 +56,19 @@ type SynthesizeSpeechInput struct {
 	// This member is required.
 	VoiceId types.VoiceId
 
-	// Specifies the engine ( standard or neural ) for Amazon Polly to use when
-	// processing input text for speech synthesis. For information on Amazon Polly
-	// voices and which voices are available in standard-only, NTTS-only, and both
-	// standard and NTTS formats, see Available Voices (https://docs.aws.amazon.com/polly/latest/dg/voicelist.html)
+	// Specifies the engine ( standard , neural or long-form ) for Amazon Polly to use
+	// when processing input text for speech synthesis. For information on Amazon Polly
+	// voices and which voices are available for each engine, see Available Voices (https://docs.aws.amazon.com/polly/latest/dg/voicelist.html)
 	// . NTTS-only voices When using NTTS-only voices such as Kevin (en-US), this
 	// parameter is required and must be set to neural . If the engine is not
-	// specified, or is set to standard , this will result in an error. Type: String
-	// Valid Values: standard | neural Required: Yes Standard voices For standard
-	// voices, this is not required; the engine parameter defaults to standard . If the
-	// engine is not specified, or is set to standard and an NTTS-only voice is
-	// selected, this will result in an error.
+	// specified, or is set to standard , this will result in an error. long-form-only
+	// voices When using long-form-only voices such as Danielle (en-US), this parameter
+	// is required and must be set to long-form . If the engine is not specified, or is
+	// set to standard or neural , this will result in an error. Type: String Valid
+	// Values: standard | neural | long-form Required: Yes Standard voices For
+	// standard voices, this is not required; the engine parameter defaults to standard
+	// . If the engine is not specified, or is set to standard and an NTTS-only voice
+	// is selected, this will result in an error.
 	Engine types.Engine
 
 	// Optional language code for the Synthesize Speech request. This is only
@@ -92,8 +90,9 @@ type SynthesizeSpeechInput struct {
 
 	// The audio frequency specified in Hz. The valid values for mp3 and ogg_vorbis
 	// are "8000", "16000", "22050", and "24000". The default value for standard voices
-	// is "22050". The default value for neural voices is "24000". Valid values for pcm
-	// are "8000" and "16000" The default value is "16000".
+	// is "22050". The default value for neural voices is "24000". The default value
+	// for long-form voices is "24000". Valid values for pcm are "8000" and "16000" The
+	// default value is "16000".
 	SampleRate *string
 
 	// The type of speech marks returned for the input text.
@@ -134,6 +133,9 @@ type SynthesizeSpeechOutput struct {
 }
 
 func (c *Client) addOperationSynthesizeSpeechMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpSynthesizeSpeech{}, middleware.After)
 	if err != nil {
 		return err
@@ -142,6 +144,10 @@ func (c *Client) addOperationSynthesizeSpeechMiddlewares(stack *middleware.Stack
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "SynthesizeSpeech"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -163,9 +169,6 @@ func (c *Client) addOperationSynthesizeSpeechMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -178,7 +181,7 @@ func (c *Client) addOperationSynthesizeSpeechMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSynthesizeSpeechResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpSynthesizeSpeechValidationMiddleware(stack); err != nil {
@@ -199,7 +202,7 @@ func (c *Client) addOperationSynthesizeSpeechMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -209,7 +212,6 @@ func newServiceMetadataMiddleware_opSynthesizeSpeech(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "polly",
 		OperationName: "SynthesizeSpeech",
 	}
 }
@@ -236,127 +238,4 @@ func (c *PresignClient) PresignSynthesizeSpeech(ctx context.Context, params *Syn
 
 	out := result.(*v4.PresignedHTTPRequest)
 	return out, nil
-}
-
-type opSynthesizeSpeechResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opSynthesizeSpeechResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opSynthesizeSpeechResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "polly"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "polly"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("polly")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addSynthesizeSpeechResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opSynthesizeSpeechResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

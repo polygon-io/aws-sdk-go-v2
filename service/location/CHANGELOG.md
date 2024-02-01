@@ -1,3 +1,74 @@
+# v1.35.1 (2024-01-12)
+
+* **Documentation**: Location SDK documentation update. Added missing fonts to the MapConfiguration data type. Updated note for the SubMunicipality property in the place data type.
+
+# v1.35.0 (2024-01-10)
+
+* **Feature**: This release adds API support for custom layers for the maps service APIs: CreateMap, UpdateMap, DescribeMap.
+
+# v1.34.1 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.0 (2023-12-29)
+
+* **Feature**: This release introduces a new parameter to bypasses an API key's expiry conditions and delete the key.
+
+# v1.33.0 (2023-12-12)
+
+* **Feature**: This release 1)  adds sub-municipality field in Places API for searching and getting places information, and 2) allows optimizing route calculation based on expected arrival time.
+
+# v1.32.5 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.32.4 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.32.3 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.32.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.32.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.32.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.31.3 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.31.2 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.31.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.31.0 (2023-11-17)
+
+* **Feature**: Remove default value and allow nullable for request parameters having minimum value larger than zero.
+
+# v1.30.2 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.30.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.30.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

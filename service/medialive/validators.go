@@ -1329,6 +1329,23 @@ func validate__listOfCaptionSelector(v []types.CaptionSelector) error {
 	}
 }
 
+func validate__listOfColorCorrection(v []types.ColorCorrection) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListOfColorCorrection"}
+	for i := range v {
+		if err := validateColorCorrection(&v[i]); err != nil {
+			invalidParams.AddNested(fmt.Sprintf("[%d]", i), err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validate__listOfFailoverCondition(v []types.FailoverCondition) error {
 	if v == nil {
 		return nil
@@ -2057,6 +2074,46 @@ func validateCaptionSelectorSettings(v *types.CaptionSelectorSettings) error {
 	}
 }
 
+func validateColorCorrection(v *types.ColorCorrection) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ColorCorrection"}
+	if len(v.InputColorSpace) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("InputColorSpace"))
+	}
+	if len(v.OutputColorSpace) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("OutputColorSpace"))
+	}
+	if v.Uri == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Uri"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateColorCorrectionSettings(v *types.ColorCorrectionSettings) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ColorCorrectionSettings"}
+	if v.GlobalColorCorrections == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("GlobalColorCorrections"))
+	} else if v.GlobalColorCorrections != nil {
+		if err := validate__listOfColorCorrection(v.GlobalColorCorrections); err != nil {
+			invalidParams.AddNested("GlobalColorCorrections", err.(smithy.InvalidParamsError))
+		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateDvbNitSettings(v *types.DvbNitSettings) error {
 	if v == nil {
 		return nil
@@ -2158,6 +2215,11 @@ func validateEncoderSettings(v *types.EncoderSettings) error {
 	if v.ThumbnailConfiguration != nil {
 		if err := validateThumbnailConfiguration(v.ThumbnailConfiguration); err != nil {
 			invalidParams.AddNested("ThumbnailConfiguration", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.ColorCorrectionSettings != nil {
+		if err := validateColorCorrectionSettings(v.ColorCorrectionSettings); err != nil {
+			invalidParams.AddNested("ColorCorrectionSettings", err.(smithy.InvalidParamsError))
 		}
 	}
 	if invalidParams.Len() > 0 {
@@ -3081,6 +3143,16 @@ func validateScheduleActionSettings(v *types.ScheduleActionSettings) error {
 			invalidParams.AddNested("StaticImageActivateSettings", err.(smithy.InvalidParamsError))
 		}
 	}
+	if v.StaticImageOutputActivateSettings != nil {
+		if err := validateStaticImageOutputActivateScheduleActionSettings(v.StaticImageOutputActivateSettings); err != nil {
+			invalidParams.AddNested("StaticImageOutputActivateSettings", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.StaticImageOutputDeactivateSettings != nil {
+		if err := validateStaticImageOutputDeactivateScheduleActionSettings(v.StaticImageOutputDeactivateSettings); err != nil {
+			invalidParams.AddNested("StaticImageOutputDeactivateSettings", err.(smithy.InvalidParamsError))
+		}
+	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	} else {
@@ -3285,6 +3357,43 @@ func validateStaticImageActivateScheduleActionSettings(v *types.StaticImageActiv
 		if err := validateInputLocation(v.Image); err != nil {
 			invalidParams.AddNested("Image", err.(smithy.InvalidParamsError))
 		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateStaticImageOutputActivateScheduleActionSettings(v *types.StaticImageOutputActivateScheduleActionSettings) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "StaticImageOutputActivateScheduleActionSettings"}
+	if v.Image == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Image"))
+	} else if v.Image != nil {
+		if err := validateInputLocation(v.Image); err != nil {
+			invalidParams.AddNested("Image", err.(smithy.InvalidParamsError))
+		}
+	}
+	if v.OutputNames == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("OutputNames"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateStaticImageOutputDeactivateScheduleActionSettings(v *types.StaticImageOutputDeactivateScheduleActionSettings) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "StaticImageOutputDeactivateScheduleActionSettings"}
+	if v.OutputNames == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("OutputNames"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams

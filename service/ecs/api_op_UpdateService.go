@@ -4,14 +4,10 @@ package ecs
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -21,13 +17,21 @@ import (
 // configuration, load balancers, service registries, enable ECS managed tags
 // option, propagate tags option, task placement constraints and strategies, and
 // task definition. When you update any of these parameters, Amazon ECS starts new
-// tasks with the new configuration. For services using the blue/green ( CODE_DEPLOY
-// ) deployment controller, only the desired count, deployment configuration,
-// health check grace period, task placement constraints and strategies, enable ECS
-// managed tags option, and propagate tags can be updated using this API. If the
-// network configuration, platform version, task definition, or load balancer need
-// to be updated, create a new CodeDeploy deployment. For more information, see
-// CreateDeployment (https://docs.aws.amazon.com/codedeploy/latest/APIReference/API_CreateDeployment.html)
+// tasks with the new configuration. You can attach Amazon EBS volumes to Amazon
+// ECS tasks by configuring the volume when starting or running a task, or when
+// creating or updating a service. For more infomation, see Amazon EBS volumes (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ebs-volumes.html#ebs-volume-types)
+// in the Amazon Elastic Container Service Developer Guide. You can update your
+// volume configurations and trigger a new deployment. volumeConfigurations is
+// only supported for REPLICA service and not DAEMON service. If you leave
+// volumeConfigurations null , it doesn't trigger a new deployment. For more
+// infomation on volumes, see Amazon EBS volumes (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ebs-volumes.html#ebs-volume-types)
+// in the Amazon Elastic Container Service Developer Guide. For services using the
+// blue/green ( CODE_DEPLOY ) deployment controller, only the desired count,
+// deployment configuration, health check grace period, task placement constraints
+// and strategies, enable ECS managed tags option, and propagate tags can be
+// updated using this API. If the network configuration, platform version, task
+// definition, or load balancer need to be updated, create a new CodeDeploy
+// deployment. For more information, see CreateDeployment (https://docs.aws.amazon.com/codedeploy/latest/APIReference/API_CreateDeployment.html)
 // in the CodeDeploy API Reference. For services using an external deployment
 // controller, you can update only the desired count, task placement constraints
 // and strategies, health check grace period, enable ECS managed tags option, and
@@ -36,19 +40,23 @@ import (
 // create a new task set For more information, see CreateTaskSet . You can add to
 // or subtract from the number of instantiations of a task definition in a service
 // by specifying the cluster that the service is running in and a new desiredCount
-// parameter. If you have updated the Docker image of your application, you can
-// create a new task definition with that image and deploy it to your service. The
-// service scheduler uses the minimum healthy percent and maximum percent
-// parameters (in the service's deployment configuration) to determine the
-// deployment strategy. If your updated Docker image uses the same tag as what is
-// in the existing task definition for your service (for example, my_image:latest
-// ), you don't need to create a new revision of your task definition. You can
-// update the service using the forceNewDeployment option. The new tasks launched
-// by the deployment pull the current image/tag combination from your repository
-// when they start. You can also update the deployment configuration of a service.
-// When a deployment is triggered by updating the task definition of a service, the
-// service scheduler uses the deployment configuration parameters,
-// minimumHealthyPercent and maximumPercent , to determine the deployment strategy.
+// parameter. You can attach Amazon EBS volumes to Amazon ECS tasks by configuring
+// the volume when starting or running a task, or when creating or updating a
+// service. For more infomation, see Amazon EBS volumes (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ebs-volumes.html#ebs-volume-types)
+// in the Amazon Elastic Container Service Developer Guide. If you have updated the
+// container image of your application, you can create a new task definition with
+// that image and deploy it to your service. The service scheduler uses the minimum
+// healthy percent and maximum percent parameters (in the service's deployment
+// configuration) to determine the deployment strategy. If your updated Docker
+// image uses the same tag as what is in the existing task definition for your
+// service (for example, my_image:latest ), you don't need to create a new revision
+// of your task definition. You can update the service using the forceNewDeployment
+// option. The new tasks launched by the deployment pull the current image/tag
+// combination from your repository when they start. You can also update the
+// deployment configuration of a service. When a deployment is triggered by
+// updating the task definition of a service, the service scheduler uses the
+// deployment configuration parameters, minimumHealthyPercent and maximumPercent ,
+// to determine the deployment strategy.
 //   - If minimumHealthyPercent is below 100%, the scheduler can ignore
 //     desiredCount temporarily during a deployment. For example, if desiredCount is
 //     four tasks, a minimum of 50% allows the scheduler to stop two existing tasks
@@ -269,6 +277,14 @@ type UpdateServiceInput struct {
 	// old task after the new version is running.
 	TaskDefinition *string
 
+	// The details of the volume that was configuredAtLaunch . You can configure the
+	// size, volumeType, IOPS, throughput, snapshot and encryption in
+	// ServiceManagedEBSVolumeConfiguration (https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ServiceManagedEBSVolumeConfiguration.html)
+	// . The name of the volume must match the name from the task definition. If set
+	// to null, no new deployment is triggered. Otherwise, if this configuration
+	// differs from the existing one, it triggers a new deployment.
+	VolumeConfigurations []types.ServiceVolumeConfiguration
+
 	noSmithyDocumentSerde
 }
 
@@ -284,6 +300,9 @@ type UpdateServiceOutput struct {
 }
 
 func (c *Client) addOperationUpdateServiceMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateService{}, middleware.After)
 	if err != nil {
 		return err
@@ -292,6 +311,10 @@ func (c *Client) addOperationUpdateServiceMiddlewares(stack *middleware.Stack, o
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateService"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -313,9 +336,6 @@ func (c *Client) addOperationUpdateServiceMiddlewares(stack *middleware.Stack, o
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -331,7 +351,7 @@ func (c *Client) addOperationUpdateServiceMiddlewares(stack *middleware.Stack, o
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addUpdateServiceResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpUpdateServiceValidationMiddleware(stack); err != nil {
@@ -352,7 +372,7 @@ func (c *Client) addOperationUpdateServiceMiddlewares(stack *middleware.Stack, o
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -362,130 +382,6 @@ func newServiceMetadataMiddleware_opUpdateService(region string) *awsmiddleware.
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ecs",
 		OperationName: "UpdateService",
 	}
-}
-
-type opUpdateServiceResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opUpdateServiceResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opUpdateServiceResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "ecs"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "ecs"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("ecs")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addUpdateServiceResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opUpdateServiceResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

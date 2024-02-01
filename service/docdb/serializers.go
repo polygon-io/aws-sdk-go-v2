@@ -3881,6 +3881,11 @@ func awsAwsquery_serializeOpDocumentCreateDBClusterInput(v *CreateDBClusterInput
 		objectKey.Boolean(*v.StorageEncrypted)
 	}
 
+	if v.StorageType != nil {
+		objectKey := object.Key("StorageType")
+		objectKey.String(*v.StorageType)
+	}
+
 	if v.Tags != nil {
 		objectKey := object.Key("Tags")
 		if err := awsAwsquery_serializeDocumentTagList(v.Tags, objectKey); err != nil {
@@ -3963,6 +3968,11 @@ func awsAwsquery_serializeOpDocumentCreateDBInstanceInput(v *CreateDBInstanceInp
 	if v.AvailabilityZone != nil {
 		objectKey := object.Key("AvailabilityZone")
 		objectKey.String(*v.AvailabilityZone)
+	}
+
+	if v.CACertificateIdentifier != nil {
+		objectKey := object.Key("CACertificateIdentifier")
+		objectKey.String(*v.CACertificateIdentifier)
 	}
 
 	if v.CopyTagsToSnapshot != nil {
@@ -4876,6 +4886,11 @@ func awsAwsquery_serializeOpDocumentModifyDBClusterInput(v *ModifyDBClusterInput
 		objectKey.String(*v.PreferredMaintenanceWindow)
 	}
 
+	if v.StorageType != nil {
+		objectKey := object.Key("StorageType")
+		objectKey.String(*v.StorageType)
+	}
+
 	if v.VpcSecurityGroupIds != nil {
 		objectKey := object.Key("VpcSecurityGroupIds")
 		if err := awsAwsquery_serializeDocumentVpcSecurityGroupIdList(v.VpcSecurityGroupIds, objectKey); err != nil {
@@ -4953,6 +4968,11 @@ func awsAwsquery_serializeOpDocumentModifyDBInstanceInput(v *ModifyDBInstanceInp
 	if v.CACertificateIdentifier != nil {
 		objectKey := object.Key("CACertificateIdentifier")
 		objectKey.String(*v.CACertificateIdentifier)
+	}
+
+	if v.CertificateRotationRestart != nil {
+		objectKey := object.Key("CertificateRotationRestart")
+		objectKey.Boolean(*v.CertificateRotationRestart)
 	}
 
 	if v.CopyTagsToSnapshot != nil {
@@ -5235,6 +5255,11 @@ func awsAwsquery_serializeOpDocumentRestoreDBClusterFromSnapshotInput(v *Restore
 		objectKey.String(*v.SnapshotIdentifier)
 	}
 
+	if v.StorageType != nil {
+		objectKey := object.Key("StorageType")
+		objectKey.String(*v.StorageType)
+	}
+
 	if v.Tags != nil {
 		objectKey := object.Key("Tags")
 		if err := awsAwsquery_serializeDocumentTagList(v.Tags, objectKey); err != nil {
@@ -5301,6 +5326,11 @@ func awsAwsquery_serializeOpDocumentRestoreDBClusterToPointInTimeInput(v *Restor
 	if v.SourceDBClusterIdentifier != nil {
 		objectKey := object.Key("SourceDBClusterIdentifier")
 		objectKey.String(*v.SourceDBClusterIdentifier)
+	}
+
+	if v.StorageType != nil {
+		objectKey := object.Key("StorageType")
+		objectKey.String(*v.StorageType)
 	}
 
 	if v.Tags != nil {

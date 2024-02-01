@@ -4,55 +4,114 @@ package paymentcryptography
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/paymentcryptography/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Exports a key from Amazon Web Services Payment Cryptography using either ANSI
-// X9 TR-34 or TR-31 key export standard. Amazon Web Services Payment Cryptography
-// simplifies main or root key exchange process by eliminating the need of a
-// paper-based key exchange process. It takes a modern and secure approach based of
-// the ANSI X9 TR-34 key exchange standard. You can use ExportKey to export main
-// or root keys such as KEK (Key Encryption Key), using asymmetric key exchange
-// technique following ANSI X9 TR-34 standard. The ANSI X9 TR-34 standard uses
-// asymmetric keys to establishes bi-directional trust between the two parties
-// exchanging keys. After which you can export working keys using the ANSI X9 TR-31
-// symmetric key exchange standard as mandated by PCI PIN. Using this operation,
-// you can share your Amazon Web Services Payment Cryptography generated keys with
-// other service partners to perform cryptographic operations outside of Amazon Web
-// Services Payment Cryptography TR-34 key export Amazon Web Services Payment
-// Cryptography uses TR-34 asymmetric key exchange standard to export main keys
-// such as KEK. In TR-34 terminology, the sending party of the key is called Key
-// Distribution Host (KDH) and the receiving party of the key is called Key
-// Receiving Host (KRH). In key export process, KDH is Amazon Web Services Payment
-// Cryptography which initiates key export. KRH is the user receiving the key.
-// Before you initiate TR-34 key export, you must obtain an export token by calling
-// GetParametersForExport . This operation also returns the signing key certificate
-// that KDH uses to sign the wrapped key to generate a TR-34 wrapped key block. The
-// export token expires after 7 days. Set the following parameters:
-// CertificateAuthorityPublicKeyIdentifier The KeyARN of the certificate chain
-// that will sign the wrapping key certificate. This must exist within Amazon Web
-// Services Payment Cryptography before you initiate TR-34 key export. If it does
-// not exist, you can import it by calling ImportKey for RootCertificatePublicKey .
-// ExportToken Obtained from KDH by calling GetParametersForExport .
-// WrappingKeyCertificate Amazon Web Services Payment Cryptography uses this to
-// wrap the key under export. When this operation is successful, Amazon Web
-// Services Payment Cryptography returns the TR-34 wrapped key block. TR-31 key
-// export Amazon Web Services Payment Cryptography uses TR-31 symmetric key
-// exchange standard to export working keys. In TR-31, you must use a main key such
-// as KEK to encrypt or wrap the key under export. To establish a KEK, you can use
-// CreateKey or ImportKey . When this operation is successful, Amazon Web Services
-// Payment Cryptography returns a TR-31 wrapped key block. Cross-account use: This
-// operation can't be used across different Amazon Web Services accounts. Related
-// operations:
+// Exports a key from Amazon Web Services Payment Cryptography. Amazon Web
+// Services Payment Cryptography simplifies key exchange by replacing the existing
+// paper-based approach with a modern electronic approach. With ExportKey you can
+// export symmetric keys using either symmetric and asymmetric key exchange
+// mechanisms. Using this operation, you can share your Amazon Web Services Payment
+// Cryptography generated keys with other service partners to perform cryptographic
+// operations outside of Amazon Web Services Payment Cryptography For symmetric key
+// exchange, Amazon Web Services Payment Cryptography uses the ANSI X9 TR-31 norm
+// in accordance with PCI PIN guidelines. And for asymmetric key exchange, Amazon
+// Web Services Payment Cryptography supports ANSI X9 TR-34 norm and RSA wrap and
+// unwrap key exchange mechanism. Asymmetric key exchange methods are typically
+// used to establish bi-directional trust between the two parties exhanging keys
+// and are used for initial key exchange such as Key Encryption Key (KEK). After
+// which you can export working keys using symmetric method to perform various
+// cryptographic operations within Amazon Web Services Payment Cryptography. The
+// TR-34 norm is intended for exchanging 3DES keys only and keys are imported in a
+// WrappedKeyBlock format. Key attributes (such as KeyUsage, KeyAlgorithm,
+// KeyModesOfUse, Exportability) are contained within the key block. With RSA wrap
+// and unwrap, you can exchange both 3DES and AES-128 keys. The keys are imported
+// in a WrappedKeyCryptogram format and you will need to specify the key attributes
+// during import. You can also use ExportKey functionality to generate and export
+// an IPEK (Initial Pin Encryption Key) from Amazon Web Services Payment
+// Cryptography using either TR-31 or TR-34 export key exchange. IPEK is generated
+// from BDK (Base Derivation Key) and ExportDukptInitialKey attribute KSN (
+// KeySerialNumber ). The generated IPEK does not persist within Amazon Web
+// Services Payment Cryptography and has to be re-generated each time during
+// export. To export initial keys (KEK) or IPEK using TR-34 Using this operation,
+// you can export initial key using TR-34 asymmetric key exchange. You can only
+// export KEK generated within Amazon Web Services Payment Cryptography. In TR-34
+// terminology, the sending party of the key is called Key Distribution Host (KDH)
+// and the receiving party of the key is called Key Receiving Device (KRD). During
+// key export process, KDH is Amazon Web Services Payment Cryptography which
+// initiates key export and KRD is the user receiving the key. To initiate TR-34
+// key export, the KRD must obtain an export token by calling
+// GetParametersForExport . This operation also generates a key pair for the
+// purpose of key export, signs the key and returns back the signing public key
+// certificate (also known as KDH signing certificate) and root certificate chain.
+// The KDH uses the private key to sign the the export payload and the signing
+// public key certificate is provided to KRD to verify the signature. The KRD can
+// import the root certificate into its Hardware Security Module (HSM), as
+// required. The export token and the associated KDH signing certificate expires
+// after 7 days. Next the KRD generates a key pair for the the purpose of
+// encrypting the KDH key and provides the public key cerificate (also known as KRD
+// wrapping certificate) back to KDH. The KRD will also import the root cerificate
+// chain into Amazon Web Services Payment Cryptography by calling ImportKey for
+// RootCertificatePublicKey . The KDH, Amazon Web Services Payment Cryptography,
+// will use the KRD wrapping cerificate to encrypt (wrap) the key under export and
+// signs it with signing private key to generate a TR-34 WrappedKeyBlock. For more
+// information on TR-34 key export, see section Exporting symmetric keys (https://docs.aws.amazon.com/payment-cryptography/latest/userguide/keys-export.html)
+// in the Amazon Web Services Payment Cryptography User Guide. Set the following
+// parameters:
+//   - ExportAttributes : Specify export attributes in case of IPEK export. This
+//     parameter is optional for KEK export.
+//   - ExportKeyIdentifier : The KeyARN of the KEK or BDK (in case of IPEK) under
+//     export.
+//   - KeyMaterial : Use Tr34KeyBlock parameters.
+//   - CertificateAuthorityPublicKeyIdentifier : The KeyARN of the certificate
+//     chain that signed the KRD wrapping key certificate.
+//   - ExportToken : Obtained from KDH by calling GetParametersForImport .
+//   - WrappingKeyCertificate : The public key certificate in PEM format (base64
+//     encoded) of the KRD wrapping key Amazon Web Services Payment Cryptography uses
+//     for encryption of the TR-34 export payload. This certificate must be signed by
+//     the root certificate (CertificateAuthorityPublicKeyIdentifier) imported into
+//     Amazon Web Services Payment Cryptography.
+//
+// When this operation is successful, Amazon Web Services Payment Cryptography
+// returns the KEK or IPEK as a TR-34 WrappedKeyBlock. To export initial keys (KEK)
+// or IPEK using RSA Wrap and Unwrap Using this operation, you can export initial
+// key using asymmetric RSA wrap and unwrap key exchange method. To initiate
+// export, generate an asymmetric key pair on the receiving HSM and obtain the
+// public key certificate in PEM format (base64 encoded) for the purpose of
+// wrapping and the root certifiate chain. Import the root certificate into Amazon
+// Web Services Payment Cryptography by calling ImportKey for
+// RootCertificatePublicKey . Next call ExportKey and set the following
+// parameters:
+//   - CertificateAuthorityPublicKeyIdentifier : The KeyARN of the certificate
+//     chain that signed wrapping key certificate.
+//   - KeyMaterial : Set to KeyCryptogram .
+//   - WrappingKeyCertificate : The public key certificate in PEM format (base64
+//     encoded) obtained by the receiving HSM and signed by the root certificate
+//     (CertificateAuthorityPublicKeyIdentifier) imported into Amazon Web Services
+//     Payment Cryptography. The receiving HSM uses its private key component to unwrap
+//     the WrappedKeyCryptogram.
+//
+// When this operation is successful, Amazon Web Services Payment Cryptography
+// returns the WrappedKeyCryptogram. To export working keys or IPEK using TR-31
+// Using this operation, you can export working keys or IPEK using TR-31 symmetric
+// key exchange. In TR-31, you must use an initial key such as KEK to encrypt or
+// wrap the key under export. To establish a KEK, you can use CreateKey or
+// ImportKey . Set the following parameters:
+//   - ExportAttributes : Specify export attributes in case of IPEK export. This
+//     parameter is optional for KEK export.
+//   - ExportKeyIdentifier : The KeyARN of the KEK or BDK (in case of IPEK) under
+//     export.
+//   - KeyMaterial : Use Tr31KeyBlock parameters.
+//
+// When this operation is successful, Amazon Web Services Payment Cryptography
+// returns the working key or IPEK as a TR-31 WrappedKeyBlock. Cross-account use:
+// This operation can't be used across different Amazon Web Services accounts.
+// Related operations:
 //   - GetParametersForExport
 //   - ImportKey
 func (c *Client) ExportKey(ctx context.Context, params *ExportKeyInput, optFns ...func(*Options)) (*ExportKeyOutput, error) {
@@ -84,12 +143,16 @@ type ExportKeyInput struct {
 	// This member is required.
 	KeyMaterial types.ExportKeyMaterial
 
+	// The attributes for IPEK generation during export.
+	ExportAttributes *types.ExportAttributes
+
 	noSmithyDocumentSerde
 }
 
 type ExportKeyOutput struct {
 
-	// The key material under export as a TR-34 or TR-31 wrapped key block.
+	// The key material under export as a TR-34 WrappedKeyBlock or a TR-31
+	// WrappedKeyBlock. or a RSA WrappedKeyCryptogram.
 	WrappedKey *types.WrappedKey
 
 	// Metadata pertaining to the operation's result.
@@ -99,6 +162,9 @@ type ExportKeyOutput struct {
 }
 
 func (c *Client) addOperationExportKeyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpExportKey{}, middleware.After)
 	if err != nil {
 		return err
@@ -107,6 +173,10 @@ func (c *Client) addOperationExportKeyMiddlewares(stack *middleware.Stack, optio
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ExportKey"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -128,9 +198,6 @@ func (c *Client) addOperationExportKeyMiddlewares(stack *middleware.Stack, optio
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -146,7 +213,7 @@ func (c *Client) addOperationExportKeyMiddlewares(stack *middleware.Stack, optio
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addExportKeyResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpExportKeyValidationMiddleware(stack); err != nil {
@@ -167,7 +234,7 @@ func (c *Client) addOperationExportKeyMiddlewares(stack *middleware.Stack, optio
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -177,130 +244,6 @@ func newServiceMetadataMiddleware_opExportKey(region string) *awsmiddleware.Regi
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "payment-cryptography",
 		OperationName: "ExportKey",
 	}
-}
-
-type opExportKeyResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opExportKeyResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opExportKeyResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "payment-cryptography"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "payment-cryptography"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("payment-cryptography")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addExportKeyResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opExportKeyResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

@@ -185,6 +185,9 @@ type AutoScalingGroup struct {
 	// The duration of the health check grace period, in seconds.
 	HealthCheckGracePeriod *int32
 
+	// An instance maintenance policy.
+	InstanceMaintenancePolicy *InstanceMaintenancePolicy
+
 	// The EC2 instances associated with the group.
 	Instances []Instance
 
@@ -649,6 +652,30 @@ type Instance struct {
 	noSmithyDocumentSerde
 }
 
+// Describes an instance maintenance policy. For more information, see Set
+// instance maintenance policy (https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-instance-maintenance-policy.html)
+// in the Amazon EC2 Auto Scaling User Guide.
+type InstanceMaintenancePolicy struct {
+
+	// Specifies the upper threshold as a percentage of the desired capacity of the
+	// Auto Scaling group. It represents the maximum percentage of the group that can
+	// be in service and healthy, or pending, to support your workload when replacing
+	// instances. Value range is 100 to 200. To clear a previously set value, specify a
+	// value of -1 . Both MinHealthyPercentage and MaxHealthyPercentage must be
+	// specified, and the difference between them cannot be greater than 100. A large
+	// range increases the number of instances that can be replaced at the same time.
+	MaxHealthyPercentage *int32
+
+	// Specifies the lower threshold as a percentage of the desired capacity of the
+	// Auto Scaling group. It represents the minimum percentage of the group to keep in
+	// service, healthy, and ready to use to support your workload when replacing
+	// instances. Value range is 0 to 100. To clear a previously set value, specify a
+	// value of -1 .
+	MinHealthyPercentage *int32
+
+	noSmithyDocumentSerde
+}
+
 // The metadata options for the instances. For more information, see Configuring
 // the Instance Metadata Options (https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-launch-config.html#launch-configurations-imds)
 // in the Amazon EC2 Auto Scaling User Guide.
@@ -935,6 +962,25 @@ type InstanceRequirements struct {
 	// Default: Any local storage type
 	LocalStorageTypes []LocalStorageType
 
+	// [Price protection] The price protection threshold for Spot Instances, as a
+	// percentage of an identified On-Demand price. The identified On-Demand price is
+	// the price of the lowest priced current generation C, M, or R instance type with
+	// your specified attributes. If no current generation C, M, or R instance type
+	// matches your attributes, then the identified price is from either the lowest
+	// priced current generation instance types or, failing that, the lowest priced
+	// previous generation instance types that match your attributes. When Amazon EC2
+	// Auto Scaling selects instance types with your attributes, we will exclude
+	// instance types whose price exceeds your specified threshold. The parameter
+	// accepts an integer, which Amazon EC2 Auto Scaling interprets as a percentage. To
+	// indicate no price protection threshold, specify a high value, such as 999999 .
+	// If you set DesiredCapacityType to vcpu or memory-mib , the price protection
+	// threshold is based on the per-vCPU or per-memory price instead of the per
+	// instance price. Only one of SpotMaxPricePercentageOverLowestPrice or
+	// MaxSpotPriceAsPercentageOfOptimalOnDemandPrice can be specified. If you don't
+	// specify either, then SpotMaxPricePercentageOverLowestPrice is used and the
+	// value for that parameter defaults to 100 .
+	MaxSpotPriceAsPercentageOfOptimalOnDemandPrice *int32
+
 	// The minimum and maximum amount of memory per vCPU for an instance type, in GiB.
 	// Default: No minimum or maximum limits
 	MemoryGiBPerVCpu *MemoryGiBPerVCpuRequest
@@ -947,32 +993,41 @@ type InstanceRequirements struct {
 	// Default: No minimum or maximum limits
 	NetworkInterfaceCount *NetworkInterfaceCountRequest
 
-	// The price protection threshold for On-Demand Instances. This is the maximum
-	// you’ll pay for an On-Demand Instance, expressed as a percentage higher than the
-	// least expensive current generation M, C, or R instance type with your specified
-	// attributes. When Amazon EC2 Auto Scaling selects instance types with your
-	// attributes, we will exclude instance types whose price is higher than your
-	// threshold. The parameter accepts an integer, which Amazon EC2 Auto Scaling
-	// interprets as a percentage. To turn off price protection, specify a high value,
-	// such as 999999 . If you set DesiredCapacityType to vcpu or memory-mib , the
-	// price protection threshold is applied based on the per vCPU or per memory price
-	// instead of the per instance price. Default: 20
+	// [Price protection] The price protection threshold for On-Demand Instances, as a
+	// percentage higher than an identified On-Demand price. The identified On-Demand
+	// price is the price of the lowest priced current generation C, M, or R instance
+	// type with your specified attributes. If no current generation C, M, or R
+	// instance type matches your attributes, then the identified price is from either
+	// the lowest priced current generation instance types or, failing that, the lowest
+	// priced previous generation instance types that match your attributes. When
+	// Amazon EC2 Auto Scaling selects instance types with your attributes, we will
+	// exclude instance types whose price exceeds your specified threshold. The
+	// parameter accepts an integer, which Amazon EC2 Auto Scaling interprets as a
+	// percentage. To turn off price protection, specify a high value, such as 999999 .
+	// If you set DesiredCapacityType to vcpu or memory-mib , the price protection
+	// threshold is applied based on the per-vCPU or per-memory price instead of the
+	// per instance price. Default: 20
 	OnDemandMaxPricePercentageOverLowestPrice *int32
 
 	// Indicates whether instance types must provide On-Demand Instance hibernation
 	// support. Default: false
 	RequireHibernateSupport *bool
 
-	// The price protection threshold for Spot Instances. This is the maximum you’ll
-	// pay for a Spot Instance, expressed as a percentage higher than the least
-	// expensive current generation M, C, or R instance type with your specified
-	// attributes. When Amazon EC2 Auto Scaling selects instance types with your
-	// attributes, we will exclude instance types whose price is higher than your
-	// threshold. The parameter accepts an integer, which Amazon EC2 Auto Scaling
-	// interprets as a percentage. To turn off price protection, specify a high value,
-	// such as 999999 . If you set DesiredCapacityType to vcpu or memory-mib , the
-	// price protection threshold is applied based on the per vCPU or per memory price
-	// instead of the per instance price. Default: 100
+	// [Price protection] The price protection threshold for Spot Instances, as a
+	// percentage higher than an identified Spot price. The identified Spot price is
+	// the price of the lowest priced current generation C, M, or R instance type with
+	// your specified attributes. If no current generation C, M, or R instance type
+	// matches your attributes, then the identified price is from either the lowest
+	// priced current generation instance types or, failing that, the lowest priced
+	// previous generation instance types that match your attributes. When Amazon EC2
+	// Auto Scaling selects instance types with your attributes, we will exclude
+	// instance types whose price exceeds your specified threshold. The parameter
+	// accepts an integer, which Amazon EC2 Auto Scaling interprets as a percentage. To
+	// turn off price protection, specify a high value, such as 999999 . If you set
+	// DesiredCapacityType to vcpu or memory-mib , the price protection threshold is
+	// based on the per-vCPU or per-memory price instead of the per instance price.
+	// Only one of SpotMaxPricePercentageOverLowestPrice or
+	// MaxSpotPriceAsPercentageOfOptimalOnDemandPrice can be specified. Default: 100
 	SpotMaxPricePercentageOverLowestPrice *int32
 
 	// The minimum and maximum total local storage size for an instance type, in GB.
@@ -1617,8 +1672,8 @@ type MetricGranularityType struct {
 }
 
 // This structure defines the CloudWatch metric to return, along with the
-// statistic, period, and unit. For more information about the CloudWatch
-// terminology below, see Amazon CloudWatch concepts (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html)
+// statistic and unit. For more information about the CloudWatch terminology below,
+// see Amazon CloudWatch concepts (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html)
 // in the Amazon CloudWatch User Guide.
 type MetricStat struct {
 
@@ -2066,13 +2121,23 @@ type RefreshPreferences struct {
 	// or the HealthCheckGracePeriod property otherwise.
 	InstanceWarmup *int32
 
-	// The amount of capacity in the Auto Scaling group that must pass your group's
-	// health checks to allow the operation to continue. The value is expressed as a
-	// percentage of the desired capacity of the Auto Scaling group (rounded up to the
-	// nearest integer). The default is 90 . Setting the minimum healthy percentage to
-	// 100 percent limits the rate of replacement to one instance at a time. In
-	// contrast, setting it to 0 percent has the effect of replacing all instances at
-	// the same time.
+	// Specifies the maximum percentage of the group that can be in service and
+	// healthy, or pending, to support your workload when replacing instances. The
+	// value is expressed as a percentage of the desired capacity of the Auto Scaling
+	// group. Value range is 100 to 200. If you specify MaxHealthyPercentage , you must
+	// also specify MinHealthyPercentage , and the difference between them cannot be
+	// greater than 100. A larger range increases the number of instances that can be
+	// replaced at the same time. If you do not specify this property, the default is
+	// 100 percent, or the percentage set in the instance maintenance policy for the
+	// Auto Scaling group, if defined.
+	MaxHealthyPercentage *int32
+
+	// Specifies the minimum percentage of the group to keep in service, healthy, and
+	// ready to use to support your workload to allow the operation to continue. The
+	// value is expressed as a percentage of the desired capacity of the Auto Scaling
+	// group. Value range is 0 to 100. If you do not specify this property, the default
+	// is 90 percent, or the percentage set in the instance maintenance policy for the
+	// Auto Scaling group, if defined.
 	MinHealthyPercentage *int32
 
 	// Choose the behavior that you want Amazon EC2 Auto Scaling to use if instances

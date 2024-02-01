@@ -1,3 +1,66 @@
+# v1.44.1 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.44.0 (2023-12-21)
+
+* **Feature**: MediaLive now supports the ability to configure the audio that an AWS Elemental Link UHD device produces, when the device is configured as the source for a flow in AWS Elemental MediaConnect.
+
+# v1.43.3 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.43.2 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.43.1 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.43.0 (2023-12-04)
+
+* **Feature**: Adds support for custom color correction on channels using 3D LUT files.
+
+# v1.42.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.42.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.42.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.3 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.2 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.41.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.0 (2023-11-17)
+
+* **Feature**: MediaLive has now added support for per-output static image overlay.
+
+# v1.40.2 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.40.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.40.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

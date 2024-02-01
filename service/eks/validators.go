@@ -10,6 +10,26 @@ import (
 	"github.com/aws/smithy-go/middleware"
 )
 
+type validateOpAssociateAccessPolicy struct {
+}
+
+func (*validateOpAssociateAccessPolicy) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpAssociateAccessPolicy) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*AssociateAccessPolicyInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpAssociateAccessPolicyInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpAssociateEncryptionConfig struct {
 }
 
@@ -45,6 +65,26 @@ func (m *validateOpAssociateIdentityProviderConfig) HandleInitialize(ctx context
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpAssociateIdentityProviderConfigInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpCreateAccessEntry struct {
+}
+
+func (*validateOpCreateAccessEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCreateAccessEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CreateAccessEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCreateAccessEntryInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -90,6 +130,26 @@ func (m *validateOpCreateCluster) HandleInitialize(ctx context.Context, in middl
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpCreateEksAnywhereSubscription struct {
+}
+
+func (*validateOpCreateEksAnywhereSubscription) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCreateEksAnywhereSubscription) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CreateEksAnywhereSubscriptionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCreateEksAnywhereSubscriptionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpCreateFargateProfile struct {
 }
 
@@ -125,6 +185,46 @@ func (m *validateOpCreateNodegroup) HandleInitialize(ctx context.Context, in mid
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpCreateNodegroupInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpCreatePodIdentityAssociation struct {
+}
+
+func (*validateOpCreatePodIdentityAssociation) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCreatePodIdentityAssociation) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CreatePodIdentityAssociationInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCreatePodIdentityAssociationInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpDeleteAccessEntry struct {
+}
+
+func (*validateOpDeleteAccessEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDeleteAccessEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DeleteAccessEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDeleteAccessEntryInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -170,6 +270,26 @@ func (m *validateOpDeleteCluster) HandleInitialize(ctx context.Context, in middl
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpDeleteEksAnywhereSubscription struct {
+}
+
+func (*validateOpDeleteEksAnywhereSubscription) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDeleteEksAnywhereSubscription) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DeleteEksAnywhereSubscriptionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDeleteEksAnywhereSubscriptionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDeleteFargateProfile struct {
 }
 
@@ -210,6 +330,26 @@ func (m *validateOpDeleteNodegroup) HandleInitialize(ctx context.Context, in mid
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpDeletePodIdentityAssociation struct {
+}
+
+func (*validateOpDeletePodIdentityAssociation) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDeletePodIdentityAssociation) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DeletePodIdentityAssociationInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDeletePodIdentityAssociationInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDeregisterCluster struct {
 }
 
@@ -225,6 +365,26 @@ func (m *validateOpDeregisterCluster) HandleInitialize(ctx context.Context, in m
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpDeregisterClusterInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpDescribeAccessEntry struct {
+}
+
+func (*validateOpDescribeAccessEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDescribeAccessEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DescribeAccessEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDescribeAccessEntryInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -290,6 +450,26 @@ func (m *validateOpDescribeCluster) HandleInitialize(ctx context.Context, in mid
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpDescribeEksAnywhereSubscription struct {
+}
+
+func (*validateOpDescribeEksAnywhereSubscription) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDescribeEksAnywhereSubscription) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DescribeEksAnywhereSubscriptionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDescribeEksAnywhereSubscriptionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDescribeFargateProfile struct {
 }
 
@@ -330,6 +510,26 @@ func (m *validateOpDescribeIdentityProviderConfig) HandleInitialize(ctx context.
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpDescribeInsight struct {
+}
+
+func (*validateOpDescribeInsight) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDescribeInsight) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DescribeInsightInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDescribeInsightInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDescribeNodegroup struct {
 }
 
@@ -345,6 +545,26 @@ func (m *validateOpDescribeNodegroup) HandleInitialize(ctx context.Context, in m
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpDescribeNodegroupInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpDescribePodIdentityAssociation struct {
+}
+
+func (*validateOpDescribePodIdentityAssociation) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDescribePodIdentityAssociation) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DescribePodIdentityAssociationInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDescribePodIdentityAssociationInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -370,6 +590,26 @@ func (m *validateOpDescribeUpdate) HandleInitialize(ctx context.Context, in midd
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpDisassociateAccessPolicy struct {
+}
+
+func (*validateOpDisassociateAccessPolicy) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDisassociateAccessPolicy) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DisassociateAccessPolicyInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDisassociateAccessPolicyInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDisassociateIdentityProviderConfig struct {
 }
 
@@ -390,6 +630,26 @@ func (m *validateOpDisassociateIdentityProviderConfig) HandleInitialize(ctx cont
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpListAccessEntries struct {
+}
+
+func (*validateOpListAccessEntries) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListAccessEntries) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListAccessEntriesInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListAccessEntriesInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpListAddons struct {
 }
 
@@ -405,6 +665,26 @@ func (m *validateOpListAddons) HandleInitialize(ctx context.Context, in middlewa
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpListAddonsInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpListAssociatedAccessPolicies struct {
+}
+
+func (*validateOpListAssociatedAccessPolicies) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListAssociatedAccessPolicies) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListAssociatedAccessPoliciesInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListAssociatedAccessPoliciesInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -450,6 +730,26 @@ func (m *validateOpListIdentityProviderConfigs) HandleInitialize(ctx context.Con
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpListInsights struct {
+}
+
+func (*validateOpListInsights) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListInsights) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListInsightsInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListInsightsInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpListNodegroups struct {
 }
 
@@ -465,6 +765,26 @@ func (m *validateOpListNodegroups) HandleInitialize(ctx context.Context, in midd
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpListNodegroupsInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpListPodIdentityAssociations struct {
+}
+
+func (*validateOpListPodIdentityAssociations) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpListPodIdentityAssociations) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ListPodIdentityAssociationsInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpListPodIdentityAssociationsInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -570,6 +890,26 @@ func (m *validateOpUntagResource) HandleInitialize(ctx context.Context, in middl
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpUpdateAccessEntry struct {
+}
+
+func (*validateOpUpdateAccessEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpUpdateAccessEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*UpdateAccessEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpUpdateAccessEntryInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpUpdateAddon struct {
 }
 
@@ -630,6 +970,26 @@ func (m *validateOpUpdateClusterVersion) HandleInitialize(ctx context.Context, i
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpUpdateEksAnywhereSubscription struct {
+}
+
+func (*validateOpUpdateEksAnywhereSubscription) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpUpdateEksAnywhereSubscription) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*UpdateEksAnywhereSubscriptionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpUpdateEksAnywhereSubscriptionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpUpdateNodegroupConfig struct {
 }
 
@@ -670,12 +1030,40 @@ func (m *validateOpUpdateNodegroupVersion) HandleInitialize(ctx context.Context,
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpUpdatePodIdentityAssociation struct {
+}
+
+func (*validateOpUpdatePodIdentityAssociation) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpUpdatePodIdentityAssociation) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*UpdatePodIdentityAssociationInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpUpdatePodIdentityAssociationInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+func addOpAssociateAccessPolicyValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpAssociateAccessPolicy{}, middleware.After)
+}
+
 func addOpAssociateEncryptionConfigValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpAssociateEncryptionConfig{}, middleware.After)
 }
 
 func addOpAssociateIdentityProviderConfigValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpAssociateIdentityProviderConfig{}, middleware.After)
+}
+
+func addOpCreateAccessEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCreateAccessEntry{}, middleware.After)
 }
 
 func addOpCreateAddonValidationMiddleware(stack *middleware.Stack) error {
@@ -686,12 +1074,24 @@ func addOpCreateClusterValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpCreateCluster{}, middleware.After)
 }
 
+func addOpCreateEksAnywhereSubscriptionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCreateEksAnywhereSubscription{}, middleware.After)
+}
+
 func addOpCreateFargateProfileValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpCreateFargateProfile{}, middleware.After)
 }
 
 func addOpCreateNodegroupValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpCreateNodegroup{}, middleware.After)
+}
+
+func addOpCreatePodIdentityAssociationValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCreatePodIdentityAssociation{}, middleware.After)
+}
+
+func addOpDeleteAccessEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDeleteAccessEntry{}, middleware.After)
 }
 
 func addOpDeleteAddonValidationMiddleware(stack *middleware.Stack) error {
@@ -702,6 +1102,10 @@ func addOpDeleteClusterValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeleteCluster{}, middleware.After)
 }
 
+func addOpDeleteEksAnywhereSubscriptionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDeleteEksAnywhereSubscription{}, middleware.After)
+}
+
 func addOpDeleteFargateProfileValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeleteFargateProfile{}, middleware.After)
 }
@@ -710,8 +1114,16 @@ func addOpDeleteNodegroupValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeleteNodegroup{}, middleware.After)
 }
 
+func addOpDeletePodIdentityAssociationValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDeletePodIdentityAssociation{}, middleware.After)
+}
+
 func addOpDeregisterClusterValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeregisterCluster{}, middleware.After)
+}
+
+func addOpDescribeAccessEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDescribeAccessEntry{}, middleware.After)
 }
 
 func addOpDescribeAddonConfigurationValidationMiddleware(stack *middleware.Stack) error {
@@ -726,6 +1138,10 @@ func addOpDescribeClusterValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDescribeCluster{}, middleware.After)
 }
 
+func addOpDescribeEksAnywhereSubscriptionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDescribeEksAnywhereSubscription{}, middleware.After)
+}
+
 func addOpDescribeFargateProfileValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDescribeFargateProfile{}, middleware.After)
 }
@@ -734,20 +1150,40 @@ func addOpDescribeIdentityProviderConfigValidationMiddleware(stack *middleware.S
 	return stack.Initialize.Add(&validateOpDescribeIdentityProviderConfig{}, middleware.After)
 }
 
+func addOpDescribeInsightValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDescribeInsight{}, middleware.After)
+}
+
 func addOpDescribeNodegroupValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDescribeNodegroup{}, middleware.After)
+}
+
+func addOpDescribePodIdentityAssociationValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDescribePodIdentityAssociation{}, middleware.After)
 }
 
 func addOpDescribeUpdateValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDescribeUpdate{}, middleware.After)
 }
 
+func addOpDisassociateAccessPolicyValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDisassociateAccessPolicy{}, middleware.After)
+}
+
 func addOpDisassociateIdentityProviderConfigValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDisassociateIdentityProviderConfig{}, middleware.After)
 }
 
+func addOpListAccessEntriesValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListAccessEntries{}, middleware.After)
+}
+
 func addOpListAddonsValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpListAddons{}, middleware.After)
+}
+
+func addOpListAssociatedAccessPoliciesValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListAssociatedAccessPolicies{}, middleware.After)
 }
 
 func addOpListFargateProfilesValidationMiddleware(stack *middleware.Stack) error {
@@ -758,8 +1194,16 @@ func addOpListIdentityProviderConfigsValidationMiddleware(stack *middleware.Stac
 	return stack.Initialize.Add(&validateOpListIdentityProviderConfigs{}, middleware.After)
 }
 
+func addOpListInsightsValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListInsights{}, middleware.After)
+}
+
 func addOpListNodegroupsValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpListNodegroups{}, middleware.After)
+}
+
+func addOpListPodIdentityAssociationsValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpListPodIdentityAssociations{}, middleware.After)
 }
 
 func addOpListTagsForResourceValidationMiddleware(stack *middleware.Stack) error {
@@ -782,6 +1226,10 @@ func addOpUntagResourceValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpUntagResource{}, middleware.After)
 }
 
+func addOpUpdateAccessEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpUpdateAccessEntry{}, middleware.After)
+}
+
 func addOpUpdateAddonValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpUpdateAddon{}, middleware.After)
 }
@@ -794,12 +1242,20 @@ func addOpUpdateClusterVersionValidationMiddleware(stack *middleware.Stack) erro
 	return stack.Initialize.Add(&validateOpUpdateClusterVersion{}, middleware.After)
 }
 
+func addOpUpdateEksAnywhereSubscriptionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpUpdateEksAnywhereSubscription{}, middleware.After)
+}
+
 func addOpUpdateNodegroupConfigValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpUpdateNodegroupConfig{}, middleware.After)
 }
 
 func addOpUpdateNodegroupVersionValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpUpdateNodegroupVersion{}, middleware.After)
+}
+
+func addOpUpdatePodIdentityAssociationValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpUpdatePodIdentityAssociation{}, middleware.After)
 }
 
 func validateConnectorConfigRequest(v *types.ConnectorConfigRequest) error {
@@ -877,6 +1333,30 @@ func validateOutpostConfigRequest(v *types.OutpostConfigRequest) error {
 	}
 }
 
+func validateOpAssociateAccessPolicyInput(v *AssociateAccessPolicyInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "AssociateAccessPolicyInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
+	}
+	if v.PolicyArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyArn"))
+	}
+	if v.AccessScope == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("AccessScope"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpAssociateEncryptionConfigInput(v *AssociateEncryptionConfigInput) error {
 	if v == nil {
 		return nil
@@ -909,6 +1389,24 @@ func validateOpAssociateIdentityProviderConfigInput(v *AssociateIdentityProvider
 		if err := validateOidcIdentityProviderConfigRequest(v.Oidc); err != nil {
 			invalidParams.AddNested("Oidc", err.(smithy.InvalidParamsError))
 		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpCreateAccessEntryInput(v *CreateAccessEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CreateAccessEntryInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -953,6 +1451,24 @@ func validateOpCreateClusterInput(v *CreateClusterInput) error {
 		if err := validateOutpostConfigRequest(v.OutpostConfig); err != nil {
 			invalidParams.AddNested("OutpostConfig", err.(smithy.InvalidParamsError))
 		}
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpCreateEksAnywhereSubscriptionInput(v *CreateEksAnywhereSubscriptionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CreateEksAnywhereSubscriptionInput"}
+	if v.Name == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if v.Term == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Term"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1006,6 +1522,48 @@ func validateOpCreateNodegroupInput(v *CreateNodegroupInput) error {
 	}
 }
 
+func validateOpCreatePodIdentityAssociationInput(v *CreatePodIdentityAssociationInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CreatePodIdentityAssociationInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.Namespace == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Namespace"))
+	}
+	if v.ServiceAccount == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ServiceAccount"))
+	}
+	if v.RoleArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("RoleArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDeleteAccessEntryInput(v *DeleteAccessEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DeleteAccessEntryInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpDeleteAddonInput(v *DeleteAddonInput) error {
 	if v == nil {
 		return nil
@@ -1031,6 +1589,21 @@ func validateOpDeleteClusterInput(v *DeleteClusterInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "DeleteClusterInput"}
 	if v.Name == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDeleteEksAnywhereSubscriptionInput(v *DeleteEksAnywhereSubscriptionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DeleteEksAnywhereSubscriptionInput"}
+	if v.Id == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Id"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1075,6 +1648,24 @@ func validateOpDeleteNodegroupInput(v *DeleteNodegroupInput) error {
 	}
 }
 
+func validateOpDeletePodIdentityAssociationInput(v *DeletePodIdentityAssociationInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DeletePodIdentityAssociationInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.AssociationId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("AssociationId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpDeregisterClusterInput(v *DeregisterClusterInput) error {
 	if v == nil {
 		return nil
@@ -1082,6 +1673,24 @@ func validateOpDeregisterClusterInput(v *DeregisterClusterInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "DeregisterClusterInput"}
 	if v.Name == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("Name"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDescribeAccessEntryInput(v *DescribeAccessEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DescribeAccessEntryInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1141,6 +1750,21 @@ func validateOpDescribeClusterInput(v *DescribeClusterInput) error {
 	}
 }
 
+func validateOpDescribeEksAnywhereSubscriptionInput(v *DescribeEksAnywhereSubscriptionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DescribeEksAnywhereSubscriptionInput"}
+	if v.Id == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Id"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpDescribeFargateProfileInput(v *DescribeFargateProfileInput) error {
 	if v == nil {
 		return nil
@@ -1181,6 +1805,24 @@ func validateOpDescribeIdentityProviderConfigInput(v *DescribeIdentityProviderCo
 	}
 }
 
+func validateOpDescribeInsightInput(v *DescribeInsightInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DescribeInsightInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.Id == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Id"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpDescribeNodegroupInput(v *DescribeNodegroupInput) error {
 	if v == nil {
 		return nil
@@ -1199,6 +1841,24 @@ func validateOpDescribeNodegroupInput(v *DescribeNodegroupInput) error {
 	}
 }
 
+func validateOpDescribePodIdentityAssociationInput(v *DescribePodIdentityAssociationInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DescribePodIdentityAssociationInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.AssociationId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("AssociationId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpDescribeUpdateInput(v *DescribeUpdateInput) error {
 	if v == nil {
 		return nil
@@ -1209,6 +1869,27 @@ func validateOpDescribeUpdateInput(v *DescribeUpdateInput) error {
 	}
 	if v.UpdateId == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("UpdateId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDisassociateAccessPolicyInput(v *DisassociateAccessPolicyInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DisassociateAccessPolicyInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
+	}
+	if v.PolicyArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1239,6 +1920,21 @@ func validateOpDisassociateIdentityProviderConfigInput(v *DisassociateIdentityPr
 	}
 }
 
+func validateOpListAccessEntriesInput(v *ListAccessEntriesInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListAccessEntriesInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpListAddonsInput(v *ListAddonsInput) error {
 	if v == nil {
 		return nil
@@ -1246,6 +1942,24 @@ func validateOpListAddonsInput(v *ListAddonsInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "ListAddonsInput"}
 	if v.ClusterName == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpListAssociatedAccessPoliciesInput(v *ListAssociatedAccessPoliciesInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListAssociatedAccessPoliciesInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1284,11 +1998,41 @@ func validateOpListIdentityProviderConfigsInput(v *ListIdentityProviderConfigsIn
 	}
 }
 
+func validateOpListInsightsInput(v *ListInsightsInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListInsightsInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpListNodegroupsInput(v *ListNodegroupsInput) error {
 	if v == nil {
 		return nil
 	}
 	invalidParams := smithy.InvalidParamsError{Context: "ListNodegroupsInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpListPodIdentityAssociationsInput(v *ListPodIdentityAssociationsInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ListPodIdentityAssociationsInput"}
 	if v.ClusterName == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
 	}
@@ -1387,6 +2131,24 @@ func validateOpUntagResourceInput(v *UntagResourceInput) error {
 	}
 }
 
+func validateOpUpdateAccessEntryInput(v *UpdateAccessEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "UpdateAccessEntryInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.PrincipalArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PrincipalArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpUpdateAddonInput(v *UpdateAddonInput) error {
 	if v == nil {
 		return nil
@@ -1438,6 +2200,21 @@ func validateOpUpdateClusterVersionInput(v *UpdateClusterVersionInput) error {
 	}
 }
 
+func validateOpUpdateEksAnywhereSubscriptionInput(v *UpdateEksAnywhereSubscriptionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "UpdateEksAnywhereSubscriptionInput"}
+	if v.Id == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Id"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpUpdateNodegroupConfigInput(v *UpdateNodegroupConfigInput) error {
 	if v == nil {
 		return nil
@@ -1466,6 +2243,24 @@ func validateOpUpdateNodegroupVersionInput(v *UpdateNodegroupVersionInput) error
 	}
 	if v.NodegroupName == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("NodegroupName"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpUpdatePodIdentityAssociationInput(v *UpdatePodIdentityAssociationInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "UpdatePodIdentityAssociationInput"}
+	if v.ClusterName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ClusterName"))
+	}
+	if v.AssociationId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("AssociationId"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams

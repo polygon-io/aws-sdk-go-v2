@@ -828,7 +828,7 @@
                     "name": "ssm"
                 },
                 "aws.protocols#awsJson1_1": {},
-                "smithy.api#documentation": "<p>Amazon Web Services Systems Manager is the operations hub for your Amazon Web Services applications and resources and a secure\n   end-to-end management solution for hybrid cloud environments that enables safe and secure\n   operations at scale.</p>\n         <p>This reference is intended to be used with the <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon Web Services Systems Manager User Guide</a>. To get started, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Setting up Amazon Web Services Systems Manager</a>.</p>\n         <p class=\"title\">\n            <b>Related resources</b>\n         </p>\n         <ul>\n            <li>\n               <p>For information about each of the capabilities that comprise Systems Manager, see <a href=\"https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/systems-manager-capabilities.html\">Systems Manager capabilities</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>\n            </li>\n            <li>\n               <p>For details about predefined runbooks for Automation, a capability of Amazon Web Services Systems Manager, see the\n       <i>\n                     <a href=\"https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-runbook-reference.html\">Systems Manager Automation runbook reference</a>\n                  </i>.</p>\n            </li>\n            <li>\n               <p>For information about AppConfig, a capability of Systems Manager, see the <i>\n                     <a href=\"https://docs.aws.amazon.com/appconfig/latest/userguide/\">AppConfig User Guide</a>\n                  </i>\n     and the <i>\n                     <a href=\"https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/\">AppConfig\n       API Reference</a>\n                  </i>.</p>\n            </li>\n            <li>\n               <p>For information about Incident Manager, a capability of Systems Manager, see the <i>\n                     <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/\">Systems Manager Incident Manager User\n       Guide</a>\n                  </i> and the <i>\n                     <a href=\"https://docs.aws.amazon.com/incident-manager/latest/APIReference/\">Systems Manager Incident Manager API\n     Reference</a>\n                  </i>.</p>\n            </li>\n         </ul>",
+                "smithy.api#documentation": "<p>Amazon Web Services Systems Manager is the operations hub for your Amazon Web Services applications and resources and a secure\n   end-to-end management solution for hybrid cloud environments that enables safe and secure\n   operations at scale.</p>\n         <p>This reference is intended to be used with the <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon Web Services Systems Manager User Guide</a>. To get started, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Setting up Amazon Web Services Systems Manager</a>.</p>\n         <p class=\"title\">\n            <b>Related resources</b>\n         </p>\n         <ul>\n            <li>\n               <p>For information about each of the capabilities that comprise Systems Manager, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html#systems-manager-capabilities\">Systems Manager capabilities</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>\n            </li>\n            <li>\n               <p>For details about predefined runbooks for Automation, a capability of Amazon Web Services Systems Manager, see the\n       <i>\n                     <a href=\"https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-runbook-reference.html\">Systems Manager Automation runbook reference</a>\n                  </i>.</p>\n            </li>\n            <li>\n               <p>For information about AppConfig, a capability of Systems Manager, see the <i>\n                     <a href=\"https://docs.aws.amazon.com/appconfig/latest/userguide/\">AppConfig User Guide</a>\n                  </i>\n     and the <i>\n                     <a href=\"https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/\">AppConfig\n       API Reference</a>\n                  </i>.</p>\n            </li>\n            <li>\n               <p>For information about Incident Manager, a capability of Systems Manager, see the <i>\n                     <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/\">Systems Manager Incident Manager User\n       Guide</a>\n                  </i> and the <i>\n                     <a href=\"https://docs.aws.amazon.com/incident-manager/latest/APIReference/\">Systems Manager Incident Manager API\n     Reference</a>\n                  </i>.</p>\n            </li>\n         </ul>",
                 "smithy.api#title": "Amazon Simple Systems Manager (SSM)",
                 "smithy.api#xmlNamespace": {
                     "uri": "http://ssm.amazonaws.com/doc/2014-11-06/"
@@ -2031,6 +2031,12 @@
                         "smithy.api#documentation": "<p>Number of days to wait after the scheduled day to run an association.</p>"
                     }
                 },
+                "Duration": {
+                    "target": "com.amazonaws.ssm#Duration",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The number of hours that an association can run on specified targets. After the resulting\n   cutoff time passes, associations that are currently running are cancelled, and no pending\n   executions are started on remaining targets.</p>"
+                    }
+                },
                 "TargetMaps": {
                     "target": "com.amazonaws.ssm#TargetMaps",
                     "traits": {
@@ -2241,6 +2247,12 @@
                     "target": "com.amazonaws.ssm#ScheduleOffset",
                     "traits": {
                         "smithy.api#documentation": "<p>Number of days to wait after the scheduled day to run an association.</p>"
+                    }
+                },
+                "Duration": {
+                    "target": "com.amazonaws.ssm#Duration",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The number of hours that an association can run on specified targets. After the resulting\n   cutoff time passes, associations that are currently running are cancelled, and no pending\n   executions are started on remaining targets.</p>"
                     }
                 },
                 "TargetMaps": {
@@ -3007,6 +3019,12 @@
                         "smithy.api#documentation": "<p>Number of days to wait after the scheduled day to run an association.</p>"
                     }
                 },
+                "Duration": {
+                    "target": "com.amazonaws.ssm#Duration",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The number of hours that an association can run on specified targets. After the resulting\n   cutoff time passes, associations that are currently running are cancelled, and no pending\n   executions are started on remaining targets.</p>"
+                    }
+                },
                 "TargetMaps": {
                     "target": "com.amazonaws.ssm#TargetMaps",
                     "traits": {
@@ -3506,6 +3524,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The name of the Change Manager change request.</p>"
                     }
+                },
+                "Variables": {
+                    "target": "com.amazonaws.ssm#AutomationParameterMap",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Variables defined for the automation.</p>"
+                    }
                 }
             },
             "traits": {
@@ -3988,6 +4012,12 @@
                     "target": "smithy.api#Unit",
                     "traits": {
                         "smithy.api#enumValue": "CompletedWithFailure"
+                    }
+                },
+                "EXITED": {
+                    "target": "smithy.api#Unit",
+                    "traits": {
+                        "smithy.api#enumValue": "Exited"
                     }
                 }
             }
@@ -5912,6 +5942,12 @@
                         "smithy.api#documentation": "<p>Number of days to wait after the scheduled day to run an association.</p>"
                     }
                 },
+                "Duration": {
+                    "target": "com.amazonaws.ssm#Duration",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The number of hours the association can run before it is canceled. Duration applies to\n   associations that are currently running, and any pending and in progress commands on all targets.\n   If a target was taken offline for the association to run, it is made available again immediately,\n   without a reboot. </p>\n         <p>The <code>Duration</code> parameter applies only when both these conditions are true:</p>\n         <ul>\n            <li>\n               <p>The association for which you specify a duration is cancelable according to the parameters\n     of the SSM command document or Automation runbook associated with this execution. </p>\n            </li>\n            <li>\n               <p>The command specifies the <code>\n                     <a href=\"https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateAssociationBatchRequestEntry.html#systemsmanager-Type-CreateAssociationBatchRequestEntry-ApplyOnlyAtCronInterval\">ApplyOnlyAtCronInterval</a>\n                  </code> parameter, which means that the association doesn't\n     run immediately after it is created, but only according to the specified schedule.</p>\n            </li>\n         </ul>"
+                    }
+                },
                 "TargetMaps": {
                     "target": "com.amazonaws.ssm#TargetMaps",
                     "traits": {
@@ -6051,6 +6087,12 @@
                     "target": "com.amazonaws.ssm#ScheduleOffset",
                     "traits": {
                         "smithy.api#documentation": "<p>Number of days to wait after the scheduled day to run an association. For example, if you\n   specified a cron schedule of <code>cron(0 0 ? * THU#2 *)</code>, you could specify an offset of 3\n   to run the association each Sunday after the second Thursday of the month. For more information\n   about cron schedules for associations, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html\">Reference: Cron\n    and rate expressions for Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>\n         <note>\n            <p>To use offsets, you must specify the <code>ApplyOnlyAtCronInterval</code> parameter. This\n    option tells the system not to run an association immediately after you create it. </p>\n         </note>"
+                    }
+                },
+                "Duration": {
+                    "target": "com.amazonaws.ssm#Duration",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The number of hours the association can run before it is canceled. Duration applies to\n   associations that are currently running, and any pending and in progress commands on all targets.\n   If a target was taken offline for the association to run, it is made available again immediately,\n   without a reboot. </p>\n         <p>The <code>Duration</code> parameter applies only when both these conditions are true:</p>\n         <ul>\n            <li>\n               <p>The association for which you specify a duration is cancelable according to the parameters\n     of the SSM command document or Automation runbook associated with this execution. </p>\n            </li>\n            <li>\n               <p>The command specifies the <code>\n                     <a href=\"https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateAssociation.html#systemsmanager-CreateAssociation-request-ApplyOnlyAtCronInterval\">ApplyOnlyAtCronInterval</a>\n                  </code> parameter, which means that the association doesn't\n     run immediately after it is created, but only according to the specified schedule.</p>\n            </li>\n         </ul>"
                     }
                 },
                 "TargetMaps": {
@@ -6370,7 +6412,7 @@
                 "OpsItemType": {
                     "target": "com.amazonaws.ssm#OpsItemType",
                     "traits": {
-                        "smithy.api#documentation": "<p>The type of OpsItem to create. Systems Manager supports the following types of OpsItems:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/aws/issue</code>\n               </p>\n               <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/changerequest</code>\n               </p>\n               <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change\n     requests. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/insights</code>\n               </p>\n               <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate\n     OpsItems. </p>\n            </li>\n         </ul>"
+                        "smithy.api#documentation": "<p>The type of OpsItem to create. Systems Manager supports the following types of OpsItems:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/aws/issue</code>\n               </p>\n               <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/changerequest</code>\n               </p>\n               <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change\n     requests. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/insight</code>\n               </p>\n               <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate\n     OpsItems. </p>\n            </li>\n         </ul>"
                     }
                 },
                 "OperationalData": {
@@ -8241,7 +8283,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "<p>Lists all patches eligible to be included in a patch baseline.</p>",
+                "smithy.api#documentation": "<p>Lists all patches eligible to be included in a patch baseline.</p>\n         <note>\n            <p>Currently, <code>DescribeAvailablePatches</code> supports only the Amazon Linux 1, Amazon\n    Linux 2, and Windows Server operating systems.</p>\n         </note>",
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
@@ -8427,7 +8469,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, \"Release 12, Update 6\". This value is unique across all versions of a document, and\n   can't be changed.</p>"
+                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, 12.6. This value is unique across all versions of a document, and\n   can't be changed.</p>"
                     }
                 }
             },
@@ -8967,7 +9009,7 @@
                 "Filters": {
                     "target": "com.amazonaws.ssm#PatchOrchestratorFilterList",
                     "traits": {
-                        "smithy.api#documentation": "<p>Each element in the array is a structure containing a key-value pair.</p>\n         <p>Supported keys for <code>DescribeInstancePatches</code>include the following:</p>\n         <ul>\n            <li>\n               <p>\n                  <b>\n                     <code>Classification</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>Security</code> | <code>SecurityUpdates</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <b>\n                     <code>KBId</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>KB4480056</code> | <code>java-1.7.0-openjdk.x86_64</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <b>\n                     <code>Severity</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>Important</code> | <code>Medium</code> | <code>Low</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <b>\n                     <code>State</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>Installed</code> | <code>InstalledOther</code> |\n      <code>InstalledPendingReboot</code>\n               </p>\n            </li>\n         </ul>"
+                        "smithy.api#documentation": "<p>Each element in the array is a structure containing a key-value pair.</p>\n         <p>Supported keys for <code>DescribeInstancePatches</code>include the following:</p>\n         <ul>\n            <li>\n               <p>\n                  <b>\n                     <code>Classification</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>Security</code> | <code>SecurityUpdates</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <b>\n                     <code>KBId</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>KB4480056</code> | <code>java-1.7.0-openjdk.x86_64</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <b>\n                     <code>Severity</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>Important</code> | <code>Medium</code> | <code>Low</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <b>\n                     <code>State</code>\n                  </b>\n               </p>\n               <p>Sample values: <code>Installed</code> | <code>InstalledOther</code> |\n      <code>InstalledPendingReboot</code>\n               </p>\n               <p>For lists of all <code>State</code> values, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-compliance-states.html\">Understanding\n      patch compliance state values</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>\n            </li>\n         </ul>"
                     }
                 },
                 "NextToken": {
@@ -10772,7 +10814,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, \"Release 12, Update 6\". This value is unique across all versions of a document, and\n   can't be changed.</p>"
+                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, 12.6. This value is unique across all versions of a document, and\n   can't be changed.</p>"
                     }
                 },
                 "PlatformTypes": {
@@ -11083,7 +11125,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, \"Release 12, Update 6\". This value is unique across all versions of a document, and\n   can't be changed.</p>"
+                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, 12.6. This value is unique across all versions of a document, and\n   can't be changed.</p>"
                     }
                 }
             },
@@ -11424,7 +11466,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>The version of the artifact associated with the document. For example, \"Release 12, Update\n   6\". This value is unique across all versions of a document, and can't be changed.</p>"
+                        "smithy.api#documentation": "<p>The version of the artifact associated with the document. For example, 12.6. This value is unique across all versions of a document, and can't be changed.</p>"
                     }
                 },
                 "CreatedDate": {
@@ -11572,6 +11614,15 @@
                 },
                 "smithy.api#documentation": "<p>You can't specify a managed node ID in more than one association.</p>",
                 "smithy.api#error": "client"
+            }
+        },
+        "com.amazonaws.ssm#Duration": {
+            "type": "integer",
+            "traits": {
+                "smithy.api#range": {
+                    "min": 1,
+                    "max": 24
+                }
             }
         },
         "com.amazonaws.ssm#EffectiveInstanceAssociationMaxResults": {
@@ -12189,7 +12240,7 @@
                 "Status": {
                     "target": "com.amazonaws.ssm#ConnectionStatus",
                     "traits": {
-                        "smithy.api#documentation": "<p>The status of the connection to the managed node. For example, 'Connected' or 'Not\n   Connected'.</p>"
+                        "smithy.api#documentation": "<p>The status of the connection to the managed node.</p>"
                     }
                 }
             },
@@ -12367,7 +12418,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, \"Release 12, Update 6\". This value is unique across all versions of a document and can't\n   be changed.</p>"
+                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact associated with the document. For\n   example, 12.6. This value is unique across all versions of a document and can't\n   be changed.</p>"
                     }
                 },
                 "DocumentVersion": {
@@ -12411,7 +12462,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>The version of the artifact associated with the document. For example, \"Release 12, Update\n   6\". This value is unique across all versions of a document, and can't be changed.</p>"
+                        "smithy.api#documentation": "<p>The version of the artifact associated with the document. For example, 12.6. This value is unique across all versions of a document, and can't be changed.</p>"
                     }
                 },
                 "DocumentVersion": {
@@ -20088,7 +20139,7 @@
                 "OpsItemType": {
                     "target": "com.amazonaws.ssm#OpsItemType",
                     "traits": {
-                        "smithy.api#documentation": "<p>The type of OpsItem. Systems Manager supports the following types of OpsItems:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/aws/issue</code>\n               </p>\n               <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/changerequest</code>\n               </p>\n               <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change\n     requests. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/insights</code>\n               </p>\n               <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate\n     OpsItems. </p>\n            </li>\n         </ul>"
+                        "smithy.api#documentation": "<p>The type of OpsItem. Systems Manager supports the following types of OpsItems:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/aws/issue</code>\n               </p>\n               <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/changerequest</code>\n               </p>\n               <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change\n     requests. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/insight</code>\n               </p>\n               <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate\n     OpsItems. </p>\n            </li>\n         </ul>"
                     }
                 },
                 "CreatedTime": {
@@ -21304,7 +21355,7 @@
                 "OpsItemType": {
                     "target": "com.amazonaws.ssm#OpsItemType",
                     "traits": {
-                        "smithy.api#documentation": "<p>The type of OpsItem. Systems Manager supports the following types of OpsItems:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/aws/issue</code>\n               </p>\n               <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/changerequest</code>\n               </p>\n               <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change\n     requests. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/insights</code>\n               </p>\n               <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate\n     OpsItems. </p>\n            </li>\n         </ul>"
+                        "smithy.api#documentation": "<p>The type of OpsItem. Systems Manager supports the following types of OpsItems:</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/aws/issue</code>\n               </p>\n               <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/changerequest</code>\n               </p>\n               <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change\n     requests. </p>\n            </li>\n            <li>\n               <p>\n                  <code>/aws/insight</code>\n               </p>\n               <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate\n     OpsItems. </p>\n            </li>\n         </ul>"
                     }
                 },
                 "ActualStartTime": {
@@ -21796,7 +21847,7 @@
                 "KeyId": {
                     "target": "com.amazonaws.ssm#ParameterKeyId",
                     "traits": {
-                        "smithy.api#documentation": "<p>The ID of the query key used for this parameter.</p>"
+                        "smithy.api#documentation": "<p>The alias of the Key Management Service (KMS) key used to encrypt the\n   parameter. Applies to <code>SecureString</code> parameters only</p>"
                     }
                 },
                 "LastModifiedDate": {
@@ -21984,7 +22035,7 @@
                 "KeyId": {
                     "target": "com.amazonaws.ssm#ParameterKeyId",
                     "traits": {
-                        "smithy.api#documentation": "<p>The ID of the query key used for this parameter.</p>"
+                        "smithy.api#documentation": "<p>The alias of the Key Management Service (KMS) key used to encrypt the\n   parameter. Applies to <code>SecureString</code> parameters only.</p>"
                     }
                 },
                 "LastModifiedDate": {
@@ -22356,6 +22407,45 @@
                 }
             }
         },
+        "com.amazonaws.ssm#ParentStepDetails": {
+            "type": "structure",
+            "members": {
+                "StepExecutionId": {
+                    "target": "com.amazonaws.ssm#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The unique ID of a step execution.</p>"
+                    }
+                },
+                "StepName": {
+                    "target": "com.amazonaws.ssm#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The name of the step.</p>"
+                    }
+                },
+                "Action": {
+                    "target": "com.amazonaws.ssm#AutomationActionName",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The name of the automation action.</p>"
+                    }
+                },
+                "Iteration": {
+                    "target": "com.amazonaws.ssm#Integer",
+                    "traits": {
+                        "smithy.api#default": null,
+                        "smithy.api#documentation": "<p>The current repetition of the loop represented by an integer.</p>"
+                    }
+                },
+                "IteratorValue": {
+                    "target": "com.amazonaws.ssm#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The current value of the specified iterator in the loop.</p>"
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>A detailed status of the parent step.</p>"
+            }
+        },
         "com.amazonaws.ssm#Patch": {
             "type": "structure",
             "members": {
@@ -22658,7 +22748,7 @@
                 "CVEIds": {
                     "target": "com.amazonaws.ssm#PatchCVEIds",
                     "traits": {
-                        "smithy.api#documentation": "<p>The IDs of one or more Common Vulnerabilities and Exposure (CVE) issues that are resolved by\n   the patch.</p>"
+                        "smithy.api#documentation": "<p>The IDs of one or more Common Vulnerabilities and Exposure (CVE) issues that are resolved by\n   the patch.</p>\n         <note>\n            <p>Currently, CVE ID values are reported only for patches with a status of\n     <code>Missing</code> or <code>Failed</code>.</p>\n         </note>"
                     }
                 }
             },
@@ -27231,6 +27321,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The CloudWatch alarms that were invoked by the automation.</p>"
                     }
+                },
+                "ParentStepDetails": {
+                    "target": "com.amazonaws.ssm#ParentStepDetails",
+                    "traits": {
+                        "smithy.api#documentation": "<p>Information about the parent step.</p>"
+                    }
                 }
             },
             "traits": {
@@ -27243,7 +27339,7 @@
                 "Key": {
                     "target": "com.amazonaws.ssm#StepExecutionFilterKey",
                     "traits": {
-                        "smithy.api#documentation": "<p>One or more keys to limit the results. Valid filter keys include the following: StepName,\n   Action, StepExecutionId, StepExecutionStatus, StartTimeBefore, StartTimeAfter.</p>",
+                        "smithy.api#documentation": "<p>One or more keys to limit the results.</p>",
                         "smithy.api#required": {}
                     }
                 },
@@ -27296,6 +27392,24 @@
                     "target": "smithy.api#Unit",
                     "traits": {
                         "smithy.api#enumValue": "Action"
+                    }
+                },
+                "PARENT_STEP_EXECUTION_ID": {
+                    "target": "smithy.api#Unit",
+                    "traits": {
+                        "smithy.api#enumValue": "ParentStepExecutionId"
+                    }
+                },
+                "PARENT_STEP_ITERATION": {
+                    "target": "smithy.api#Unit",
+                    "traits": {
+                        "smithy.api#enumValue": "ParentStepIteration"
+                    }
+                },
+                "PARENT_STEP_ITERATOR_VALUE": {
+                    "target": "smithy.api#Unit",
+                    "traits": {
+                        "smithy.api#enumValue": "ParentStepIteratorValue"
                     }
                 }
             }
@@ -28193,6 +28307,12 @@
                         "smithy.api#documentation": "<p>Number of days to wait after the scheduled day to run an association. For example, if you\n   specified a cron schedule of <code>cron(0 0 ? * THU#2 *)</code>, you could specify an offset of 3\n   to run the association each Sunday after the second Thursday of the month. For more information\n   about cron schedules for associations, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html\">Reference: Cron\n    and rate expressions for Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>\n         <note>\n            <p>To use offsets, you must specify the <code>ApplyOnlyAtCronInterval</code> parameter. This\n    option tells the system not to run an association immediately after you create it. </p>\n         </note>"
                     }
                 },
+                "Duration": {
+                    "target": "com.amazonaws.ssm#Duration",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The number of hours the association can run before it is canceled. Duration applies to\n   associations that are currently running, and any pending and in progress commands on all targets.\n   If a target was taken offline for the association to run, it is made available again immediately,\n   without a reboot. </p>\n         <p>The <code>Duration</code> parameter applies only when both these conditions are true:</p>\n         <ul>\n            <li>\n               <p>The association for which you specify a duration is cancelable according to the parameters\n     of the SSM command document or Automation runbook associated with this execution. </p>\n            </li>\n            <li>\n               <p>The command specifies the <code>\n                     <a href=\"https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_UpdateAssociation.html#systemsmanager-UpdateAssociation-request-ApplyOnlyAtCronInterval\">ApplyOnlyAtCronInterval</a>\n                  </code> parameter, which means that the association doesn't\n     run immediately after it is updated, but only according to the specified schedule.</p>\n            </li>\n         </ul>"
+                    }
+                },
                 "TargetMaps": {
                     "target": "com.amazonaws.ssm#TargetMaps",
                     "traits": {
@@ -28495,7 +28615,7 @@
                 "VersionName": {
                     "target": "com.amazonaws.ssm#DocumentVersionName",
                     "traits": {
-                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact you are updating with the document.\n   For example, \"Release 12, Update 6\". This value is unique across all versions of a document, and\n   can't be changed.</p>"
+                        "smithy.api#documentation": "<p>An optional field specifying the version of the artifact you are updating with the document.\n   For example, 12.6. This value is unique across all versions of a document, and\n   can't be changed.</p>"
                     }
                 },
                 "DocumentVersion": {
@@ -29633,7 +29753,7 @@
                 "SettingValue": {
                     "target": "com.amazonaws.ssm#ServiceSettingValue",
                     "traits": {
-                        "smithy.api#documentation": "<p>The new value to specify for the service setting. The following list specifies the available\n   values for each setting.</p>\n         <ul>\n            <li>\n               <p>\n                  <code>/ssm/managed-instance/default-ec2-instance-management-role: The name of an IAM role</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/automation/customer-script-log-destination</code>: <code>CloudWatch</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/automation/customer-script-log-group-name</code>: The name of an Amazon CloudWatch Logs log group</p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/documents/console/public-sharing-permission</code>: <code>Enable</code> or\n      <code>Disable</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/managed-instance/activation-tier</code>: <code>standard</code> or\n      <code>advanced</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/opsinsights/opscenter</code>: <code>Enabled</code> or <code>Disabled</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/parameter-store/default-parameter-tier</code>: <code>Standard</code>,\n      <code>Advanced</code>, <code>Intelligent-Tiering</code>\n               </p>\n            </li>\n            <li>\n               <p>\n                  <code>/ssm/parameter-store/high-throughput-enabled</code>: <code>true</code> or\n      <code>false</code>\n               </p>\n            </li>\n         </ul>",
+                        "smithy.api#documentation": "<p>The new value to specify for the service setting. The following list specifies the available\n   values for each setting.</p>\n         <ul>\n            <li>\n               <p>For <code>/ssm/managed-instance/default-ec2-instance-management-role</code>, enter the\n     name of an IAM role. </p>\n            </li>\n            <li>\n               <p>For <code>/ssm/automation/customer-script-log-destination</code>, enter <code>CloudWatch</code>.</p>\n            </li>\n            <li>\n               <p>For <code>/ssm/automation/customer-script-log-group-name</code>, enter the name of an\n      Amazon CloudWatch Logs log group.</p>\n            </li>\n            <li>\n               <p>For <code>/ssm/documents/console/public-sharing-permission</code>, enter\n      <code>Enable</code> or <code>Disable</code>.</p>\n            </li>\n            <li>\n               <p>For <code>/ssm/managed-instance/activation-tier</code>, enter <code>standard</code> or\n      <code>advanced</code>.</p>\n            </li>\n            <li>\n               <p> For <code>/ssm/opsinsights/opscenter</code>, enter <code>Enabled</code> or\n      <code>Disabled</code>. </p>\n            </li>\n            <li>\n               <p>For <code>/ssm/parameter-store/default-parameter-tier</code>, enter <code>Standard</code>,\n      <code>Advanced</code>, or <code>Intelligent-Tiering</code>\n               </p>\n            </li>\n            <li>\n               <p>For <code>/ssm/parameter-store/high-throughput-enabled</code>, enter <code>true</code> or\n      <code>false</code>.</p>\n            </li>\n         </ul>",
                         "smithy.api#required": {}
                     }
                 }

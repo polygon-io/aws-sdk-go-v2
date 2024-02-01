@@ -4,14 +4,10 @@ package paymentcryptography
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/paymentcryptography/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -23,7 +19,7 @@ import (
 // operations, an Amazon Web Services Payment Cryptography key includes metadata
 // such as the key ARN, key usage, key origin, creation date, description, and key
 // state. When you create a key, you specify both immutable and mutable data about
-// the key. The immutable data contains key attributes that defines the scope and
+// the key. The immutable data contains key attributes that define the scope and
 // cryptographic operations that you can perform using the key, for example key
 // class (example: SYMMETRIC_KEY ), key algorithm (example: TDES_2KEY ), key usage
 // (example: TR31_P0_PIN_ENCRYPTION_KEY ) and key modes of use (example: Encrypt ).
@@ -69,26 +65,29 @@ type CreateKeyInput struct {
 	KeyAttributes *types.KeyAttributes
 
 	// Specifies whether to enable the key. If the key is enabled, it is activated for
-	// use within the service. If the key not enabled, then it is created but not
+	// use within the service. If the key is not enabled, then it is created but not
 	// activated. The default value is enabled.
 	Enabled *bool
 
 	// The algorithm that Amazon Web Services Payment Cryptography uses to calculate
-	// the key check value (KCV) for DES and AES keys. For DES key, the KCV is computed
-	// by encrypting 8 bytes, each with value '00', with the key to be checked and
-	// retaining the 3 highest order bytes of the encrypted result. For AES key, the
-	// KCV is computed by encrypting 8 bytes, each with value '01', with the key to be
-	// checked and retaining the 3 highest order bytes of the encrypted result.
+	// the key check value (KCV). It is used to validate the key integrity. For TDES
+	// keys, the KCV is computed by encrypting 8 bytes, each with value of zero, with
+	// the key to be checked and retaining the 3 highest order bytes of the encrypted
+	// result. For AES keys, the KCV is computed using a CMAC algorithm where the input
+	// data is 16 bytes of zero and retaining the 3 highest order bytes of the
+	// encrypted result.
 	KeyCheckValueAlgorithm types.KeyCheckValueAlgorithm
 
-	// The tags to attach to the key. Each tag consists of a tag key and a tag value.
-	// Both the tag key and the tag value are required, but the tag value can be an
-	// empty (null) string. You can't have more than one tag on an Amazon Web Services
-	// Payment Cryptography key with the same tag key. To use this parameter, you must
-	// have TagResource permission. Don't include confidential or sensitive
-	// information in this field. This field may be displayed in plaintext in
-	// CloudTrail logs and other output. Tagging or untagging an Amazon Web Services
-	// Payment Cryptography key can allow or deny permission to the key.
+	// Assigns one or more tags to the Amazon Web Services Payment Cryptography key.
+	// Use this parameter to tag a key when it is created. To tag an existing Amazon
+	// Web Services Payment Cryptography key, use the TagResource operation. Each tag
+	// consists of a tag key and a tag value. Both the tag key and the tag value are
+	// required, but the tag value can be an empty (null) string. You can't have more
+	// than one tag on an Amazon Web Services Payment Cryptography key with the same
+	// tag key. Don't include personal, confidential or sensitive information in this
+	// field. This field may be displayed in plaintext in CloudTrail logs and other
+	// output. Tagging or untagging an Amazon Web Services Payment Cryptography key can
+	// allow or deny permission to the key.
 	Tags []types.Tag
 
 	noSmithyDocumentSerde
@@ -108,6 +107,9 @@ type CreateKeyOutput struct {
 }
 
 func (c *Client) addOperationCreateKeyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson10_serializeOpCreateKey{}, middleware.After)
 	if err != nil {
 		return err
@@ -116,6 +118,10 @@ func (c *Client) addOperationCreateKeyMiddlewares(stack *middleware.Stack, optio
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateKey"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -137,9 +143,6 @@ func (c *Client) addOperationCreateKeyMiddlewares(stack *middleware.Stack, optio
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -155,7 +158,7 @@ func (c *Client) addOperationCreateKeyMiddlewares(stack *middleware.Stack, optio
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateKeyResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateKeyValidationMiddleware(stack); err != nil {
@@ -176,7 +179,7 @@ func (c *Client) addOperationCreateKeyMiddlewares(stack *middleware.Stack, optio
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -186,130 +189,6 @@ func newServiceMetadataMiddleware_opCreateKey(region string) *awsmiddleware.Regi
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "payment-cryptography",
 		OperationName: "CreateKey",
 	}
-}
-
-type opCreateKeyResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateKeyResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateKeyResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "payment-cryptography"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "payment-cryptography"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("payment-cryptography")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateKeyResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateKeyResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

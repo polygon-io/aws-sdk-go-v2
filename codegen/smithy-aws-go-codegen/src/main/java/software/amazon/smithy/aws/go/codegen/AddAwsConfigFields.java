@@ -23,21 +23,27 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.logging.Logger;
+
+import software.amazon.smithy.aws.go.codegen.customization.auth.AwsHttpBearerAuthScheme;
 import software.amazon.smithy.codegen.core.Symbol;
 import software.amazon.smithy.codegen.core.SymbolProvider;
 import software.amazon.smithy.go.codegen.GoDelegator;
 import software.amazon.smithy.go.codegen.GoSettings;
 import software.amazon.smithy.go.codegen.GoWriter;
 import software.amazon.smithy.go.codegen.SmithyGoDependency;
+import software.amazon.smithy.go.codegen.SmithyGoTypes;
 import software.amazon.smithy.go.codegen.SymbolUtils;
 import software.amazon.smithy.go.codegen.integration.ConfigField;
 import software.amazon.smithy.go.codegen.integration.ConfigFieldResolver;
 import software.amazon.smithy.go.codegen.integration.GoIntegration;
 import software.amazon.smithy.go.codegen.integration.RuntimeClientPlugin;
-import software.amazon.smithy.go.codegen.integration.auth.HttpBearerAuth;
+import software.amazon.smithy.go.codegen.requestcompression.RequestCompression;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.ServiceShape;
+import software.amazon.smithy.model.traits.HttpBearerAuthTrait;
 import software.amazon.smithy.utils.ListUtils;
+
+import static software.amazon.smithy.go.codegen.SymbolUtils.buildPackageSymbol;
 
 /**
  * Registers additional AWS specific client configuration fields
@@ -66,10 +72,14 @@ public class AddAwsConfigFields implements GoIntegration {
     private static final String RESOLVE_AWS_CONFIG_RETRY_MAX_ATTEMPTS = "resolveAWSRetryMaxAttempts";
     private static final String RESOLVE_AWS_CONFIG_RETRY_MODE = "resolveAWSRetryMode";
     private static final String RESOLVE_AWS_CONFIG_RETRYER_PROVIDER = "resolveAWSRetryerProvider";
-
-    private static final String FINALIZE_RETRY_MAX_ATTEMPTS_OPTIONS = "finalizeRetryMaxAttemptOptions";
+    private static final String FINALIZE_RETRY_MAX_ATTEMPTS = "finalizeRetryMaxAttempts";
+    private static final String FINALIZE_OPERATION_RETRY_MAX_ATTEMPTS = "finalizeOperationRetryMaxAttempts";
 
     private static final String SDK_APP_ID = "AppID";
+
+    private static final String DISABLE_REQUEST_COMPRESSION = "DisableRequestCompression";
+
+    private static final String REQUEST_MIN_COMPRESSION_SIZE_BYTES = "RequestMinCompressSizeBytes";
 
     private static final List<AwsConfigField> AWS_CONFIG_FIELDS = ListUtils.of(
             AwsConfigField.builder()
@@ -103,9 +113,12 @@ public class AddAwsConfigFields implements GoIntegration {
                             When nil the API client will use a default retryer. The kind of default retry created
                             by the API client can be changed with the RetryMode option.
                             """)
-                    .addConfigFieldResolvers(getClientInitializationResolver(
-                            SymbolUtils.createValueSymbolBuilder(RESOLVE_RETRYER).build())
-                            .build()
+                    .addConfigFieldResolvers(
+                            ConfigFieldResolver.builder()
+                                    .location(ConfigFieldResolver.Location.CLIENT)
+                                    .target(ConfigFieldResolver.Target.INITIALIZATION)
+                                    .resolver(buildPackageSymbol(RESOLVE_RETRYER))
+                                    .build()
                     )
                     .awsResolveFunction(SymbolUtils.createValueSymbolBuilder(RESOLVE_AWS_CONFIG_RETRYER_PROVIDER)
                             .build())
@@ -119,22 +132,24 @@ public class AddAwsConfigFields implements GoIntegration {
                             and will not be used to configure the API client created default retryer, or modify
                             per operation call's retry max attempts.
 
-                            When creating a new API Clients this member will only be used if the
-                            Retryer Options member is nil. This value will be ignored if
-                            Retryer is not nil.
-
                             If specified in an operation call's functional options with a value that
                             is different than the constructed client's Options, the Client's Retryer
                             will be wrapped to use the operation's specific RetryMaxAttempts value.
                             """)
                     .awsResolveFunction(SymbolUtils.createValueSymbolBuilder(RESOLVE_AWS_CONFIG_RETRY_MAX_ATTEMPTS)
                             .build())
+                    .addConfigFieldResolvers(
+                            ConfigFieldResolver.builder()
+                                .location(ConfigFieldResolver.Location.CLIENT)
+                                .target(ConfigFieldResolver.Target.FINALIZATION)
+                                .resolver(buildPackageSymbol(FINALIZE_RETRY_MAX_ATTEMPTS))
+                                .build()
+                    )
                     .addConfigFieldResolvers(ConfigFieldResolver.builder()
                             .location(ConfigFieldResolver.Location.OPERATION)
                             .target(ConfigFieldResolver.Target.FINALIZATION)
                             .withClientInput(true)
-                            .resolver(SymbolUtils.createValueSymbolBuilder(
-                                    FINALIZE_RETRY_MAX_ATTEMPTS_OPTIONS).build())
+                            .resolver(buildPackageSymbol(FINALIZE_OPERATION_RETRY_MAX_ATTEMPTS))
                             .build())
                     .build(),
 
@@ -171,11 +186,10 @@ public class AddAwsConfigFields implements GoIntegration {
             AwsConfigField.builder()
                     // TOKEN_PROVIDER_OPTION_NAME added API Client's Options by HttpBearerAuth. Only
                     // need to add NewFromConfig resolver from aws#Config type.
-                    .name(HttpBearerAuth.TOKEN_PROVIDER_OPTION_NAME)
-                    .type(SymbolUtils.createValueSymbolBuilder("TokenProvider",
-                            SmithyGoDependency.SMITHY_AUTH_BEARER).build())
+                    .name(AwsHttpBearerAuthScheme.TOKEN_PROVIDER_OPTION_NAME)
+                    .type(SmithyGoTypes.Auth.Bearer.TokenProvider)
                     .documentation("The bearer authentication token provider for authentication requests.")
-                    .servicePredicate(HttpBearerAuth::isSupportedAuthentication)
+                    .servicePredicate(AddAwsConfigFields::isHttpBearerService)
                     .generatedOnClient(false)
                     .build(),
             AwsConfigField.builder()
@@ -206,6 +220,20 @@ public class AddAwsConfigFields implements GoIntegration {
                     .name(SDK_APP_ID)
                     .type(getUniversalSymbol("string"))
                     .documentation("The optional application specific identifier appended to the User-Agent header.")
+                    .generatedOnClient(false)
+                    .build(),
+            AwsConfigField.builder()
+                    .name(DISABLE_REQUEST_COMPRESSION)
+                    .type(getUniversalSymbol("bool"))
+                    .documentation("Configure whether or not a operation request could be compressed.")
+                    .servicePredicate(RequestCompression::isRequestCompressionService)
+                    .generatedOnClient(false)
+                    .build(),
+            AwsConfigField.builder()
+                    .name(REQUEST_MIN_COMPRESSION_SIZE_BYTES)
+                    .type(getUniversalSymbol("int64"))
+                    .documentation("The inclusive min request body size to be compressed.")
+                    .servicePredicate(RequestCompression::isRequestCompressionService)
                     .generatedOnClient(false)
                     .build()
     );
@@ -269,7 +297,7 @@ public class AddAwsConfigFields implements GoIntegration {
     private void writeAwsDefaultResolvers(GoWriter writer) {
         writeHttpClientResolver(writer);
         writeRetryerResolvers(writer);
-        writeRetryMaxAttemptsFinalizeResolver(writer);
+        writeRetryMaxAttemptsFinalizers(writer);
         writeAwsConfigEndpointResolver(writer);
     }
 
@@ -368,15 +396,24 @@ public class AddAwsConfigFields implements GoIntegration {
         writer.popState();
     }
 
-    private void writeRetryMaxAttemptsFinalizeResolver(GoWriter writer) {
+    private void writeRetryMaxAttemptsFinalizers(GoWriter writer) {
         writer.pushState();
 
-        writer.putContext("finalizeResolveName", FINALIZE_RETRY_MAX_ATTEMPTS_OPTIONS);
+        writer.putContext("clientFinalizeResolver", FINALIZE_RETRY_MAX_ATTEMPTS);
+        writer.putContext("operationFinalizeResolver", FINALIZE_OPERATION_RETRY_MAX_ATTEMPTS);
         writer.putContext("withMaxAttempts", SymbolUtils.createValueSymbolBuilder("AddWithMaxAttempts",
                 AwsGoDependency.AWS_RETRY).build());
 
         writer.write("""
-                func $finalizeResolveName:L(o *Options, client Client) {
+                func $clientFinalizeResolver:L(o *Options) {
+                    if o.RetryMaxAttempts == 0 {
+                        return
+                    }
+
+                    o.Retryer = $withMaxAttempts:T(o.Retryer, o.RetryMaxAttempts)
+                }
+
+                func $operationFinalizeResolver:L(o *Options, client Client) {
                     if v := o.RetryMaxAttempts; v == 0 || v == client.options.RetryMaxAttempts {
                         return
                     }
@@ -491,6 +528,10 @@ public class AddAwsConfigFields implements GoIntegration {
                                 HTTPClient: nopClient,
                                 RetryMaxAttempts: c.retryMaxAttempts,
                                 RetryMode:        c.retryMode,
+                            }, func (o *Options) {
+                                if o.Retryer == nil {
+                                    t.Errorf("retryer must not be nil in functional options")
+                                }
                             })
 
                             if e, a := c.expectClientRetryMode, client.options.RetryMode; e != a {
@@ -665,6 +706,10 @@ public class AddAwsConfigFields implements GoIntegration {
                     writer.write("return New(opts, optFns...)");
                 });
         writer.write("");
+    }
+
+    private static boolean isHttpBearerService(Model model, ServiceShape service) {
+        return service.hasTrait(HttpBearerAuthTrait.class);
     }
 
     /**

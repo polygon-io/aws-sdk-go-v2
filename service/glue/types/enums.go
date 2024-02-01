@@ -6,7 +6,8 @@ type AdditionalOptionKeys string
 
 // Enum values for AdditionalOptionKeys
 const (
-	AdditionalOptionKeysCacheOption AdditionalOptionKeys = "performanceTuning.caching"
+	AdditionalOptionKeysCacheOption        AdditionalOptionKeys = "performanceTuning.caching"
+	AdditionalOptionKeysObservationsOption AdditionalOptionKeys = "observations.scope"
 )
 
 // Values returns all known values for AdditionalOptionKeys. Note that this can be
@@ -15,6 +16,7 @@ const (
 func (AdditionalOptionKeys) Values() []AdditionalOptionKeys {
 	return []AdditionalOptionKeys{
 		"performanceTuning.caching",
+		"observations.scope",
 	}
 }
 
@@ -163,6 +165,30 @@ func (CloudWatchEncryptionMode) Values() []CloudWatchEncryptionMode {
 	return []CloudWatchEncryptionMode{
 		"DISABLED",
 		"SSE-KMS",
+	}
+}
+
+type ColumnStatisticsState string
+
+// Enum values for ColumnStatisticsState
+const (
+	ColumnStatisticsStateStarting  ColumnStatisticsState = "STARTING"
+	ColumnStatisticsStateRunning   ColumnStatisticsState = "RUNNING"
+	ColumnStatisticsStateSucceeded ColumnStatisticsState = "SUCCEEDED"
+	ColumnStatisticsStateFailed    ColumnStatisticsState = "FAILED"
+	ColumnStatisticsStateStopped   ColumnStatisticsState = "STOPPED"
+)
+
+// Values returns all known values for ColumnStatisticsState. Note that this can
+// be expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (ColumnStatisticsState) Values() []ColumnStatisticsState {
+	return []ColumnStatisticsState{
+		"STARTING",
+		"RUNNING",
+		"SUCCEEDED",
+		"FAILED",
+		"STOPPED",
 	}
 }
 
@@ -1755,6 +1781,44 @@ func (StatementState) Values() []StatementState {
 	}
 }
 
+type TableOptimizerEventType string
+
+// Enum values for TableOptimizerEventType
+const (
+	TableOptimizerEventTypeStarting   TableOptimizerEventType = "starting"
+	TableOptimizerEventTypeCompleted  TableOptimizerEventType = "completed"
+	TableOptimizerEventTypeFailed     TableOptimizerEventType = "failed"
+	TableOptimizerEventTypeInProgress TableOptimizerEventType = "in_progress"
+)
+
+// Values returns all known values for TableOptimizerEventType. Note that this can
+// be expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (TableOptimizerEventType) Values() []TableOptimizerEventType {
+	return []TableOptimizerEventType{
+		"starting",
+		"completed",
+		"failed",
+		"in_progress",
+	}
+}
+
+type TableOptimizerType string
+
+// Enum values for TableOptimizerType
+const (
+	TableOptimizerTypeCompaction TableOptimizerType = "compaction"
+)
+
+// Values returns all known values for TableOptimizerType. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (TableOptimizerType) Values() []TableOptimizerType {
+	return []TableOptimizerType{
+		"compaction",
+	}
+}
+
 type TargetFormat string
 
 // Enum values for TargetFormat
@@ -2018,6 +2082,26 @@ func (UpdateCatalogBehavior) Values() []UpdateCatalogBehavior {
 	return []UpdateCatalogBehavior{
 		"UPDATE_IN_DATABASE",
 		"LOG",
+	}
+}
+
+type ViewDialect string
+
+// Enum values for ViewDialect
+const (
+	ViewDialectRedshift ViewDialect = "REDSHIFT"
+	ViewDialectAthena   ViewDialect = "ATHENA"
+	ViewDialectSpark    ViewDialect = "SPARK"
+)
+
+// Values returns all known values for ViewDialect. Note that this can be expanded
+// in the future, and so it is only as up to date as the client. The ordering of
+// this slice is not guaranteed to be stable across updates.
+func (ViewDialect) Values() []ViewDialect {
+	return []ViewDialect{
+		"REDSHIFT",
+		"ATHENA",
+		"SPARK",
 	}
 }
 

@@ -4,23 +4,21 @@ package arczonalshift
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/arczonalshift/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Get information about a resource that's been registered for zonal shifts with
-// Amazon Route 53 Application Recovery Controller in this AWS Region. Resources
-// that are registered for zonal shifts are managed resources in Route 53 ARC. At
-// this time, you can only start a zonal shift for Network Load Balancers and
-// Application Load Balancers with cross-zone load balancing turned off.
+// Amazon Route 53 Application Recovery Controller in this Amazon Web Services
+// Region. Resources that are registered for zonal shifts are managed resources in
+// Route 53 ARC. You can start zonal shifts and configure zonal autoshift for
+// managed resources. At this time, you can only start a zonal shift or configure
+// zonal autoshift for Network Load Balancers and Application Load Balancers with
+// cross-zone load balancing turned off.
 func (c *Client) GetManagedResource(ctx context.Context, params *GetManagedResourceInput, optFns ...func(*Options)) (*GetManagedResourceOutput, error) {
 	if params == nil {
 		params = &GetManagedResourceInput{}
@@ -38,10 +36,10 @@ func (c *Client) GetManagedResource(ctx context.Context, params *GetManagedResou
 
 type GetManagedResourceInput struct {
 
-	// The identifier for the resource to include in a zonal shift. The identifier is
-	// the Amazon Resource Name (ARN) for the resource. At this time, you can only
-	// start a zonal shift for Network Load Balancers and Application Load Balancers
-	// with cross-zone load balancing turned off.
+	// The identifier for the resource to shift away traffic for. The identifier is
+	// the Amazon Resource Name (ARN) for the resource. At this time, supported
+	// resources are Network Load Balancers and Application Load Balancers with
+	// cross-zone load balancing turned off.
 	//
 	// This member is required.
 	ResourceIdentifier *string
@@ -66,8 +64,22 @@ type GetManagedResourceOutput struct {
 	// The Amazon Resource Name (ARN) for the resource.
 	Arn *string
 
+	// An array of the autoshifts that are active for the resource.
+	Autoshifts []types.AutoshiftInResource
+
 	// The name of the resource.
 	Name *string
+
+	// The practice run configuration for zonal autoshift that's associated with the
+	// resource.
+	PracticeRunConfiguration *types.PracticeRunConfiguration
+
+	// The status for zonal autoshift for a resource. When the autoshift status is
+	// ENABLED , Amazon Web Services shifts traffic for a resource away from an
+	// Availability Zone, on your behalf, when Amazon Web Services determines that
+	// there's an issue in the Availability Zone that could potentially affect
+	// customers.
+	ZonalAutoshiftStatus types.ZonalAutoshiftStatus
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -76,6 +88,9 @@ type GetManagedResourceOutput struct {
 }
 
 func (c *Client) addOperationGetManagedResourceMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetManagedResource{}, middleware.After)
 	if err != nil {
 		return err
@@ -84,6 +99,10 @@ func (c *Client) addOperationGetManagedResourceMiddlewares(stack *middleware.Sta
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetManagedResource"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -105,9 +124,6 @@ func (c *Client) addOperationGetManagedResourceMiddlewares(stack *middleware.Sta
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -123,7 +139,7 @@ func (c *Client) addOperationGetManagedResourceMiddlewares(stack *middleware.Sta
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addGetManagedResourceResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpGetManagedResourceValidationMiddleware(stack); err != nil {
@@ -144,7 +160,7 @@ func (c *Client) addOperationGetManagedResourceMiddlewares(stack *middleware.Sta
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -154,130 +170,6 @@ func newServiceMetadataMiddleware_opGetManagedResource(region string) *awsmiddle
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "arc-zonal-shift",
 		OperationName: "GetManagedResource",
 	}
-}
-
-type opGetManagedResourceResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opGetManagedResourceResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opGetManagedResourceResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "arc-zonal-shift"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "arc-zonal-shift"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("arc-zonal-shift")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addGetManagedResourceResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opGetManagedResourceResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

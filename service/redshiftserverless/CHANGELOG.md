@@ -1,3 +1,71 @@
+# v1.15.7 (2024-01-10)
+
+* **Documentation**: Updates to ConfigParameter for RSS workgroup, removal of use_fips_ssl
+
+# v1.15.6 (2024-01-05)
+
+* **Documentation**: use_fips_ssl and require_ssl parameter support for Workgroup, UpdateWorkgroup, and CreateWorkgroup
+
+# v1.15.5 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.4 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.15.3 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.2 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.15.1 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.15.0 (2023-11-30)
+
+* **Feature**: This release adds the following support for Amazon Redshift Serverless: 1) cross-account cross-VPCs, 2) copying snapshots across Regions, 3) scheduling snapshot creation, and 4) restoring tables from a recovery point.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.14.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.13.3 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.13.2 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.13.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.13.0 (2023-11-17)
+
+* **Feature**: Updated SDK for Amazon Redshift Serverless, which provides the ability to configure a connection with IAM Identity Center to manage user and group access to databases.
+
+# v1.12.2 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.0 (2023-11-08)
+
+* **Feature**: Added a new parameter in the workgroup that helps you control your cost for compute resources. This feature provides a ceiling for RPUs that Amazon Redshift Serverless can scale up to. When automatic compute scaling is required, having a higher value for MaxRPU can enhance query throughput.
+
 # v1.11.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

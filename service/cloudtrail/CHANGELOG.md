@@ -1,3 +1,71 @@
+# v1.36.0 (2024-01-18)
+
+* **Feature**: This release adds a new API ListInsightsMetricData to retrieve metric data from CloudTrail Insights.
+
+# v1.35.7 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.6 (2023-12-20)
+
+* No change notes available for this release.
+
+# v1.35.5 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.35.4 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.3 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.35.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.2 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.1 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.34.0 (2023-11-27)
+
+* **Feature**: CloudTrail Lake now supports federating event data stores. giving users the ability to run queries against their event data using Amazon Athena.
+
+# v1.33.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.33.0 (2023-11-15)
+
+* **Feature**: The Lake Repricing feature lets customers configure a BillingMode for an event data store. The BillingMode determines the cost for ingesting and storing events and the default and maximum retention period for the event data store.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.32.0 (2023-11-09.2)
+
+* **Feature**: The Insights in Lake feature lets customers enable CloudTrail Insights on a source CloudTrail Lake event data store and create a destination event data store to collect Insights events based on unusual management event activity in the source event data store.
+
+# v1.31.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.31.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

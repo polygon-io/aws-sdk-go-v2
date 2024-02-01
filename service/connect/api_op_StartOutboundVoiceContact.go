@@ -4,14 +4,10 @@ package connect
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/connect/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -47,10 +43,10 @@ func (c *Client) StartOutboundVoiceContact(ctx context.Context, params *StartOut
 type StartOutboundVoiceContactInput struct {
 
 	// The identifier of the flow for the outbound call. To see the ContactFlowId in
-	// the Amazon Connect console user interface, on the navigation menu go to Routing,
-	// Contact Flows. Choose the flow. On the flow page, under the name of the flow,
-	// choose Show additional flow information. The ContactFlowId is the last part of
-	// the ARN, shown here in bold:
+	// the Amazon Connect admin website, on the navigation menu go to Routing, Contact
+	// Flows. Choose the flow. On the flow page, under the name of the flow, choose
+	// Show additional flow information. The ContactFlowId is the last part of the ARN,
+	// shown here in bold:
 	// arn:aws:connect:us-west-2:xxxxxxxxxxxx:instance/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/contact-flow/846ec553-a005-41c0-8341-xxxxxxxxxxxx
 	//
 	// This member is required.
@@ -88,11 +84,32 @@ type StartOutboundVoiceContactInput struct {
 	// the contact ID is returned.
 	ClientToken *string
 
+	// A description of the voice contact that is shown to an agent in the Contact
+	// Control Panel (CCP).
+	Description *string
+
+	// The name of a voice contact that is shown to an agent in the Contact Control
+	// Panel (CCP).
+	Name *string
+
 	// The queue for the call. If you specify a queue, the phone displayed for caller
 	// ID is the phone number specified in the queue. If you do not specify a queue,
 	// the queue defined in the flow is used. If you do not specify a queue, you must
 	// specify a source phone number.
 	QueueId *string
+
+	// A formatted URL that is shown to an agent in the Contact Control Panel (CCP).
+	// Contacts can have the following reference types at the time of creation: URL |
+	// NUMBER | STRING | DATE | EMAIL . ATTACHMENT is not a supported reference type
+	// during voice contact creation.
+	References map[string]types.Reference
+
+	// The contactId that is related to this contact. Linking voice, task, or chat by
+	// using RelatedContactID copies over contact attributes from the related contact
+	// to the new contact. All updates to user-defined attributes in the new contact
+	// are limited to the individual contact ID. There are no limits to the number of
+	// contacts that can be linked by using RelatedContactId .
+	RelatedContactId *string
 
 	// The phone number associated with the Amazon Connect instance, in E.164 format.
 	// If you do not specify a source phone number, you must specify a queue.
@@ -118,6 +135,9 @@ type StartOutboundVoiceContactOutput struct {
 }
 
 func (c *Client) addOperationStartOutboundVoiceContactMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpStartOutboundVoiceContact{}, middleware.After)
 	if err != nil {
 		return err
@@ -126,6 +146,10 @@ func (c *Client) addOperationStartOutboundVoiceContactMiddlewares(stack *middlew
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "StartOutboundVoiceContact"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -147,9 +171,6 @@ func (c *Client) addOperationStartOutboundVoiceContactMiddlewares(stack *middlew
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -165,7 +186,7 @@ func (c *Client) addOperationStartOutboundVoiceContactMiddlewares(stack *middlew
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addStartOutboundVoiceContactResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opStartOutboundVoiceContactMiddleware(stack, options); err != nil {
@@ -189,7 +210,7 @@ func (c *Client) addOperationStartOutboundVoiceContactMiddlewares(stack *middlew
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -232,130 +253,6 @@ func newServiceMetadataMiddleware_opStartOutboundVoiceContact(region string) *aw
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "connect",
 		OperationName: "StartOutboundVoiceContact",
 	}
-}
-
-type opStartOutboundVoiceContactResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opStartOutboundVoiceContactResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opStartOutboundVoiceContactResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "connect"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "connect"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("connect")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addStartOutboundVoiceContactResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opStartOutboundVoiceContactResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

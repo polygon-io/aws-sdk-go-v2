@@ -96,6 +96,17 @@ type Action struct {
 	// Information about the Kubernetes API call action described in this finding.
 	KubernetesApiCallAction *KubernetesApiCallAction
 
+	// Information whether the user has the permission to use a specific Kubernetes
+	// API.
+	KubernetesPermissionCheckedDetails *KubernetesPermissionCheckedDetails
+
+	// Information about the role binding that grants the permission defined in a
+	// Kubernetes role.
+	KubernetesRoleBindingDetails *KubernetesRoleBindingDetails
+
+	// Information about the Kubernetes role name and role type.
+	KubernetesRoleDetails *KubernetesRoleDetails
+
 	// Information about the NETWORK_CONNECTION action described in this finding.
 	NetworkConnectionAction *NetworkConnectionAction
 
@@ -148,6 +159,52 @@ type Administrator struct {
 
 	// The status of the relationship between the administrator and member accounts.
 	RelationshipStatus *string
+
+	noSmithyDocumentSerde
+}
+
+// Information about the installed GuardDuty security agent.
+type AgentDetails struct {
+
+	// Version of the installed GuardDuty security agent.
+	Version *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about the anomalies.
+type Anomaly struct {
+
+	// Information about the types of profiles.
+	Profiles map[string]map[string][]AnomalyObject
+
+	// Information about the behavior of the anomalies.
+	Unusual *AnomalyUnusual
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about the unusual anomalies.
+type AnomalyObject struct {
+
+	// The recorded value.
+	Observations *Observations
+
+	// The frequency of the anomaly.
+	ProfileSubtype ProfileSubtype
+
+	// The type of behavior of the profile.
+	ProfileType ProfileType
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about the behavior of the anomaly that is new to GuardDuty.
+type AnomalyUnusual struct {
+
+	// The behavior of the anomalous activity that caused GuardDuty to generate the
+	// finding.
+	Behavior map[string]map[string]AnomalyObject
 
 	noSmithyDocumentSerde
 }
@@ -355,6 +412,20 @@ type Container struct {
 	noSmithyDocumentSerde
 }
 
+// Contains information about the Amazon EC2 instance that is running the Amazon
+// ECS container.
+type ContainerInstanceDetails struct {
+
+	// Represents total number of nodes in the Amazon ECS cluster.
+	CompatibleContainerInstances *int64
+
+	// Represents the nodes in the Amazon ECS cluster that has a HEALTHY coverage
+	// status.
+	CoveredContainerInstances *int64
+
+	noSmithyDocumentSerde
+}
+
 // Contains information about the country where the remote IP address is located.
 type Country struct {
 
@@ -363,6 +434,52 @@ type Country struct {
 
 	// The country name of the remote IP address.
 	CountryName *string
+
+	noSmithyDocumentSerde
+}
+
+// This API is also used when you use GuardDuty Runtime Monitoring for your Amazon
+// EC2 instances (currently in preview release) and is subject to change. The use
+// of this API is subject to Section 2 of the Amazon Web Services Service Terms (http://aws.amazon.com/service-terms/)
+// ("Betas and Previews"). Contains information about the Amazon EC2 instance
+// runtime coverage details.
+type CoverageEc2InstanceDetails struct {
+
+	// Information about the installed security agent.
+	AgentDetails *AgentDetails
+
+	// The cluster ARN of the Amazon ECS cluster running on the Amazon EC2 instance.
+	ClusterArn *string
+
+	// The Amazon EC2 instance ID.
+	InstanceId *string
+
+	// The instance type of the Amazon EC2 instance.
+	InstanceType *string
+
+	// Indicates how the GuardDuty security agent is managed for this resource.
+	//   - AUTO_MANAGED indicates that GuardDuty deploys and manages updates for this
+	//   resource.
+	//   - MANUAL indicates that you are responsible to deploy, update, and manage the
+	//   GuardDuty security agent updates for this resource.
+	// The DISABLED status doesn't apply to Amazon EC2 instances and Amazon EKS
+	// clusters.
+	ManagementType ManagementType
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about Amazon ECS cluster runtime coverage details.
+type CoverageEcsClusterDetails struct {
+
+	// The name of the Amazon ECS cluster.
+	ClusterName *string
+
+	// Information about the Amazon ECS container running on Amazon EC2 instance.
+	ContainerInstanceDetails *ContainerInstanceDetails
+
+	// Information about the Fargate details associated with the Amazon ECS cluster.
+	FargateDetails *FargateDetails
 
 	noSmithyDocumentSerde
 }
@@ -460,6 +577,16 @@ type CoverageResource struct {
 
 // Information about the resource for each individual EKS cluster.
 type CoverageResourceDetails struct {
+
+	// This API is also used when you use GuardDuty Runtime Monitoring for your Amazon
+	// EC2 instances (currently in preview release) and is subject to change. The use
+	// of this API is subject to Section 2 of the Amazon Web Services Service Terms (http://aws.amazon.com/service-terms/)
+	// ("Betas and Previews"). Information about the Amazon EC2 instance assessed for
+	// runtime coverage.
+	Ec2InstanceDetails *CoverageEc2InstanceDetails
+
+	// Information about the Amazon ECS cluster that is assessed for runtime coverage.
+	EcsClusterDetails *CoverageEcsClusterDetails
 
 	// EKS cluster details involved in the coverage statistics.
 	EksClusterDetails *CoverageEksClusterDetails
@@ -630,6 +757,16 @@ type DestinationProperties struct {
 
 	// The ARN of the KMS key to use for encryption.
 	KmsKeyArn *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about the detected behavior.
+type Detection struct {
+
+	// The details about the anomalous activity that caused GuardDuty to generate the
+	// finding.
+	Anomaly *Anomaly
 
 	noSmithyDocumentSerde
 }
@@ -887,6 +1024,26 @@ type Evidence struct {
 	noSmithyDocumentSerde
 }
 
+// Contains information about Amazon Web Services Fargate details associated with
+// an Amazon ECS cluster.
+type FargateDetails struct {
+
+	// Runtime coverage issues identified for the resource running on Amazon Web
+	// Services Fargate.
+	Issues []string
+
+	// Indicates how the GuardDuty security agent is managed for this resource.
+	//   - AUTO_MANAGED indicates that GuardDuty deploys and manages updates for this
+	//   resource.
+	//   - DISABLED indicates that the deployment of the GuardDuty security agent is
+	//   disabled for this resource.
+	// The MANUAL status doesn't apply to the Amazon Web Services Fargate (Amazon ECS
+	// only) woprkloads.
+	ManagementType ManagementType
+
+	noSmithyDocumentSerde
+}
+
 // Contains information about the condition.
 type FilterCondition struct {
 
@@ -1097,6 +1254,18 @@ type IamInstanceProfile struct {
 	noSmithyDocumentSerde
 }
 
+// Contains information about the impersonated user.
+type ImpersonatedUser struct {
+
+	// The group to which the user name belongs.
+	Groups []string
+
+	// Information about the username that was being impersonated.
+	Username *string
+
+	noSmithyDocumentSerde
+}
+
 // Contains information about the details of an instance.
 type InstanceDetails struct {
 
@@ -1165,6 +1334,9 @@ type Invitation struct {
 // Information about the Kubernetes API call action described in this finding.
 type KubernetesApiCallAction struct {
 
+	// The name of the namespace where the Kubernetes API call action takes place.
+	Namespace *string
+
 	// Parameters related to the Kubernetes API call action.
 	Parameters *string
 
@@ -1174,12 +1346,21 @@ type KubernetesApiCallAction struct {
 	// The Kubernetes API request URI.
 	RequestUri *string
 
+	// The resource component in the Kubernetes API call action.
+	Resource *string
+
+	// The name of the resource in the Kubernetes API call action.
+	ResourceName *string
+
 	// The IP of the Kubernetes API caller and the IPs of any proxies or load
 	// balancers between the caller and the API endpoint.
 	SourceIps []string
 
 	// The resulting HTTP response code of the Kubernetes API call action.
 	StatusCode *int32
+
+	// The name of the sub-resource in the Kubernetes API call action.
+	Subresource *string
 
 	// The user agent of the caller of the Kubernetes API.
 	UserAgent *string
@@ -1258,11 +1439,73 @@ type KubernetesDetails struct {
 	noSmithyDocumentSerde
 }
 
+// Information about the Kubernetes API for which you check if you have permission
+// to call.
+type KubernetesPermissionCheckedDetails struct {
+
+	// Information whether the user has the permission to call the Kubernetes API.
+	Allowed *bool
+
+	// The namespace where the Kubernetes API action will take place.
+	Namespace *string
+
+	// The Kubernetes resource with which your Kubernetes API call will interact.
+	Resource *string
+
+	// The verb component of the Kubernetes API call. For example, when you check
+	// whether or not you have the permission to call the CreatePod API, the verb
+	// component will be Create .
+	Verb *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains information about the role binding that grants the permission defined
+// in a Kubernetes role.
+type KubernetesRoleBindingDetails struct {
+
+	// The kind of the role. For role binding, this value will be RoleBinding .
+	Kind *string
+
+	// The name of the RoleBinding .
+	Name *string
+
+	// The type of the role being referenced. This could be either Role or ClusterRole .
+	RoleRefKind *string
+
+	// The name of the role being referenced. This must match the name of the Role or
+	// ClusterRole that you want to bind to.
+	RoleRefName *string
+
+	// The unique identifier of the role binding.
+	Uid *string
+
+	noSmithyDocumentSerde
+}
+
+// Information about the Kubernetes role name and role type.
+type KubernetesRoleDetails struct {
+
+	// The kind of role. For this API, the value of kind will be Role .
+	Kind *string
+
+	// The name of the Kubernetes role.
+	Name *string
+
+	// The unique identifier of the Kubernetes role name.
+	Uid *string
+
+	noSmithyDocumentSerde
+}
+
 // Details about the Kubernetes user involved in a Kubernetes finding.
 type KubernetesUserDetails struct {
 
 	// The groups that include the user who called the Kubernetes API.
 	Groups []string
+
+	// Information about the impersonated user.
+	ImpersonatedUser *ImpersonatedUser
 
 	// Entity that assumes the IAM role when Kubernetes RBAC permissions are assigned
 	// to that role.
@@ -1283,14 +1526,23 @@ type KubernetesWorkloadDetails struct {
 	// Containers running as part of the Kubernetes workload.
 	Containers []Container
 
+	// Whether the host IPC flag is enabled for the pods in the workload.
+	HostIPC *bool
+
 	// Whether the hostNetwork flag is enabled for the pods included in the workload.
 	HostNetwork *bool
+
+	// Whether the host PID flag is enabled for the pods in the workload.
+	HostPID *bool
 
 	// Kubernetes workload name.
 	Name *string
 
 	// Kubernetes namespace that the workload is part of.
 	Namespace *string
+
+	// The service account name that is associated with a Kubernetes workload.
+	ServiceAccountName *string
 
 	// Kubernetes workload type (e.g. Pod, Deployment, etc.).
 	Type *string
@@ -1654,6 +1906,15 @@ type NetworkInterface struct {
 	noSmithyDocumentSerde
 }
 
+// Contains information about the observed behavior.
+type Observations struct {
+
+	// The text that was unusual.
+	Text []string
+
+	noSmithyDocumentSerde
+}
+
 // Contains information about the ISP organization of the remote IP address.
 type Organization struct {
 
@@ -1763,6 +2024,21 @@ type OrganizationDataSourceConfigurationsResult struct {
 	noSmithyDocumentSerde
 }
 
+// Information about GuardDuty coverage statistics for members in your Amazon Web
+// Services organization.
+type OrganizationDetails struct {
+
+	// Information about the GuardDuty coverage statistics for members in your Amazon
+	// Web Services organization.
+	OrganizationStatistics *OrganizationStatistics
+
+	// The timestamp at which the organization statistics was last updated. This is in
+	// UTC format.
+	UpdatedAt *time.Time
+
+	noSmithyDocumentSerde
+}
+
 // Organization-wide EBS volumes scan configuration.
 type OrganizationEbsVolumes struct {
 
@@ -1834,6 +2110,34 @@ type OrganizationFeatureConfigurationResult struct {
 	// The name of the feature that is configured for the member accounts within the
 	// organization.
 	Name OrgFeature
+
+	noSmithyDocumentSerde
+}
+
+// Information about the number of accounts that have enabled a specific feature.
+type OrganizationFeatureStatistics struct {
+
+	// Name of the additional configuration.
+	AdditionalConfiguration []OrganizationFeatureStatisticsAdditionalConfiguration
+
+	// Total number of accounts that have enabled a specific feature.
+	EnabledAccountsCount *int32
+
+	// Name of the feature.
+	Name OrgFeature
+
+	noSmithyDocumentSerde
+}
+
+// Information about the coverage statistic for the additional configuration of
+// the feature.
+type OrganizationFeatureStatisticsAdditionalConfiguration struct {
+
+	// Total number of accounts that have enabled the additional configuration.
+	EnabledAccountsCount *int32
+
+	// Name of the additional configuration within a feature.
+	Name OrgFeatureAdditionalConfiguration
 
 	noSmithyDocumentSerde
 }
@@ -1950,6 +2254,32 @@ type OrganizationScanEc2InstanceWithFindingsResult struct {
 
 	// Describes the configuration for scanning EBS volumes for an organization.
 	EbsVolumes *OrganizationEbsVolumesResult
+
+	noSmithyDocumentSerde
+}
+
+// Information about the coverage statistics of the features for the entire Amazon
+// Web Services organization. When you create a new Amazon Web Services
+// organization, it might take up to 24 hours to generate the statistics summary
+// for this organization.
+type OrganizationStatistics struct {
+
+	// Total number of active accounts in your Amazon Web Services organization that
+	// are associated with GuardDuty.
+	ActiveAccountsCount *int32
+
+	// Retrieves the coverage statistics for each feature.
+	CountByFeature []OrganizationFeatureStatistics
+
+	// Total number of accounts that have enabled GuardDuty.
+	EnabledAccountsCount *int32
+
+	// Total number of accounts in your Amazon Web Services organization that are
+	// associated with GuardDuty.
+	MemberAccountsCount *int32
+
+	// Total number of accounts in your Amazon Web Services organization.
+	TotalAccountsCount *int32
 
 	noSmithyDocumentSerde
 }
@@ -2592,6 +2922,10 @@ type ScanThreatName struct {
 // Container security context.
 type SecurityContext struct {
 
+	// Whether or not a container or a Kubernetes pod is allowed to gain more
+	// privileges than its parent process.
+	AllowPrivilegeEscalation *bool
+
 	// Whether the container is privileged.
 	Privileged *bool
 
@@ -2624,6 +2958,9 @@ type Service struct {
 
 	// The total count of the occurrences of this finding type.
 	Count *int32
+
+	// Contains information about the detected unusual behavior.
+	Detection *Detection
 
 	// The detector ID for the GuardDuty service.
 	DetectorId *string
@@ -2876,9 +3213,39 @@ type UsageStatistics struct {
 	// The usage statistic sum organized by resource.
 	SumByResource []UsageResourceResult
 
+	// Lists the top 50 accounts by feature that have generated the most GuardDuty
+	// usage, in the order from most to least expensive. Currently, this doesn't
+	// support RDS_LOGIN_EVENTS .
+	TopAccountsByFeature []UsageTopAccountsResult
+
 	// Lists the top 50 resources that have generated the most GuardDuty usage, in
 	// order from most to least expensive.
 	TopResources []UsageResourceResult
+
+	noSmithyDocumentSerde
+}
+
+// Contains information on the total of usage based on the topmost 50 account IDs.
+type UsageTopAccountResult struct {
+
+	// The unique account ID.
+	AccountId *string
+
+	// Contains the total usage with the corresponding currency unit for that value.
+	Total *Total
+
+	noSmithyDocumentSerde
+}
+
+// Information about the usage statistics, calculated by top accounts by feature.
+type UsageTopAccountsResult struct {
+
+	// The accounts that contributed to the total usage cost.
+	Accounts []UsageTopAccountResult
+
+	// Features by which you can generate the usage statistics. RDS_LOGIN_EVENTS is
+	// currently not supported with topAccountsByFeature .
+	Feature UsageFeature
 
 	noSmithyDocumentSerde
 }

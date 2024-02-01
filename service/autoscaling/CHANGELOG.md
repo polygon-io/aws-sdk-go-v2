@@ -1,3 +1,67 @@
+# v1.37.0 (2024-01-29)
+
+* **Feature**: EC2 Auto Scaling customers who use attribute based instance-type selection can now intuitively define their Spot instances price protection limit as a percentage of the lowest priced On-Demand instance type.
+
+# v1.36.7 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.6 (2023-12-20)
+
+* No change notes available for this release.
+
+# v1.36.5 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.36.4 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.3 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.36.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.36.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.4 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.3 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.35.2 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.1 (2023-11-16)
+
+* No change notes available for this release.
+
+# v1.35.0 (2023-11-15)
+
+* **Feature**: This release introduces Instance Maintenance Policy, a new EC2 Auto Scaling capability that allows customers to define whether instances are launched before or after existing instances are terminated during instance replacement operations.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.34.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

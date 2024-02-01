@@ -4,14 +4,10 @@ package cloudtrail
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
@@ -20,14 +16,15 @@ import (
 // Updates an event data store. The required EventDataStore value is an ARN or the
 // ID portion of the ARN. Other parameters are optional, but at least one optional
 // parameter must be specified, or CloudTrail throws an error. RetentionPeriod is
-// in days, and valid values are integers between 90 and 2557. By default,
-// TerminationProtection is enabled. For event data stores for CloudTrail events,
-// AdvancedEventSelectors includes or excludes management and data events in your
-// event data store. For more information about AdvancedEventSelectors , see
-// AdvancedEventSelectors (https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html)
-// . For event data stores for Config configuration items, Audit Manager evidence,
-// or non-Amazon Web Services events, AdvancedEventSelectors includes events of
-// that type in your event data store.
+// in days, and valid values are integers between 7 and 3653 if the BillingMode is
+// set to EXTENDABLE_RETENTION_PRICING , or between 7 and 2557 if BillingMode is
+// set to FIXED_RETENTION_PRICING . By default, TerminationProtection is enabled.
+// For event data stores for CloudTrail events, AdvancedEventSelectors includes or
+// excludes management or data events in your event data store. For more
+// information about AdvancedEventSelectors , see AdvancedEventSelectors (https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html)
+// . For event data stores for CloudTrail Insights events, Config configuration
+// items, Audit Manager evidence, or non-Amazon Web Services events,
+// AdvancedEventSelectors includes events of that type in your event data store.
 func (c *Client) UpdateEventDataStore(ctx context.Context, params *UpdateEventDataStoreInput, optFns ...func(*Options)) (*UpdateEventDataStoreOutput, error) {
 	if params == nil {
 		params = &UpdateEventDataStoreInput{}
@@ -55,6 +52,25 @@ type UpdateEventDataStoreInput struct {
 	// You can configure up to five advanced event selectors for each event data store.
 	AdvancedEventSelectors []types.AdvancedEventSelector
 
+	// You can't change the billing mode from EXTENDABLE_RETENTION_PRICING to
+	// FIXED_RETENTION_PRICING . If BillingMode is set to EXTENDABLE_RETENTION_PRICING
+	// and you want to use FIXED_RETENTION_PRICING instead, you'll need to stop
+	// ingestion on the event data store and create a new event data store that uses
+	// FIXED_RETENTION_PRICING . The billing mode for the event data store determines
+	// the cost for ingesting events and the default and maximum retention period for
+	// the event data store. The following are the possible values:
+	//   - EXTENDABLE_RETENTION_PRICING - This billing mode is generally recommended if
+	//   you want a flexible retention period of up to 3653 days (about 10 years). The
+	//   default retention period for this billing mode is 366 days.
+	//   - FIXED_RETENTION_PRICING - This billing mode is recommended if you expect to
+	//   ingest more than 25 TB of event data per month and need a retention period of up
+	//   to 2557 days (about 7 years). The default retention period for this billing mode
+	//   is 2557 days.
+	// For more information about CloudTrail pricing, see CloudTrail Pricing (http://aws.amazon.com/cloudtrail/pricing/)
+	// and Managing CloudTrail Lake costs (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-lake-manage-costs.html)
+	// .
+	BillingMode types.BillingMode
+
 	// Specifies the KMS key ID to use to encrypt the events delivered by CloudTrail.
 	// The value can be an alias name prefixed by alias/ , a fully specified ARN to an
 	// alias, a fully specified ARN to a key, or a globally unique identifier.
@@ -81,19 +97,24 @@ type UpdateEventDataStoreInput struct {
 	Name *string
 
 	// Specifies whether an event data store collects events logged for an
-	// organization in Organizations.
+	// organization in Organizations. Only the management account for the organization
+	// can convert an organization event data store to a non-organization event data
+	// store, or convert a non-organization event data store to an organization event
+	// data store.
 	OrganizationEnabled *bool
 
-	// The retention period of the event data store, in days. You can set a retention
-	// period of up to 2557 days, the equivalent of seven years. CloudTrail Lake
-	// determines whether to retain an event by checking if the eventTime of the event
-	// is within the specified retention period. For example, if you set a retention
-	// period of 90 days, CloudTrail will remove events when the eventTime is older
-	// than 90 days. If you decrease the retention period of an event data store,
-	// CloudTrail will remove any events with an eventTime older than the new
-	// retention period. For example, if the previous retention period was 365 days and
-	// you decrease it to 100 days, CloudTrail will remove events with an eventTime
-	// older than 100 days.
+	// The retention period of the event data store, in days. If BillingMode is set to
+	// EXTENDABLE_RETENTION_PRICING , you can set a retention period of up to 3653
+	// days, the equivalent of 10 years. If BillingMode is set to
+	// FIXED_RETENTION_PRICING , you can set a retention period of up to 2557 days, the
+	// equivalent of seven years. CloudTrail Lake determines whether to retain an event
+	// by checking if the eventTime of the event is within the specified retention
+	// period. For example, if you set a retention period of 90 days, CloudTrail will
+	// remove events when the eventTime is older than 90 days. If you decrease the
+	// retention period of an event data store, CloudTrail will remove any events with
+	// an eventTime older than the new retention period. For example, if the previous
+	// retention period was 365 days and you decrease it to 100 days, CloudTrail will
+	// remove events with an eventTime older than 100 days.
 	RetentionPeriod *int32
 
 	// Indicates that termination protection is enabled and the event data store
@@ -108,11 +129,24 @@ type UpdateEventDataStoreOutput struct {
 	// The advanced event selectors that are applied to the event data store.
 	AdvancedEventSelectors []types.AdvancedEventSelector
 
+	// The billing mode for the event data store.
+	BillingMode types.BillingMode
+
 	// The timestamp that shows when an event data store was first created.
 	CreatedTimestamp *time.Time
 
 	// The ARN of the event data store.
 	EventDataStoreArn *string
+
+	// If Lake query federation is enabled, provides the ARN of the federation role
+	// used to access the resources for the federated event data store.
+	FederationRoleArn *string
+
+	// Indicates the Lake query federation (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-federation.html)
+	// status. The status is ENABLED if Lake query federation is enabled, or DISABLED
+	// if Lake query federation is disabled. You cannot delete an event data store if
+	// the FederationStatus is ENABLED .
+	FederationStatus types.FederationStatus
 
 	// Specifies the KMS key ID that encrypts the events delivered by CloudTrail. The
 	// value is a fully specified ARN to a KMS key in the following format.
@@ -151,6 +185,9 @@ type UpdateEventDataStoreOutput struct {
 }
 
 func (c *Client) addOperationUpdateEventDataStoreMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateEventDataStore{}, middleware.After)
 	if err != nil {
 		return err
@@ -159,6 +196,10 @@ func (c *Client) addOperationUpdateEventDataStoreMiddlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "UpdateEventDataStore"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -180,9 +221,6 @@ func (c *Client) addOperationUpdateEventDataStoreMiddlewares(stack *middleware.S
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -198,7 +236,7 @@ func (c *Client) addOperationUpdateEventDataStoreMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addUpdateEventDataStoreResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpUpdateEventDataStoreValidationMiddleware(stack); err != nil {
@@ -219,7 +257,7 @@ func (c *Client) addOperationUpdateEventDataStoreMiddlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -229,130 +267,6 @@ func newServiceMetadataMiddleware_opUpdateEventDataStore(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "cloudtrail",
 		OperationName: "UpdateEventDataStore",
 	}
-}
-
-type opUpdateEventDataStoreResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opUpdateEventDataStoreResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opUpdateEventDataStoreResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "cloudtrail"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "cloudtrail"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("cloudtrail")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addUpdateEventDataStoreResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opUpdateEventDataStoreResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

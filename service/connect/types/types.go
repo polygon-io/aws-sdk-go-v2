@@ -58,8 +58,35 @@ type AgentContactReference struct {
 	noSmithyDocumentSerde
 }
 
+// A structure that defines search criteria for contacts using agent hierarchy
+// group levels. For more information about agent hierarchies, see Set Up Agent
+// Hierarchies (https://docs.aws.amazon.com/connect/latest/adminguide/agent-hierarchy.html)
+// in the Amazon Connect Administrator Guide.
+type AgentHierarchyGroups struct {
+
+	// The identifiers for level 1 hierarchy groups.
+	L1Ids []string
+
+	// The identifiers for level 2 hierarchy groups.
+	L2Ids []string
+
+	// The identifiers for level 3 hierarchy groups.
+	L3Ids []string
+
+	// The identifiers for level 4 hierarchy groups.
+	L4Ids []string
+
+	// The identifiers for level 5 hierarchy groups.
+	L5Ids []string
+
+	noSmithyDocumentSerde
+}
+
 // Information about the agent who accepted the contact.
 type AgentInfo struct {
+
+	// Agent pause duration for a contact in seconds.
+	AgentPauseDurationInSeconds *int32
 
 	// The timestamp when the contact was connected to the agent.
 	ConnectedToAgentTimestamp *time.Time
@@ -98,7 +125,7 @@ type AgentStatus struct {
 	State AgentStatusState
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	// The type of agent status.
@@ -146,6 +173,38 @@ type AgentStatusSummary struct {
 	noSmithyDocumentSerde
 }
 
+// Information about the capabilities enabled for participants of the contact.
+type AllowedCapabilities struct {
+
+	// Information about the agent's video sharing capabilities.
+	Agent *ParticipantCapabilities
+
+	// Information about the customer's video sharing capabilities.
+	Customer *ParticipantCapabilities
+
+	noSmithyDocumentSerde
+}
+
+// This API is in preview release for Amazon Connect and is subject to change.
+// Information about associations that are successfully created: DataSetId ,
+// TargetAccountId , ResourceShareId , ResourceShareArn .
+type AnalyticsDataAssociationResult struct {
+
+	// The identifier of the dataset.
+	DataSetId *string
+
+	// The Amazon Resource Name (ARN) of the Resource Access Manager share.
+	ResourceShareArn *string
+
+	// The Resource Access Manager share ID.
+	ResourceShareId *string
+
+	// The identifier of the target account.
+	TargetAccountId *string
+
+	noSmithyDocumentSerde
+}
+
 // Configuration of the answering machine detection.
 type AnswerMachineDetectionConfig struct {
 
@@ -175,8 +234,8 @@ type Application struct {
 
 // This action must be set if TriggerEventSource is one of the following values:
 // OnPostCallAnalysisAvailable | OnRealTimeCallAnalysisAvailable |
-// OnPostChatAnalysisAvailable . Contact is categorized using the rule name.
-// RuleName is used as ContactCategory .
+// OnRealTimeChatAnalysisAvailable | OnPostChatAnalysisAvailable . Contact is
+// categorized using the rule name. RuleName is used as ContactCategory .
 type AssignContactCategoryActionDefinition struct {
 	noSmithyDocumentSerde
 }
@@ -197,6 +256,18 @@ type AttachmentReference struct {
 	noSmithyDocumentSerde
 }
 
+// The attendee information, including attendee ID and join token.
+type Attendee struct {
+
+	// The Amazon Chime SDK attendee ID.
+	AttendeeId *string
+
+	// The join token used by the Amazon Chime SDK attendee.
+	JoinToken *string
+
+	noSmithyDocumentSerde
+}
+
 // A toggle for an individual feature at the instance level.
 type Attribute struct {
 
@@ -205,6 +276,15 @@ type Attribute struct {
 
 	// The value of the attribute.
 	Value *string
+
+	noSmithyDocumentSerde
+}
+
+// Has audio-specific configurations as the operating parameter for Echo Reduction.
+type AudioFeatures struct {
+
+	// Makes echo reduction available to clients who connect to the meeting.
+	EchoReduction MeetingFeatureStatus
 
 	noSmithyDocumentSerde
 }
@@ -221,6 +301,47 @@ type AvailableNumberSummary struct {
 
 	// The type of phone number.
 	PhoneNumberType PhoneNumberType
+
+	noSmithyDocumentSerde
+}
+
+// Information associated with a campaign.
+type Campaign struct {
+
+	// A unique identifier for a campaign.
+	CampaignId *string
+
+	noSmithyDocumentSerde
+}
+
+// Chat integration event containing payload to perform different chat actions
+// such as:
+//   - Sending a chat message
+//   - Sending a chat event, such as typing
+//   - Disconnecting from a chat
+type ChatEvent struct {
+
+	// Type of chat integration event.
+	//
+	// This member is required.
+	Type ChatEventType
+
+	// Content of the message or event. This is required when Type is MESSAGE and for
+	// certain ContentTypes when Type is EVENT .
+	//   - For allowed message content, see the Content parameter in the SendMessage (https://docs.aws.amazon.com/connect-participant/latest/APIReference/API_SendMessage.html)
+	//   topic in the Amazon Connect Participant Service API Reference.
+	//   - For allowed event content, see the Content parameter in the SendEvent (https://docs.aws.amazon.com/connect-participant/latest/APIReference/API_SendEvent.html)
+	//   topic in the Amazon Connect Participant Service API Reference.
+	Content *string
+
+	// Type of content. This is required when Type is MESSAGE or EVENT .
+	//   - For allowed message content types, see the ContentType parameter in the
+	//   SendMessage (https://docs.aws.amazon.com/connect-participant/latest/APIReference/API_SendMessage.html)
+	//   topic in the Amazon Connect Participant Service API Reference.
+	//   - For allowed event content types, see the ContentType parameter in the
+	//   SendEvent (https://docs.aws.amazon.com/connect-participant/latest/APIReference/API_SendEvent.html)
+	//   topic in the Amazon Connect Participant Service API Reference.
+	ContentType *string
 
 	noSmithyDocumentSerde
 }
@@ -324,13 +445,30 @@ type ClaimedPhoneNumberSummary struct {
 	// The type of phone number.
 	PhoneNumberType PhoneNumberType
 
+	// The claimed phone number ARN that was previously imported from the external
+	// service, such as Amazon Pinpoint. If it is from Amazon Pinpoint, it looks like
+	// the ARN of the phone number that was imported from Amazon Pinpoint.
+	SourcePhoneNumberArn *string
+
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	// The Amazon Resource Name (ARN) for Amazon Connect instances or traffic
 	// distribution groups that phone number inbound traffic is routed through.
 	TargetArn *string
+
+	noSmithyDocumentSerde
+}
+
+// Information required to join the call.
+type ConnectionData struct {
+
+	// The attendee information, including attendee ID and join token.
+	Attendee *Attendee
+
+	// A meeting created using the Amazon Chime SDK.
+	Meeting *Meeting
 
 	noSmithyDocumentSerde
 }
@@ -372,6 +510,12 @@ type Contact struct {
 	// started listening to a contact.
 	InitiationTimestamp *time.Time
 
+	// The timestamp when the contact was last paused.
+	LastPausedTimestamp *time.Time
+
+	// The timestamp when the contact was last resumed.
+	LastResumedTimestamp *time.Time
+
 	// The timestamp when contact was last updated.
 	LastUpdateTimestamp *time.Time
 
@@ -385,6 +529,18 @@ type Contact struct {
 	// If this contact was queued, this contains information about the queue.
 	QueueInfo *QueueInfo
 
+	// An integer that represents the queue priority to be applied to the contact
+	// (lower priorities are routed preferentially). Cannot be specified if the
+	// QueueTimeAdjustmentSeconds is specified. Must be statically defined, must be
+	// larger than zero, and a valid integer value. Default Value is 5.
+	QueuePriority *int64
+
+	// An integer that represents the queue time adjust to be applied to the contact,
+	// in seconds (longer / larger queue time are routed preferentially). Cannot be
+	// specified if the QueuePriority is specified. Must be statically defined and a
+	// valid integer value.
+	QueueTimeAdjustmentSeconds *int32
+
 	// The contactId that is related (https://docs.aws.amazon.com/connect/latest/adminguide/chat-persistence.html#relatedcontactid)
 	// to this contact.
 	RelatedContactId *string
@@ -393,8 +549,54 @@ type Contact struct {
 	// flow.
 	ScheduledTimestamp *time.Time
 
+	// Tags associated with the contact. This contains both Amazon Web Services
+	// generated and user-defined tags.
+	Tags map[string]string
+
+	// Total pause count for a contact.
+	TotalPauseCount *int32
+
+	// Total pause duration for a contact in seconds.
+	TotalPauseDurationInSeconds *int32
+
 	// Information about Amazon Connect Wisdom.
 	WisdomInfo *WisdomInfo
+
+	noSmithyDocumentSerde
+}
+
+// A structure that defines search criteria for contacts using analysis outputs
+// from Amazon Connect Contact Lens.
+type ContactAnalysis struct {
+
+	// Search criteria based on transcript analyzed by Amazon Connect Contact Lens.
+	Transcript *Transcript
+
+	noSmithyDocumentSerde
+}
+
+// Request object with information to create a contact.
+type ContactDataRequest struct {
+
+	// List of attributes to be stored in a contact.
+	Attributes map[string]string
+
+	// Structure to store information associated with a campaign.
+	Campaign *Campaign
+
+	// Endpoint of the customer for which contact will be initiated.
+	CustomerEndpoint *Endpoint
+
+	// The identifier of the queue associated with the Amazon Connect instance in
+	// which contacts that are created will be queued.
+	QueueId *string
+
+	// Identifier to uniquely identify individual requests in the batch.
+	RequestIdentifier *string
+
+	// Endpoint associated with the Amazon Connect instance from which outbound
+	// contact will be initiated for the campaign.
+	SystemEndpoint *Endpoint
 
 	noSmithyDocumentSerde
 }
@@ -435,7 +637,7 @@ type ContactFlow struct {
 	State ContactFlowState
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	// The type of the flow. For descriptions of the available types, see Choose a
@@ -473,7 +675,7 @@ type ContactFlowModule struct {
 	Status ContactFlowModuleStatus
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -520,6 +722,78 @@ type ContactFlowSummary struct {
 	noSmithyDocumentSerde
 }
 
+// Information of returned contact.
+type ContactSearchSummary struct {
+
+	// Information about the agent who accepted the contact.
+	AgentInfo *ContactSearchSummaryAgentInfo
+
+	// The Amazon Resource Name (ARN) of the contact.
+	Arn *string
+
+	// How the contact reached your contact center.
+	Channel Channel
+
+	// The timestamp when the customer endpoint disconnected from Amazon Connect.
+	DisconnectTimestamp *time.Time
+
+	// The identifier of the contact summary.
+	Id *string
+
+	// If this contact is related to other contacts, this is the ID of the initial
+	// contact.
+	InitialContactId *string
+
+	// Indicates how the contact was initiated.
+	InitiationMethod ContactInitiationMethod
+
+	// The date and time this contact was initiated, in UTC time. For INBOUND , this is
+	// when the contact arrived. For OUTBOUND , this is when the agent began dialing.
+	// For CALLBACK , this is when the callback contact was created. For TRANSFER and
+	// QUEUE_TRANSFER , this is when the transfer was initiated. For API, this is when
+	// the request arrived. For EXTERNAL_OUTBOUND , this is when the agent started
+	// dialing the external participant. For MONITOR , this is when the supervisor
+	// started listening to a contact.
+	InitiationTimestamp *time.Time
+
+	// If this contact is not the first contact, this is the ID of the previous
+	// contact.
+	PreviousContactId *string
+
+	// If this contact was queued, this contains information about the queue.
+	QueueInfo *ContactSearchSummaryQueueInfo
+
+	// The timestamp, in Unix epoch time format, at which to start running the inbound
+	// flow.
+	ScheduledTimestamp *time.Time
+
+	noSmithyDocumentSerde
+}
+
+// Information about the agent who accepted the contact.
+type ContactSearchSummaryAgentInfo struct {
+
+	// The timestamp when the contact was connected to the agent.
+	ConnectedToAgentTimestamp *time.Time
+
+	// The identifier of the agent who accepted the contact.
+	Id *string
+
+	noSmithyDocumentSerde
+}
+
+// If this contact was queued, this contains information about the queue.
+type ContactSearchSummaryQueueInfo struct {
+
+	// The timestamp when the contact was added to the queue.
+	EnqueueTimestamp *time.Time
+
+	// The unique identifier for the queue.
+	Id *string
+
+	noSmithyDocumentSerde
+}
+
 // An object that can be used to specify Tag conditions inside the SearchFilter .
 // This accepts an OR of AND (List of List) input where:
 //   - Top level list specifies conditions that need to be applied with OR operator
@@ -534,6 +808,22 @@ type ControlPlaneTagFilter struct {
 
 	// A leaf node condition which can be used to specify a tag condition.
 	TagCondition *TagCondition
+
+	noSmithyDocumentSerde
+}
+
+// The CreateCase action definition.
+type CreateCaseActionDefinition struct {
+
+	// An array of objects with Field ID and Value data.
+	//
+	// This member is required.
+	Fields []FieldValue
+
+	// A unique identifier of a template.
+	//
+	// This member is required.
+	TemplateId *string
 
 	noSmithyDocumentSerde
 }
@@ -674,6 +964,19 @@ type Dimensions struct {
 	// Information about the routing profile assigned to the user.
 	RoutingProfile *RoutingProfileReference
 
+	// The expression of a step in a routing criteria.
+	RoutingStepExpression *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains details about why a contact was disconnected. Only Amazon Connect
+// outbound campaigns can provide this field.
+type DisconnectReason struct {
+
+	// A code that indicates how the contact was terminated.
+	Code *string
+
 	noSmithyDocumentSerde
 }
 
@@ -705,6 +1008,11 @@ type EmailReference struct {
 	noSmithyDocumentSerde
 }
 
+// An empty value.
+type EmptyFieldValue struct {
+	noSmithyDocumentSerde
+}
+
 // The encryption configuration.
 type EncryptionConfig struct {
 
@@ -720,6 +1028,36 @@ type EncryptionConfig struct {
 	//
 	// This member is required.
 	KeyId *string
+
+	noSmithyDocumentSerde
+}
+
+// End associated tasks related to a case.
+type EndAssociatedTasksActionDefinition struct {
+	noSmithyDocumentSerde
+}
+
+// Information about the endpoint.
+type Endpoint struct {
+
+	// Address of the endpoint.
+	Address *string
+
+	// Type of the endpoint.
+	Type EndpointType
+
+	noSmithyDocumentSerde
+}
+
+// This API is in preview release for Amazon Connect and is subject to change.
+// List of errors for dataset association failures.
+type ErrorResult struct {
+
+	// The error code.
+	ErrorCode *string
+
+	// The corresponding error message for the error code.
+	ErrorMessage *string
 
 	noSmithyDocumentSerde
 }
@@ -771,7 +1109,7 @@ type Evaluation struct {
 	Scores map[string]EvaluationScore
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -903,7 +1241,7 @@ type EvaluationForm struct {
 	ScoringStrategy *EvaluationFormScoringStrategy
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -1362,7 +1700,11 @@ type EvaluationMetadata struct {
 // Information about notes for a contact evaluation.
 type EvaluationNote struct {
 
-	// The note for an item (section or question) in a contact evaluation.
+	// The note for an item (section or question) in a contact evaluation. Even though
+	// a note in an evaluation can have up to 3072 chars, there is also a limit on the
+	// total number of chars for all the notes in the evaluation combined. Assuming
+	// there are N questions in the evaluation being submitted, then the max char limit
+	// for all notes combined is N x 1024.
 	Value *string
 
 	noSmithyDocumentSerde
@@ -1444,6 +1786,56 @@ type EventBridgeActionDefinition struct {
 	noSmithyDocumentSerde
 }
 
+// Request for which contact failed to be generated.
+type FailedRequest struct {
+
+	// Reason code for the failure.
+	FailureReasonCode FailureReasonCode
+
+	// Why the request to create a contact failed.
+	FailureReasonMessage *string
+
+	// Request identifier provided in the API call in the ContactDataRequest to create
+	// a contact.
+	RequestIdentifier *string
+
+	noSmithyDocumentSerde
+}
+
+// Object for case field values.
+type FieldValue struct {
+
+	// Unique identifier of a field.
+	//
+	// This member is required.
+	Id *string
+
+	// Union of potential field value types.
+	//
+	// This member is required.
+	Value *FieldValueUnion
+
+	noSmithyDocumentSerde
+}
+
+// Object to store union of Field values.
+type FieldValueUnion struct {
+
+	// A Boolean number value type.
+	BooleanValue bool
+
+	// a Double number value type.
+	DoubleValue *float64
+
+	// An empty value.
+	EmptyValue *EmptyFieldValue
+
+	// String value type.
+	StringValue *string
+
+	noSmithyDocumentSerde
+}
+
 // Contains the filter to apply when retrieving metrics.
 type Filters struct {
 
@@ -1457,6 +1849,10 @@ type Filters struct {
 
 	// A list of up to 100 routing profile IDs or ARNs.
 	RoutingProfiles []string
+
+	// A list of expressions as a filter, in which an expression is an object of a
+	// step in a routing criteria.
+	RoutingStepExpressions []string
 
 	noSmithyDocumentSerde
 }
@@ -1518,7 +1914,7 @@ type HierarchyGroup struct {
 	Name *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -1754,7 +2150,7 @@ type HoursOfOperation struct {
 	Name *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	// The time zone for the hours of operation.
@@ -1886,6 +2282,9 @@ type Instance struct {
 
 	// Relevant details why the instance was not successfully created.
 	StatusReason *InstanceStatusReason
+
+	// The tags of an instance.
+	Tags map[string]string
 
 	noSmithyDocumentSerde
 }
@@ -2134,11 +2533,19 @@ type ListPhoneNumbersSummary struct {
 	// The ISO country code.
 	PhoneNumberCountryCode PhoneNumberCountryCode
 
+	// The description of the phone number.
+	PhoneNumberDescription *string
+
 	// A unique identifier for the phone number.
 	PhoneNumberId *string
 
 	// The type of phone number.
 	PhoneNumberType PhoneNumberType
+
+	// The claimed phone number ARN that was previously imported from the external
+	// service, such as Amazon Pinpoint. If it is from Amazon Pinpoint, it looks like
+	// the ARN of the phone number that was imported from Amazon Pinpoint.
+	SourcePhoneNumberArn *string
 
 	// The Amazon Resource Name (ARN) for Amazon Connect instances or traffic
 	// distribution groups that phone number inbound traffic is routed through.
@@ -2169,6 +2576,55 @@ type MediaConcurrency struct {
 	// contact from another channel when they are currently working with a contact from
 	// a Voice channel.
 	CrossChannelBehavior *CrossChannelBehavior
+
+	noSmithyDocumentSerde
+}
+
+// A set of endpoints used by clients to connect to the media service group for an
+// Amazon Chime SDK meeting.
+type MediaPlacement struct {
+
+	// The audio fallback URL.
+	AudioFallbackUrl *string
+
+	// The audio host URL.
+	AudioHostUrl *string
+
+	// The event ingestion URL to which you send client meeting events.
+	EventIngestionUrl *string
+
+	// The signaling URL.
+	SignalingUrl *string
+
+	// The turn control URL.
+	TurnControlUrl *string
+
+	noSmithyDocumentSerde
+}
+
+// A meeting created using the Amazon Chime SDK.
+type Meeting struct {
+
+	// The media placement for the meeting.
+	MediaPlacement *MediaPlacement
+
+	// The Amazon Web Services Region in which you create the meeting.
+	MediaRegion *string
+
+	// The configuration settings of the features available to a meeting.
+	MeetingFeatures *MeetingFeaturesConfiguration
+
+	// The Amazon Chime SDK meeting ID.
+	MeetingId *string
+
+	noSmithyDocumentSerde
+}
+
+// The configuration settings of the features available to a meeting.
+type MeetingFeaturesConfiguration struct {
+
+	// The configuration settings for the audio features available to a meeting.
+	Audio *AudioFeatures
 
 	noSmithyDocumentSerde
 }
@@ -2263,6 +2719,36 @@ type MetricV2 struct {
 	noSmithyDocumentSerde
 }
 
+// Payload of chat properties to apply when starting a new contact.
+type NewSessionDetails struct {
+
+	// A custom key-value pair using an attribute map. The attributes are standard
+	// Amazon Connect attributes. They can be accessed in flows just like any other
+	// contact attributes. There can be up to 32,768 UTF-8 bytes across all key-value
+	// pairs per contact. Attribute keys can include only alphanumeric, dash, and
+	// underscore characters.
+	Attributes map[string]string
+
+	// The customer's details.
+	ParticipantDetails *ParticipantDetails
+
+	// The streaming configuration, such as the Amazon SNS streaming endpoint.
+	StreamingConfiguration *ChatStreamingConfiguration
+
+	// The supported chat message content types. Supported types are text/plain ,
+	// text/markdown , application/json ,
+	// application/vnd.amazonaws.connect.message.interactive , and
+	// application/vnd.amazonaws.connect.message.interactive.response . Content types
+	// must always contain text/plain . You can then put any other supported type in
+	// the list. For example, all the following lists are valid because they contain
+	// text/plain : [text/plain, text/markdown, application/json] ,  [text/markdown,
+	// text/plain] , [text/plain, application/json,
+	// application/vnd.amazonaws.connect.message.interactive.response] .
+	SupportedMessagingContentTypes []string
+
+	noSmithyDocumentSerde
+}
+
 // The type of notification recipient.
 type NotificationRecipientType struct {
 
@@ -2270,7 +2756,7 @@ type NotificationRecipientType struct {
 	UserIds []string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }. Amazon Connect users
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }. Amazon Connect users
 	// with the specified tags will be notified.
 	UserTags map[string]string
 
@@ -2319,6 +2805,17 @@ type OutboundCallerConfig struct {
 
 	// The outbound whisper flow to be used during an outbound call.
 	OutboundFlowId *string
+
+	noSmithyDocumentSerde
+}
+
+// The configuration for the allowed capabilities for participants present over
+// the call.
+type ParticipantCapabilities struct {
+
+	// The configuration having the video sharing capabilities for participants over
+	// the call.
+	Video VideoCapability
 
 	noSmithyDocumentSerde
 }
@@ -2508,6 +3005,73 @@ type PhoneNumberSummary struct {
 	noSmithyDocumentSerde
 }
 
+// Information about a predefined attribute.
+type PredefinedAttribute struct {
+
+	// Last modified region.
+	LastModifiedRegion *string
+
+	// Last modified time.
+	LastModifiedTime *time.Time
+
+	// The name of the predefined attribute.
+	Name *string
+
+	// The values of the predefined attribute.
+	Values PredefinedAttributeValues
+
+	noSmithyDocumentSerde
+}
+
+// The search criteria to be used to return predefined attributes.
+type PredefinedAttributeSearchCriteria struct {
+
+	// A list of conditions which would be applied together with an AND condition.
+	AndConditions []PredefinedAttributeSearchCriteria
+
+	// A list of conditions which would be applied together with an OR condition.
+	OrConditions []PredefinedAttributeSearchCriteria
+
+	// A leaf node condition which can be used to specify a string condition. The
+	// currently supported values for FieldName are name and description .
+	StringCondition *StringCondition
+
+	noSmithyDocumentSerde
+}
+
+// Summary of a predefined attribute.
+type PredefinedAttributeSummary struct {
+
+	// Last modified region.
+	LastModifiedRegion *string
+
+	// Last modified time.
+	LastModifiedTime *time.Time
+
+	// The name of the predefined attribute.
+	Name *string
+
+	noSmithyDocumentSerde
+}
+
+// Information about values of a predefined attribute.
+//
+// The following types satisfy this interface:
+//
+//	PredefinedAttributeValuesMemberStringList
+type PredefinedAttributeValues interface {
+	isPredefinedAttributeValues()
+}
+
+// Predefined attribute values of type string list.
+type PredefinedAttributeValuesMemberStringList struct {
+	Value []string
+
+	noSmithyDocumentSerde
+}
+
+func (*PredefinedAttributeValuesMemberStringList) isPredefinedAttributeValues() {}
+
 // Information about a problem detail.
 type ProblemDetail struct {
 
@@ -2539,7 +3103,7 @@ type Prompt struct {
 	PromptId *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -2651,7 +3215,7 @@ type Queue struct {
 	Status QueueStatus
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -2782,7 +3346,7 @@ type QuickConnect struct {
 	QuickConnectId *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -2791,8 +3355,8 @@ type QuickConnect struct {
 // Contains configuration settings for a quick connect.
 type QuickConnectConfig struct {
 
-	// The type of quick connect. In the Amazon Connect console, when you create a
-	// quick connect, you are prompted to assign one of the following types: Agent
+	// The type of quick connect. In the Amazon Connect admin website, when you create
+	// a quick connect, you are prompted to assign one of the following types: Agent
 	// (USER), External (PHONE_NUMBER), or Queue (QUEUE).
 	//
 	// This member is required.
@@ -2858,8 +3422,8 @@ type QuickConnectSummary struct {
 	// The name of the quick connect.
 	Name *string
 
-	// The type of quick connect. In the Amazon Connect console, when you create a
-	// quick connect, you are prompted to assign one of the following types: Agent
+	// The type of quick connect. In the Amazon Connect admin website, when you create
+	// a quick connect, you are prompted to assign one of the following types: Agent
 	// (USER), External (PHONE_NUMBER), or Queue (QUEUE).
 	QuickConnectType QuickConnectType
 
@@ -2871,6 +3435,342 @@ type ReadOnlyFieldInfo struct {
 
 	// Identifier of the read-only field.
 	Id *TaskTemplateFieldIdentifier
+
+	noSmithyDocumentSerde
+}
+
+// Object that describes attached file.
+type RealTimeContactAnalysisAttachment struct {
+
+	// A unique identifier for the attachment.
+	//
+	// This member is required.
+	AttachmentId *string
+
+	// A case-sensitive name of the attachment being uploaded. Can be redacted.
+	//
+	// This member is required.
+	AttachmentName *string
+
+	// Describes the MIME file type of the attachment. For a list of supported file
+	// types, see Feature specifications (https://docs.aws.amazon.com/connect/latest/adminguide/feature-limits.html)
+	// in the Amazon Connect Administrator Guide.
+	ContentType *string
+
+	// Status of the attachment.
+	Status ArtifactStatus
+
+	noSmithyDocumentSerde
+}
+
+// Provides information about the category rule that was matched.
+type RealTimeContactAnalysisCategoryDetails struct {
+
+	// List of PointOfInterest - objects describing a single match of a rule.
+	//
+	// This member is required.
+	PointsOfInterest []RealTimeContactAnalysisPointOfInterest
+
+	noSmithyDocumentSerde
+}
+
+// Begin and end offsets for a part of text.
+type RealTimeContactAnalysisCharacterInterval struct {
+
+	// The beginning of the character interval.
+	//
+	// This member is required.
+	BeginOffsetChar int32
+
+	// The end of the character interval.
+	//
+	// This member is required.
+	EndOffsetChar int32
+
+	noSmithyDocumentSerde
+}
+
+// Potential issues that are detected based on an artificial intelligence analysis
+// of each turn in the conversation.
+type RealTimeContactAnalysisIssueDetected struct {
+
+	// List of the transcript items (segments) that are associated with a given issue.
+	//
+	// This member is required.
+	TranscriptItems []RealTimeContactAnalysisTranscriptItemWithContent
+
+	noSmithyDocumentSerde
+}
+
+// The section of the contact transcript segment that category rule was detected.
+type RealTimeContactAnalysisPointOfInterest struct {
+
+	// List of the transcript items (segments) that are associated with a given point
+	// of interest.
+	TranscriptItems []RealTimeContactAnalysisTranscriptItemWithCharacterOffsets
+
+	noSmithyDocumentSerde
+}
+
+// An analyzed segment for a real-time analysis session.
+//
+// The following types satisfy this interface:
+//
+//	RealtimeContactAnalysisSegmentMemberAttachments
+//	RealtimeContactAnalysisSegmentMemberCategories
+//	RealtimeContactAnalysisSegmentMemberEvent
+//	RealtimeContactAnalysisSegmentMemberIssues
+//	RealtimeContactAnalysisSegmentMemberTranscript
+type RealtimeContactAnalysisSegment interface {
+	isRealtimeContactAnalysisSegment()
+}
+
+// The analyzed attachments.
+type RealtimeContactAnalysisSegmentMemberAttachments struct {
+	Value RealTimeContactAnalysisSegmentAttachments
+
+	noSmithyDocumentSerde
+}
+
+func (*RealtimeContactAnalysisSegmentMemberAttachments) isRealtimeContactAnalysisSegment() {}
+
+// The matched category rules.
+type RealtimeContactAnalysisSegmentMemberCategories struct {
+	Value RealTimeContactAnalysisSegmentCategories
+
+	noSmithyDocumentSerde
+}
+
+func (*RealtimeContactAnalysisSegmentMemberCategories) isRealtimeContactAnalysisSegment() {}
+
+// Segment type describing a contact event.
+type RealtimeContactAnalysisSegmentMemberEvent struct {
+	Value RealTimeContactAnalysisSegmentEvent
+
+	noSmithyDocumentSerde
+}
+
+func (*RealtimeContactAnalysisSegmentMemberEvent) isRealtimeContactAnalysisSegment() {}
+
+// Segment type containing a list of detected issues.
+type RealtimeContactAnalysisSegmentMemberIssues struct {
+	Value RealTimeContactAnalysisSegmentIssues
+
+	noSmithyDocumentSerde
+}
+
+func (*RealtimeContactAnalysisSegmentMemberIssues) isRealtimeContactAnalysisSegment() {}
+
+// The analyzed transcript segment.
+type RealtimeContactAnalysisSegmentMemberTranscript struct {
+	Value RealTimeContactAnalysisSegmentTranscript
+
+	noSmithyDocumentSerde
+}
+
+func (*RealtimeContactAnalysisSegmentMemberTranscript) isRealtimeContactAnalysisSegment() {}
+
+// Segment containing list of attachments.
+type RealTimeContactAnalysisSegmentAttachments struct {
+
+	// List of objects describing an individual attachment.
+	//
+	// This member is required.
+	Attachments []RealTimeContactAnalysisAttachment
+
+	// The identifier of the segment.
+	//
+	// This member is required.
+	Id *string
+
+	// The identifier of the participant.
+	//
+	// This member is required.
+	ParticipantId *string
+
+	// The role of the participant. For example, is it a customer, agent, or system.
+	//
+	// This member is required.
+	ParticipantRole ParticipantRole
+
+	// Field describing the time of the event. It can have different representations
+	// of time.
+	//
+	// This member is required.
+	Time RealTimeContactAnalysisTimeData
+
+	// The display name of the participant. Can be redacted.
+	DisplayName *string
+
+	noSmithyDocumentSerde
+}
+
+// The matched category rules.
+type RealTimeContactAnalysisSegmentCategories struct {
+
+	// Map between the name of the matched rule and
+	// RealTimeContactAnalysisCategoryDetails.
+	//
+	// This member is required.
+	MatchedDetails map[string]RealTimeContactAnalysisCategoryDetails
+
+	noSmithyDocumentSerde
+}
+
+// Segment type describing a contact event.
+type RealTimeContactAnalysisSegmentEvent struct {
+
+	// Type of the event. For example,
+	// application/vnd.amazonaws.connect.event.participant.left .
+	//
+	// This member is required.
+	EventType *string
+
+	// The identifier of the contact event.
+	//
+	// This member is required.
+	Id *string
+
+	// Field describing the time of the event. It can have different representations
+	// of time.
+	//
+	// This member is required.
+	Time RealTimeContactAnalysisTimeData
+
+	// The display name of the participant. Can be redacted.
+	DisplayName *string
+
+	// The identifier of the participant.
+	ParticipantId *string
+
+	// The role of the participant. For example, is it a customer, agent, or system.
+	ParticipantRole ParticipantRole
+
+	noSmithyDocumentSerde
+}
+
+// Segment type containing a list of detected issues.
+type RealTimeContactAnalysisSegmentIssues struct {
+
+	// List of the issues detected.
+	//
+	// This member is required.
+	IssuesDetected []RealTimeContactAnalysisIssueDetected
+
+	noSmithyDocumentSerde
+}
+
+// The analyzed transcript segment.
+type RealTimeContactAnalysisSegmentTranscript struct {
+
+	// The content of the transcript. Can be redacted.
+	//
+	// This member is required.
+	Content *string
+
+	// The identifier of the transcript.
+	//
+	// This member is required.
+	Id *string
+
+	// The identifier of the participant.
+	//
+	// This member is required.
+	ParticipantId *string
+
+	// The role of the participant. For example, is it a customer, agent, or system.
+	//
+	// This member is required.
+	ParticipantRole ParticipantRole
+
+	// Field describing the time of the event. It can have different representations
+	// of time.
+	//
+	// This member is required.
+	Time RealTimeContactAnalysisTimeData
+
+	// The type of content of the item. For example, text/plain .
+	ContentType *string
+
+	// The display name of the participant.
+	DisplayName *string
+
+	// Object describing redaction that was applied to the transcript. If transcript
+	// has the field it means part of the transcript was redacted.
+	Redaction *RealTimeContactAnalysisTranscriptItemRedaction
+
+	// The sentiment detected for this piece of transcript.
+	Sentiment RealTimeContactAnalysisSentimentLabel
+
+	noSmithyDocumentSerde
+}
+
+// Object describing time with which the segment is associated. It can have
+// different representations of time. Currently supported: absoluteTime
+//
+// The following types satisfy this interface:
+//
+//	RealTimeContactAnalysisTimeDataMemberAbsoluteTime
+type RealTimeContactAnalysisTimeData interface {
+	isRealTimeContactAnalysisTimeData()
+}
+
+// Time represented in ISO 8601 format: yyyy-MM-ddThh:mm:ss.SSSZ. For example,
+// 2019-11-08T02:41:28.172Z.
+type RealTimeContactAnalysisTimeDataMemberAbsoluteTime struct {
+	Value time.Time
+
+	noSmithyDocumentSerde
+}
+
+func (*RealTimeContactAnalysisTimeDataMemberAbsoluteTime) isRealTimeContactAnalysisTimeData() {}
+
+// Object describing redaction applied to the segment.
+type RealTimeContactAnalysisTranscriptItemRedaction struct {
+
+	// List of character intervals each describing a part of the text that was
+	// redacted. For OutputType.Raw , part of the original text that contains data that
+	// can be redacted. For OutputType.Redacted , part of the string with redaction tag.
+	CharacterOffsets []RealTimeContactAnalysisCharacterInterval
+
+	noSmithyDocumentSerde
+}
+
+// Transcript representation containing Id and list of character intervals that
+// are associated with analysis data. For example, this object within a
+// RealTimeContactAnalysisPointOfInterest in Category.MatchedDetails would have
+// character interval describing part of the text that matched category.
+type RealTimeContactAnalysisTranscriptItemWithCharacterOffsets struct {
+
+	// Transcript identifier. Matches the identifier from one of the
+	// TranscriptSegments.
+	//
+	// This member is required.
+	Id *string
+
+	// List of character intervals within transcript content/text.
+	CharacterOffsets *RealTimeContactAnalysisCharacterInterval
+
+	noSmithyDocumentSerde
+}
+
+// Transcript representation containing Id, Content and list of character
+// intervals that are associated with analysis data. For example, this object
+// within an issue detected would describe both content that contains identified
+// issue and intervals where that content is taken from.
+type RealTimeContactAnalysisTranscriptItemWithContent struct {
+
+	// Transcript identifier. Matches the identifier from one of the
+	// TranscriptSegments.
+	//
+	// This member is required.
+	Id *string
+
+	// Begin and end offsets for a part of text.
+	CharacterOffsets *RealTimeContactAnalysisCharacterInterval
+
+	// Part of the transcript content that contains identified issue. Can be redacted
+	Content *string
 
 	noSmithyDocumentSerde
 }
@@ -3027,7 +3927,7 @@ type RoutingProfile struct {
 	RoutingProfileId *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -3236,7 +4136,7 @@ type Rule struct {
 	TriggerEventSource *RuleTriggerEventSource
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -3252,25 +4152,39 @@ type RuleAction struct {
 
 	// Information about the contact category action. Supported only for
 	// TriggerEventSource values: OnPostCallAnalysisAvailable |
-	// OnRealTimeCallAnalysisAvailable | OnPostChatAnalysisAvailable |
-	// OnZendeskTicketCreate | OnZendeskTicketStatusUpdate | OnSalesforceCaseCreate
+	// OnRealTimeCallAnalysisAvailable | OnRealTimeChatAnalysisAvailable |
+	// OnPostChatAnalysisAvailable | OnZendeskTicketCreate |
+	// OnZendeskTicketStatusUpdate | OnSalesforceCaseCreate
 	AssignContactCategoryAction *AssignContactCategoryActionDefinition
+
+	// Information about the create case action. Supported only for TriggerEventSource
+	// values: OnPostCallAnalysisAvailable | OnPostChatAnalysisAvailable .
+	CreateCaseAction *CreateCaseActionDefinition
+
+	// Information about the end associated tasks action. Supported only for
+	// TriggerEventSource values: OnCaseUpdate .
+	EndAssociatedTasksAction *EndAssociatedTasksActionDefinition
 
 	// Information about the EventBridge action. Supported only for TriggerEventSource
 	// values: OnPostCallAnalysisAvailable | OnRealTimeCallAnalysisAvailable |
-	// OnPostChatAnalysisAvailable | OnContactEvaluationSubmit | OnMetricDataUpdate
+	// OnRealTimeChatAnalysisAvailable | OnPostChatAnalysisAvailable |
+	// OnContactEvaluationSubmit | OnMetricDataUpdate
 	EventBridgeAction *EventBridgeActionDefinition
 
 	// Information about the send notification action. Supported only for
 	// TriggerEventSource values: OnPostCallAnalysisAvailable |
-	// OnRealTimeCallAnalysisAvailable | OnPostChatAnalysisAvailable |
-	// OnContactEvaluationSubmit | OnMetricDataUpdate
+	// OnRealTimeCallAnalysisAvailable | OnRealTimeChatAnalysisAvailable |
+	// OnPostChatAnalysisAvailable | OnContactEvaluationSubmit | OnMetricDataUpdate
 	SendNotificationAction *SendNotificationActionDefinition
 
 	// Information about the task action. This field is required if TriggerEventSource
 	// is one of the following values: OnZendeskTicketCreate |
 	// OnZendeskTicketStatusUpdate | OnSalesforceCaseCreate
 	TaskAction *TaskActionDefinition
+
+	// Information about the update case action. Supported only for TriggerEventSource
+	// values: OnCaseCreate | OnCaseUpdate .
+	UpdateCaseAction *UpdateCaseActionDefinition
 
 	noSmithyDocumentSerde
 }
@@ -3356,6 +4270,95 @@ type S3Config struct {
 	noSmithyDocumentSerde
 }
 
+// A structure that defines search criteria based on user-defined contact
+// attributes that are configured for contact search.
+type SearchableContactAttributes struct {
+
+	// The list of criteria based on user-defined contact attributes that are
+	// configured for contact search.
+	//
+	// This member is required.
+	Criteria []SearchableContactAttributesCriteria
+
+	// The match type combining search criteria using multiple searchable contact
+	// attributes.
+	MatchType SearchContactsMatchType
+
+	noSmithyDocumentSerde
+}
+
+// The search criteria based on user-defned contact attribute key and values to
+// search on.
+type SearchableContactAttributesCriteria struct {
+
+	// The key containing a searchable user-defined contact attribute.
+	//
+	// This member is required.
+	Key *string
+
+	// The list of values to search for within a user-defined contact attribute.
+	//
+	// This member is required.
+	Values []string
+
+	noSmithyDocumentSerde
+}
+
+// A structure of time range that you want to search results.
+type SearchContactsTimeRange struct {
+
+	// The end time of the time range.
+	//
+	// This member is required.
+	EndTime *time.Time
+
+	// The start time of the time range.
+	//
+	// This member is required.
+	StartTime *time.Time
+
+	// The type of timestamp to search.
+	//
+	// This member is required.
+	Type SearchContactsTimeRangeType
+
+	noSmithyDocumentSerde
+}
+
+// A structure of search criteria to be used to return contacts.
+type SearchCriteria struct {
+
+	// The agent hierarchy groups of the agent at the time of handling the contact.
+	AgentHierarchyGroups *AgentHierarchyGroups
+
+	// The identifiers of agents who handled the contacts.
+	AgentIds []string
+
+	// The list of channels associated with contacts.
+	Channels []Channel
+
+	// Search criteria based on analysis outputs from Amazon Connect Contact Lens.
+	ContactAnalysis *ContactAnalysis
+
+	// The list of initiation methods associated with contacts.
+	InitiationMethods []ContactInitiationMethod
+
+	// The list of queue IDs associated with contacts.
+	QueueIds []string
+
+	// The search criteria based on user-defined contact attributes that have been
+	// configured for contact search. For more information, see Search by customer
+	// contact attributes (https://docs.aws.amazon.com/connect/latest/adminguide/search-custom-attributes.html)
+	// in the Amazon Connect Administrator Guide. To use SearchableContactAttributes
+	// in a search request, the GetContactAttributes action is required to perform an
+	// API request. For more information, see
+	// https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonconnect.html#amazonconnect-actions-as-permissions (https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonconnect.html#amazonconnect-actions-as-permissions)
+	// Actions defined by Amazon Connect.
+	SearchableContactAttributes *SearchableContactAttributes
+
+	noSmithyDocumentSerde
+}
+
 // Configuration information of the security key.
 type SecurityKey struct {
 
@@ -3405,7 +4408,7 @@ type SecurityProfile struct {
 	TagRestrictedResources []string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -3423,7 +4426,8 @@ type SecurityProfileSearchCriteria struct {
 	// A list of conditions which would be applied together with an OR condition.
 	OrConditions []SecurityProfileSearchCriteria
 
-	// A leaf node condition which can be used to specify a string condition.
+	// A leaf node condition which can be used to specify a string condition. The
+	// currently supported values for FieldName are name and description .
 	StringCondition *StringCondition
 
 	noSmithyDocumentSerde
@@ -3448,7 +4452,7 @@ type SecurityProfileSearchSummary struct {
 	SecurityProfileName *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -3483,6 +4487,16 @@ type SecurityProfileSummary struct {
 
 	// The name of the security profile.
 	Name *string
+
+	noSmithyDocumentSerde
+}
+
+// A value for a segment attribute. This is structured as a map where the key is
+// valueString and the value is a string.
+type SegmentAttributeValue struct {
+
+	// The value of a segment attribute.
+	ValueString *string
 
 	noSmithyDocumentSerde
 }
@@ -3573,7 +4587,24 @@ type SingleSelectQuestionRuleCategoryAutomation struct {
 	noSmithyDocumentSerde
 }
 
-// A leaf node condition which can be used to specify a string condition.
+// A structure that defineds the field name to sort by and a sort order.
+type Sort struct {
+
+	// The name of the field on which to sort.
+	//
+	// This member is required.
+	FieldName SortableFieldName
+
+	// An ascending or descending sort.
+	//
+	// This member is required.
+	Order SortOrder
+
+	noSmithyDocumentSerde
+}
+
+// A leaf node condition which can be used to specify a string condition. The
+// currently supported values for FieldName are name and description .
 type StringCondition struct {
 
 	// The type of comparison to be made when evaluating the string condition.
@@ -3596,6 +4627,19 @@ type StringReference struct {
 
 	// A valid string.
 	Value *string
+
+	noSmithyDocumentSerde
+}
+
+// Request for which contact was successfully created.
+type SuccessfulRequest struct {
+
+	// The contactId of the contact that was created successfully.
+	ContactId *string
+
+	// Request identifier provided in the API call in the ContactDataRequest to create
+	// a contact.
+	RequestIdentifier *string
 
 	noSmithyDocumentSerde
 }
@@ -3848,7 +4892,7 @@ type TrafficDistributionGroup struct {
 	Status TrafficDistributionGroupStatus
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -3900,6 +4944,57 @@ type TrafficDistributionGroupUserSummary struct {
 
 	// The identifier for the user. This can be the ID or the ARN of the user.
 	UserId *string
+
+	noSmithyDocumentSerde
+}
+
+// A structure that defines search criteria and matching logic to search for
+// contacts by matching text with transcripts analyzed by Amazon Connect Contact
+// Lens.
+type Transcript struct {
+
+	// The list of search criteria based on Contact Lens conversational analytics
+	// transcript.
+	//
+	// This member is required.
+	Criteria []TranscriptCriteria
+
+	// The match type combining search criteria using multiple transcript criteria.
+	MatchType SearchContactsMatchType
+
+	noSmithyDocumentSerde
+}
+
+// A structure that defines search criteria base on words or phrases, participants
+// in the Contact Lens conversational analytics transcript.
+type TranscriptCriteria struct {
+
+	// The match type combining search criteria using multiple search texts in a
+	// transcript criteria.
+	//
+	// This member is required.
+	MatchType SearchContactsMatchType
+
+	// The participant role in a transcript
+	//
+	// This member is required.
+	ParticipantRole ParticipantRole
+
+	// The words or phrases used to search within a transcript.
+	//
+	// This member is required.
+	SearchText []string
+
+	noSmithyDocumentSerde
+}
+
+// The UpdateCase action definition.
+type UpdateCaseActionDefinition struct {
+
+	// An array of objects with Field ID and Value data.
+	//
+	// This member is required.
+	Fields []FieldValue
 
 	noSmithyDocumentSerde
 }
@@ -4114,6 +5209,45 @@ type UserPhoneConfig struct {
 	noSmithyDocumentSerde
 }
 
+// Information about proficiency of a user.
+type UserProficiency struct {
+
+	// The name of user's proficiency. You must use name of predefined attribute
+	// present in the Amazon Connect instance.
+	//
+	// This member is required.
+	AttributeName *string
+
+	// The value of user's proficiency. You must use value of predefined attribute
+	// present in the Amazon Connect instance.
+	//
+	// This member is required.
+	AttributeValue *string
+
+	// The level of the proficiency. The valid values are 1, 2, 3, 4 and 5.
+	//
+	// This member is required.
+	Level *float32
+
+	noSmithyDocumentSerde
+}
+
+// Information about proficiency to be disassociated from the user.
+type UserProficiencyDisassociate struct {
+
+	// The name of user's proficiency.
+	//
+	// This member is required.
+	AttributeName *string
+
+	// The value of user's proficiency.
+	//
+	// This member is required.
+	AttributeValue *string
+
+	noSmithyDocumentSerde
+}
+
 // Contains information about the quick connect configuration settings for a user.
 // The contact flow must be of type Transfer to Agent.
 type UserQuickConnectConfig struct {
@@ -4159,8 +5293,9 @@ type UserSearchCriteria struct {
 	OrConditions []UserSearchCriteria
 
 	// A leaf node condition which can be used to specify a string condition. The
-	// currently supported values for FieldName are name , description , and resourceID
-	// .
+	// currently supported values for FieldName are username , firstname , lastname ,
+	// resourceId , routingProfileId , securityProfileId , agentGroupId , and
+	// agentGroupPathIds .
 	StringCondition *StringCondition
 
 	noSmithyDocumentSerde
@@ -4206,7 +5341,7 @@ type UserSearchSummary struct {
 	SecurityProfileIds []string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	// The name of the user.
@@ -4411,7 +5546,7 @@ type Vocabulary struct {
 	FailureReason *string
 
 	// The tags used to organize, track, or control access for this resource. For
-	// example, { "tags": {"key1":"value1", "key2":"value2"} }.
+	// example, { "Tags": {"key1":"value1", "key2":"value2"} }.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
@@ -4492,5 +5627,8 @@ func (*UnknownUnionMember) isEvaluationFormNumericQuestionAutomation()          
 func (*UnknownUnionMember) isEvaluationFormQuestionTypeProperties()               {}
 func (*UnknownUnionMember) isEvaluationFormSingleSelectQuestionAutomationOption() {}
 func (*UnknownUnionMember) isParticipantTimerValue()                              {}
+func (*UnknownUnionMember) isPredefinedAttributeValues()                          {}
+func (*UnknownUnionMember) isRealtimeContactAnalysisSegment()                     {}
+func (*UnknownUnionMember) isRealTimeContactAnalysisTimeData()                    {}
 func (*UnknownUnionMember) isReferenceSummary()                                   {}
 func (*UnknownUnionMember) isUpdateParticipantRoleConfigChannelInfo()             {}

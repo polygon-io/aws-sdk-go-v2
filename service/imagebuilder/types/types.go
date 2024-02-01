@@ -107,7 +107,8 @@ type Component struct {
 	// The Amazon Resource Name (ARN) of the component.
 	Arn *string
 
-	// The change description of the component.
+	// Describes what change has been made in this version of the component, or what
+	// makes this version different from other versions of the component.
 	ChangeDescription *string
 
 	// Component data contains the YAML document content for the component.
@@ -223,8 +224,7 @@ type ComponentParameterDetail struct {
 	noSmithyDocumentSerde
 }
 
-// A group of fields that describe the current status of components that are no
-// longer active.
+// A group of fields that describe the current status of components.
 type ComponentState struct {
 
 	// Describes how or why the component changed state.
@@ -798,12 +798,20 @@ type Image struct {
 	// The date on which Image Builder created this image.
 	DateCreated *string
 
+	// The time when deprecation occurs for an image resource. This can be a past or
+	// future date.
+	DeprecationTime *time.Time
+
 	// The distribution configuration that Image Builder used to create this image.
 	DistributionConfiguration *DistributionConfiguration
 
 	// Indicates whether Image Builder collects additional information about the
 	// image, such as the operating system (OS) version and package list.
 	EnhancedImageMetadataEnabled *bool
+
+	// The name or Amazon Resource Name (ARN) for the IAM role you create that grants
+	// Image Builder access to perform workflow actions.
+	ExecutionRole *string
 
 	// For images that distribute an AMI, this is the image recipe that Image Builder
 	// used to create the image. For container images, this is empty.
@@ -820,6 +828,10 @@ type Image struct {
 
 	// The infrastructure that Image Builder used to create this image.
 	InfrastructureConfiguration *InfrastructureConfiguration
+
+	// Identifies the last runtime instance of the lifecycle policy to take action on
+	// the image.
+	LifecycleExecutionId *string
 
 	// The name of the image.
 	Name *string
@@ -865,6 +877,9 @@ type Image struct {
 	// or components for your recipe. When you use a wildcard in any node, all nodes to
 	// the right of the first wildcard must also be wildcards.
 	Version *string
+
+	// Contains the build and test workflows that are associated with the image.
+	Workflows []WorkflowConfiguration
 
 	noSmithyDocumentSerde
 }
@@ -928,6 +943,10 @@ type ImagePipeline struct {
 	// enhance the overall experience of using EC2 Image Builder. Enabled by default.
 	EnhancedImageMetadataEnabled *bool
 
+	// The name or Amazon Resource Name (ARN) for the IAM role you create that grants
+	// Image Builder access to perform workflow actions.
+	ExecutionRole *string
+
 	// The Amazon Resource Name (ARN) of the image recipe associated with this image
 	// pipeline.
 	ImageRecipeArn *string
@@ -956,6 +975,9 @@ type ImagePipeline struct {
 
 	// The tags of this image pipeline.
 	Tags map[string]string
+
+	// Contains the workflows that run for the image pipeline.
+	Workflows []WorkflowConfiguration
 
 	noSmithyDocumentSerde
 }
@@ -1197,8 +1219,16 @@ type ImageSummary struct {
 	// The date on which Image Builder created this image.
 	DateCreated *string
 
+	// The time when deprecation occurs for an image resource. This can be a past or
+	// future date.
+	DeprecationTime *time.Time
+
 	// The origin of the base image that Image Builder used to build this image.
 	ImageSource ImageSource
+
+	// Identifies the last runtime instance of the lifecycle policy to take action on
+	// the image.
+	LifecycleExecutionId *string
 
 	// The name of the image.
 	Name *string
@@ -1521,6 +1551,379 @@ type LaunchTemplateConfiguration struct {
 	noSmithyDocumentSerde
 }
 
+// Contains metadata from a runtime instance of a lifecycle policy.
+type LifecycleExecution struct {
+
+	// The timestamp when the lifecycle runtime instance completed.
+	EndTime *time.Time
+
+	// Identifies the lifecycle policy runtime instance.
+	LifecycleExecutionId *string
+
+	// The Amazon Resource Name (ARN) of the lifecycle policy that ran.
+	LifecyclePolicyArn *string
+
+	// Contains information about associated resources that are identified for action
+	// by the runtime instance of the lifecycle policy.
+	ResourcesImpactedSummary *LifecycleExecutionResourcesImpactedSummary
+
+	// The timestamp when the lifecycle runtime instance started.
+	StartTime *time.Time
+
+	// Runtime state that reports if the policy action ran successfully, failed, or
+	// was skipped.
+	State *LifecycleExecutionState
+
+	noSmithyDocumentSerde
+}
+
+// Contains details for a resource that the runtime instance of the lifecycle
+// policy identified for action.
+type LifecycleExecutionResource struct {
+
+	// The account that owns the impacted resource.
+	AccountId *string
+
+	// The action to take for the identified resource.
+	Action *LifecycleExecutionResourceAction
+
+	// For an impacted container image, this identifies a list of URIs for associated
+	// container images distributed to ECR repositories.
+	ImageUris []string
+
+	// The Amazon Web Services Region where the lifecycle execution resource is stored.
+	Region *string
+
+	// Identifies the impacted resource. The resource ID depends on the type of
+	// resource, as follows.
+	//   - Image Builder image resources: Amazon Resource Name (ARN)
+	//   - Distributed AMIs: AMI ID
+	//   - Container images distributed to an ECR repository: image URI or SHA Digest
+	ResourceId *string
+
+	// A list of associated resource snapshots for the impacted resource if it’s an
+	// AMI.
+	Snapshots []LifecycleExecutionSnapshotResource
+
+	// The runtime state for the lifecycle execution.
+	State *LifecycleExecutionResourceState
+
+	noSmithyDocumentSerde
+}
+
+// The lifecycle policy action that was identified for the impacted resource.
+type LifecycleExecutionResourceAction struct {
+
+	// The name of the resource that was identified for a lifecycle policy action.
+	Name LifecycleExecutionResourceActionName
+
+	// The reason why the lifecycle policy action is taken.
+	Reason *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains details for an image resource that was identified for a lifecycle
+// action.
+type LifecycleExecutionResourcesImpactedSummary struct {
+
+	// Indicates whether an image resource that was identified for a lifecycle action
+	// has associated resources that are also impacted.
+	HasImpactedResources bool
+
+	noSmithyDocumentSerde
+}
+
+// Contains the state of an impacted resource that the runtime instance of the
+// lifecycle policy identified for action.
+type LifecycleExecutionResourceState struct {
+
+	// Messaging that clarifies the reason for the assigned status.
+	Reason *string
+
+	// The runtime status of the lifecycle action taken for the impacted resource.
+	Status LifecycleExecutionResourceStatus
+
+	noSmithyDocumentSerde
+}
+
+// Contains the state of an impacted snapshot resource that the runtime instance
+// of the lifecycle policy identified for action.
+type LifecycleExecutionSnapshotResource struct {
+
+	// Identifies the impacted snapshot resource.
+	SnapshotId *string
+
+	// The runtime status of the lifecycle action taken for the snapshot.
+	State *LifecycleExecutionResourceState
+
+	noSmithyDocumentSerde
+}
+
+// The current state of the runtime instance of the lifecycle policy.
+type LifecycleExecutionState struct {
+
+	// The reason for the current status.
+	Reason *string
+
+	// The runtime status of the lifecycle execution.
+	Status LifecycleExecutionStatus
+
+	noSmithyDocumentSerde
+}
+
+// The configuration details for a lifecycle policy resource.
+type LifecyclePolicy struct {
+
+	// The Amazon Resource Name (ARN) of the lifecycle policy resource.
+	Arn *string
+
+	// The timestamp when Image Builder created the lifecycle policy resource.
+	DateCreated *time.Time
+
+	// The timestamp for the last time Image Builder ran the lifecycle policy.
+	DateLastRun *time.Time
+
+	// The timestamp when Image Builder updated the lifecycle policy resource.
+	DateUpdated *time.Time
+
+	// Optional description for the lifecycle policy.
+	Description *string
+
+	// The name or Amazon Resource Name (ARN) of the IAM role that Image Builder uses
+	// to run the lifecycle policy. This is a custom role that you create.
+	ExecutionRole *string
+
+	// The name of the lifecycle policy.
+	Name *string
+
+	// The configuration details for a lifecycle policy resource.
+	PolicyDetails []LifecyclePolicyDetail
+
+	// Resource selection criteria used to run the lifecycle policy.
+	ResourceSelection *LifecyclePolicyResourceSelection
+
+	// The type of resources the lifecycle policy targets.
+	ResourceType LifecyclePolicyResourceType
+
+	// Indicates whether the lifecycle policy resource is enabled.
+	Status LifecyclePolicyStatus
+
+	// To help manage your lifecycle policy resources, you can assign your own
+	// metadata to each resource in the form of tags. Each tag consists of a key and an
+	// optional value, both of which you define.
+	Tags map[string]string
+
+	noSmithyDocumentSerde
+}
+
+// The configuration details for a lifecycle policy resource.
+type LifecyclePolicyDetail struct {
+
+	// Configuration details for the policy action.
+	//
+	// This member is required.
+	Action *LifecyclePolicyDetailAction
+
+	// Specifies the resources that the lifecycle policy applies to.
+	//
+	// This member is required.
+	Filter *LifecyclePolicyDetailFilter
+
+	// Additional rules to specify resources that should be exempt from policy actions.
+	ExclusionRules *LifecyclePolicyDetailExclusionRules
+
+	noSmithyDocumentSerde
+}
+
+// Contains selection criteria for the lifecycle policy.
+type LifecyclePolicyDetailAction struct {
+
+	// Specifies the lifecycle action to take.
+	//
+	// This member is required.
+	Type LifecyclePolicyDetailActionType
+
+	// Specifies the resources that the lifecycle policy applies to.
+	IncludeResources *LifecyclePolicyDetailActionIncludeResources
+
+	noSmithyDocumentSerde
+}
+
+// Specifies how the lifecycle policy should apply actions to selected resources.
+type LifecyclePolicyDetailActionIncludeResources struct {
+
+	// Specifies whether the lifecycle action should apply to distributed AMIs.
+	Amis bool
+
+	// Specifies whether the lifecycle action should apply to distributed containers.
+	Containers bool
+
+	// Specifies whether the lifecycle action should apply to snapshots associated
+	// with distributed AMIs.
+	Snapshots bool
+
+	noSmithyDocumentSerde
+}
+
+// Specifies resources that lifecycle policy actions should not apply to.
+type LifecyclePolicyDetailExclusionRules struct {
+
+	// Lists configuration values that apply to AMIs that Image Builder should exclude
+	// from the lifecycle action.
+	Amis *LifecyclePolicyDetailExclusionRulesAmis
+
+	// Contains a list of tags that Image Builder uses to skip lifecycle actions for
+	// resources that have them.
+	TagMap map[string]string
+
+	noSmithyDocumentSerde
+}
+
+// Defines criteria for AMIs that are excluded from lifecycle actions.
+type LifecyclePolicyDetailExclusionRulesAmis struct {
+
+	// Configures whether public AMIs are excluded from the lifecycle action.
+	IsPublic bool
+
+	// Specifies configuration details for Image Builder to exclude the most recent
+	// resources from lifecycle actions.
+	LastLaunched *LifecyclePolicyDetailExclusionRulesAmisLastLaunched
+
+	// Configures Amazon Web Services Regions that are excluded from the lifecycle
+	// action.
+	Regions []string
+
+	// Specifies Amazon Web Services accounts whose resources are excluded from the
+	// lifecycle action.
+	SharedAccounts []string
+
+	// Lists tags that should be excluded from lifecycle actions for the AMIs that
+	// have them.
+	TagMap map[string]string
+
+	noSmithyDocumentSerde
+}
+
+// Defines criteria to exclude AMIs from lifecycle actions based on the last time
+// they were used to launch an instance.
+type LifecyclePolicyDetailExclusionRulesAmisLastLaunched struct {
+
+	// Defines the unit of time that the lifecycle policy uses to calculate elapsed
+	// time since the last instance launched from the AMI. For example: days, weeks,
+	// months, or years.
+	//
+	// This member is required.
+	Unit LifecyclePolicyTimeUnit
+
+	// The integer number of units for the time period. For example 6 (months).
+	//
+	// This member is required.
+	Value *int32
+
+	noSmithyDocumentSerde
+}
+
+// Defines filters that the lifecycle policy uses to determine impacted resource.
+type LifecyclePolicyDetailFilter struct {
+
+	// Filter resources based on either age or count .
+	//
+	// This member is required.
+	Type LifecyclePolicyDetailFilterType
+
+	// The number of units for the time period or for the count. For example, a value
+	// of 6 might refer to six months or six AMIs. For count-based filters, this value
+	// represents the minimum number of resources to keep on hand. If you have fewer
+	// resources than this number, the resource is excluded from lifecycle actions.
+	//
+	// This member is required.
+	Value *int32
+
+	// For age-based filters, this is the number of resources to keep on hand after
+	// the lifecycle DELETE action is applied. Impacted resources are only deleted if
+	// you have more than this number of resources. If you have fewer resources than
+	// this number, the impacted resource is not deleted.
+	RetainAtLeast *int32
+
+	// Defines the unit of time that the lifecycle policy uses to determine impacted
+	// resources. This is required for age-based rules.
+	Unit LifecyclePolicyTimeUnit
+
+	noSmithyDocumentSerde
+}
+
+// Resource selection criteria for the lifecycle policy.
+type LifecyclePolicyResourceSelection struct {
+
+	// A list of recipes that are used as selection criteria for the output images
+	// that the lifecycle policy applies to.
+	Recipes []LifecyclePolicyResourceSelectionRecipe
+
+	// A list of tags that are used as selection criteria for the resources that the
+	// lifecycle policy applies to.
+	TagMap map[string]string
+
+	noSmithyDocumentSerde
+}
+
+// Specifies an Image Builder recipe that the lifecycle policy uses for resource
+// selection.
+type LifecyclePolicyResourceSelectionRecipe struct {
+
+	// The name of an Image Builder recipe that the lifecycle policy uses for resource
+	// selection.
+	//
+	// This member is required.
+	Name *string
+
+	// The version of the Image Builder recipe specified by the name field.
+	//
+	// This member is required.
+	SemanticVersion *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains a summary of lifecycle policy resources.
+type LifecyclePolicySummary struct {
+
+	// The Amazon Resource Name (ARN) of the lifecycle policy summary resource.
+	Arn *string
+
+	// The timestamp when Image Builder created the lifecycle policy resource.
+	DateCreated *time.Time
+
+	// The timestamp for the last time Image Builder ran the lifecycle policy.
+	DateLastRun *time.Time
+
+	// The timestamp when Image Builder updated the lifecycle policy resource.
+	DateUpdated *time.Time
+
+	// Optional description for the lifecycle policy.
+	Description *string
+
+	// The name or Amazon Resource Name (ARN) of the IAM role that Image Builder uses
+	// to run the lifecycle policy.
+	ExecutionRole *string
+
+	// The name of the lifecycle policy.
+	Name *string
+
+	// The type of resources the lifecycle policy targets.
+	ResourceType LifecyclePolicyResourceType
+
+	// The lifecycle policy resource status.
+	Status LifecyclePolicyStatus
+
+	// To help manage your lifecycle policy resources, you can assign your own
+	// metadata to each resource in the form of tags. Each tag consists of a key and an
+	// optional value, both of which you define.
+	Tags map[string]string
+
+	noSmithyDocumentSerde
+}
+
 // Logging configuration defines where Image Builder uploads your logs.
 type Logging struct {
 
@@ -1608,6 +2011,42 @@ type RemediationRecommendation struct {
 	noSmithyDocumentSerde
 }
 
+// The current state of an impacted resource.
+type ResourceState struct {
+
+	// Shows the current lifecycle policy action that was applied to an impacted
+	// resource.
+	Status ResourceStatus
+
+	noSmithyDocumentSerde
+}
+
+// Additional rules to specify resources that should be exempt from ad-hoc
+// lifecycle actions.
+type ResourceStateUpdateExclusionRules struct {
+
+	// Defines criteria for AMIs that are excluded from lifecycle actions.
+	Amis *LifecyclePolicyDetailExclusionRulesAmis
+
+	noSmithyDocumentSerde
+}
+
+// Specifies if the lifecycle policy should apply actions to selected resources.
+type ResourceStateUpdateIncludeResources struct {
+
+	// Specifies whether the lifecycle action should apply to distributed AMIs
+	Amis bool
+
+	// Specifies whether the lifecycle action should apply to distributed containers.
+	Containers bool
+
+	// Specifies whether the lifecycle action should apply to snapshots associated
+	// with distributed AMIs.
+	Snapshots bool
+
+	noSmithyDocumentSerde
+}
+
 // Properties that configure export from your build instance to a compatible file
 // format for your VM.
 type S3ExportConfiguration struct {
@@ -1652,7 +2091,7 @@ type S3Logs struct {
 	noSmithyDocumentSerde
 }
 
-// A schedule configures how often and when a pipeline will automatically create a
+// A schedule configures when and how often a pipeline will automatically create a
 // new image.
 type Schedule struct {
 
@@ -1781,6 +2220,82 @@ type VulnerablePackage struct {
 	noSmithyDocumentSerde
 }
 
+// Defines a process that Image Builder uses to build and test images during the
+// image creation process.
+type Workflow struct {
+
+	// The Amazon Resource Name (ARN) of the workflow resource.
+	Arn *string
+
+	// Describes what change has been made in this version of the workflow, or what
+	// makes this version different from other versions of the workflow.
+	ChangeDescription *string
+
+	// Contains the YAML document content for the workflow.
+	Data *string
+
+	// The timestamp when Image Builder created the workflow resource.
+	DateCreated *string
+
+	// The description of the workflow.
+	Description *string
+
+	// The KMS key identifier used to encrypt the workflow resource.
+	KmsKeyId *string
+
+	// The name of the workflow resource.
+	Name *string
+
+	// The owner of the workflow resource.
+	Owner *string
+
+	// An array of input parameters that that the image workflow uses to control
+	// actions or configure settings.
+	Parameters []WorkflowParameterDetail
+
+	// Describes the current status of the workflow and the reason for that status.
+	State *WorkflowState
+
+	// The tags that apply to the workflow resource
+	Tags map[string]string
+
+	// Specifies the image creation stage that the workflow applies to. Image Builder
+	// currently supports build and test workflows.
+	Type WorkflowType
+
+	// The workflow resource version. Workflow resources are immutable. To make a
+	// change, you can clone a workflow or create a new version.
+	Version *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains control settings and configurable inputs for a workflow resource.
+type WorkflowConfiguration struct {
+
+	// The Amazon Resource Name (ARN) of the workflow resource.
+	//
+	// This member is required.
+	WorkflowArn *string
+
+	// The action to take if the workflow fails.
+	OnFailure OnWorkflowFailure
+
+	// Test workflows are defined within named runtime groups called parallel groups.
+	// The parallel group is the named group that contains this test workflow. Test
+	// workflows within a parallel group can run at the same time. Image Builder starts
+	// up to five test workflows in the group at the same time, and starts additional
+	// workflows as others complete, until all workflows in the group have completed.
+	// This field only applies for test workflows.
+	ParallelGroup *string
+
+	// Contains parameter values for each of the parameters that the workflow document
+	// defined for the workflow resource.
+	Parameters []WorkflowParameter
+
+	noSmithyDocumentSerde
+}
+
 // Metadata that includes details and status from this runtime instance of the
 // workflow.
 type WorkflowExecutionMetadata struct {
@@ -1790,6 +2305,9 @@ type WorkflowExecutionMetadata struct {
 
 	// The runtime output message from the workflow, if applicable.
 	Message *string
+
+	// The name of the test group that included the test workflow resource at runtime.
+	ParallelGroup *string
 
 	// The timestamp when the runtime instance of this workflow started.
 	StartTime *string
@@ -1819,6 +2337,88 @@ type WorkflowExecutionMetadata struct {
 
 	// Unique identifier that Image Builder assigns to keep track of runtime resources
 	// each time it runs a workflow.
+	WorkflowExecutionId *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains a key/value pair that sets the named workflow parameter.
+type WorkflowParameter struct {
+
+	// The name of the workflow parameter to set.
+	//
+	// This member is required.
+	Name *string
+
+	// Sets the value for the named workflow parameter.
+	//
+	// This member is required.
+	Value []string
+
+	noSmithyDocumentSerde
+}
+
+// Defines a parameter that's used to provide configuration details for the
+// workflow.
+type WorkflowParameterDetail struct {
+
+	// The name of this input parameter.
+	//
+	// This member is required.
+	Name *string
+
+	// The type of input this parameter provides. The currently supported value is
+	// "string".
+	//
+	// This member is required.
+	Type *string
+
+	// The default value of this parameter if no input is provided.
+	DefaultValue []string
+
+	// Describes this parameter.
+	Description *string
+
+	noSmithyDocumentSerde
+}
+
+// A group of fields that describe the current status of workflow.
+type WorkflowState struct {
+
+	// Describes how or why the workflow changed state.
+	Reason *string
+
+	// The current state of the workflow.
+	Status WorkflowStatus
+
+	noSmithyDocumentSerde
+}
+
+// Contains runtime details for an instance of a workflow that ran for the
+// associated image build version.
+type WorkflowStepExecution struct {
+
+	// The name of the step action.
+	Action *string
+
+	// The Amazon Resource Name (ARN) of the image build version that ran the workflow.
+	ImageBuildVersionArn *string
+
+	// The name of the workflow step.
+	Name *string
+
+	// The timestamp when the workflow step started.
+	StartTime *string
+
+	// Uniquely identifies the workflow step that ran for the associated image build
+	// version.
+	StepExecutionId *string
+
+	// The ARN of the workflow resource that ran.
+	WorkflowBuildVersionArn *string
+
+	// Uniquely identifies the runtime instance of the workflow that contains the
+	// workflow step that ran for the associated image build version.
 	WorkflowExecutionId *string
 
 	noSmithyDocumentSerde
@@ -1860,6 +2460,72 @@ type WorkflowStepMetadata struct {
 
 	// A unique identifier for the workflow step, assigned at runtime.
 	StepExecutionId *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains metadata about the workflow resource.
+type WorkflowSummary struct {
+
+	// The Amazon Resource Name (ARN) of the workflow resource.
+	Arn *string
+
+	// The change description for the current version of the workflow resource.
+	ChangeDescription *string
+
+	// The original creation date of the workflow resource.
+	DateCreated *string
+
+	// Describes the workflow.
+	Description *string
+
+	// The name of the workflow.
+	Name *string
+
+	// The owner of the workflow resource.
+	Owner *string
+
+	// Describes the current state of the workflow resource.
+	State *WorkflowState
+
+	// Contains a list of tags that are defined for the workflow.
+	Tags map[string]string
+
+	// The image creation stage that this workflow applies to. Image Builder currently
+	// supports build and test stage workflows.
+	Type WorkflowType
+
+	// The version of the workflow.
+	Version *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains details about this version of the workflow.
+type WorkflowVersion struct {
+
+	// The Amazon Resource Name (ARN) of the workflow resource.
+	Arn *string
+
+	// The timestamp when Image Builder created the workflow version.
+	DateCreated *string
+
+	// Describes the workflow.
+	Description *string
+
+	// The name of the workflow.
+	Name *string
+
+	// The owner of the workflow resource.
+	Owner *string
+
+	// The image creation stage that this workflow applies to. Image Builder currently
+	// supports build and test stage workflows.
+	Type WorkflowType
+
+	// The semantic version of the workflow resource. The format includes three nodes:
+	// ...
+	Version *string
 
 	noSmithyDocumentSerde
 }

@@ -1,3 +1,67 @@
+# v1.12.16 (2024-01-19)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.15 (2024-01-17)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.14 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.13 (2023-12-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.12 (2023-12-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.11 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.10 (2023-12-06)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.9 (2023-12-01)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.8 (2023-11-30.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.7 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.6 (2023-11-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.5 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.4 (2023-11-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.3 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.2 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.12.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.12.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

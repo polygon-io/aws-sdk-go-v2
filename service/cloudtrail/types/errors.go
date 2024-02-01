@@ -7,6 +7,32 @@ import (
 	smithy "github.com/aws/smithy-go"
 )
 
+// You do not have sufficient access to perform this action.
+type AccessDeniedException struct {
+	Message *string
+
+	ErrorCodeOverride *string
+
+	noSmithyDocumentSerde
+}
+
+func (e *AccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrorCode(), e.ErrorMessage())
+}
+func (e *AccessDeniedException) ErrorMessage() string {
+	if e.Message == nil {
+		return ""
+	}
+	return *e.Message
+}
+func (e *AccessDeniedException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "AccessDeniedException"
+	}
+	return *e.ErrorCodeOverride
+}
+func (e *AccessDeniedException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
+
 // This exception is thrown when you start a new import and a previous import is
 // still in progress.
 type AccountHasOngoingImportException struct {
@@ -307,12 +333,10 @@ func (e *CloudTrailAccessNotEnabledException) ErrorFault() smithy.ErrorFault {
 	return smithy.FaultClient
 }
 
-// This exception is thrown when an operation is called with a trail ARN that is
-// not valid. The following is the format of a trail ARN.
-// arn:aws:cloudtrail:us-east-2:123456789012:trail/MyTrail This exception is also
-// thrown when you call AddTags or RemoveTags on a trail, event data store, or
-// channel with a resource ARN that is not valid. The following is the format of an
-// event data store ARN:
+// This exception is thrown when an operation is called with an ARN that is not
+// valid. The following is the format of a trail ARN:
+// arn:aws:cloudtrail:us-east-2:123456789012:trail/MyTrail The following is the
+// format of an event data store ARN:
 // arn:aws:cloudtrail:us-east-2:123456789012:eventdatastore/EXAMPLE-f852-4e8f-8bd1-bcf6cEXAMPLE
 // The following is the format of a channel ARN:
 // arn:aws:cloudtrail:us-east-2:123456789012:channel/01234567890
@@ -399,6 +423,34 @@ func (e *CloudWatchLogsDeliveryUnavailableException) ErrorCode() string {
 func (e *CloudWatchLogsDeliveryUnavailableException) ErrorFault() smithy.ErrorFault {
 	return smithy.FaultClient
 }
+
+// You are trying to update a resource when another request is in progress. Allow
+// sufficient wait time for the previous request to complete, then retry your
+// request.
+type ConcurrentModificationException struct {
+	Message *string
+
+	ErrorCodeOverride *string
+
+	noSmithyDocumentSerde
+}
+
+func (e *ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrorCode(), e.ErrorMessage())
+}
+func (e *ConcurrentModificationException) ErrorMessage() string {
+	if e.Message == nil {
+		return ""
+	}
+	return *e.Message
+}
+func (e *ConcurrentModificationException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "ConcurrentModificationException"
+	}
+	return *e.ErrorCodeOverride
+}
+func (e *ConcurrentModificationException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // This exception is thrown when the specified resource is not ready for an
 // operation. This can occur when you try to run an operation on a resource before
@@ -513,6 +565,36 @@ func (e *EventDataStoreARNInvalidException) ErrorCode() string {
 	return *e.ErrorCodeOverride
 }
 func (e *EventDataStoreARNInvalidException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
+
+// You cannot delete the event data store because Lake query federation is
+// enabled. To delete the event data store, run the DisableFederation operation to
+// disable Lake query federation on the event data store.
+type EventDataStoreFederationEnabledException struct {
+	Message *string
+
+	ErrorCodeOverride *string
+
+	noSmithyDocumentSerde
+}
+
+func (e *EventDataStoreFederationEnabledException) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrorCode(), e.ErrorMessage())
+}
+func (e *EventDataStoreFederationEnabledException) ErrorMessage() string {
+	if e.Message == nil {
+		return ""
+	}
+	return *e.Message
+}
+func (e *EventDataStoreFederationEnabledException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "EventDataStoreFederationEnabledException"
+	}
+	return *e.ErrorCodeOverride
+}
+func (e *EventDataStoreFederationEnabledException) ErrorFault() smithy.ErrorFault {
+	return smithy.FaultClient
+}
 
 // This exception is thrown when you try to update or delete an event data store
 // that currently has an import in progress.
@@ -705,8 +787,9 @@ func (e *InactiveQueryException) ErrorCode() string {
 }
 func (e *InactiveQueryException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
-// If you run GetInsightSelectors on a trail that does not have Insights events
-// enabled, the operation throws the exception InsightNotEnabledException .
+// If you run GetInsightSelectors on a trail or event data store that does not
+// have Insights events enabled, the operation throws the exception
+// InsightNotEnabledException .
 type InsightNotEnabledException struct {
 	Message *string
 
@@ -1114,10 +1197,19 @@ func (e *InvalidImportSourceException) ErrorCode() string {
 }
 func (e *InvalidImportSourceException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
-// The formatting or syntax of the InsightSelectors JSON statement in your
-// PutInsightSelectors or GetInsightSelectors request is not valid, or the
-// specified insight type in the InsightSelectors statement is not a valid insight
-// type.
+// For PutInsightSelectors , this exception is thrown when the formatting or syntax
+// of the InsightSelectors JSON statement is not valid, or the specified
+// InsightType in the InsightSelectors statement is not valid. Valid values for
+// InsightType are ApiCallRateInsight and ApiErrorRateInsight . To enable Insights
+// on an event data store, the destination event data store specified by the
+// InsightsDestination parameter must log Insights events and the source event data
+// store specified by the EventDataStore parameter must log management events. For
+// UpdateEventDataStore , this exception is thrown if Insights are enabled on the
+// event data store and the updated advanced event selectors are not compatible
+// with the configured InsightSelectors . If the InsightSelectors includes an
+// InsightType of ApiCallRateInsight , the source event data store must log write
+// management events. If the InsightSelectors includes an InsightType of
+// ApiErrorRateInsight , the source event data store must log management events.
 type InvalidInsightSelectorsException struct {
 	Message *string
 

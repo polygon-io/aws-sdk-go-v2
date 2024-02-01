@@ -4,14 +4,10 @@ package mwaa
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/mwaa/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -85,11 +81,21 @@ type CreateEnvironmentInput struct {
 	AirflowConfigurationOptions map[string]string
 
 	// The Apache Airflow version for your environment. If no value is specified, it
-	// defaults to the latest version. Valid values: 1.10.12 , 2.0.2 , 2.2.2 , 2.4.3 ,
-	// and 2.5.1 . For more information, see Apache Airflow versions on Amazon Managed
-	// Workflows for Apache Airflow (MWAA) (https://docs.aws.amazon.com/mwaa/latest/userguide/airflow-versions.html)
-	// .
+	// defaults to the latest version. For more information, see Apache Airflow
+	// versions on Amazon Managed Workflows for Apache Airflow (MWAA) (https://docs.aws.amazon.com/mwaa/latest/userguide/airflow-versions.html)
+	// . Valid values: 1.10.12 , 2.0.2 , 2.2.2 , 2.4.3 , 2.5.1 , 2.6.3 , 2.7.2
 	AirflowVersion *string
+
+	// Defines whether the VPC endpoints configured for the environment are created,
+	// and managed, by the customer or by Amazon MWAA. If set to SERVICE , Amazon MWAA
+	// will create and manage the required VPC endpoints in your VPC. If set to
+	// CUSTOMER , you must create, and manage, the VPC endpoints for your VPC. If you
+	// choose to create an environment in a shared VPC, you must set this value to
+	// CUSTOMER . In a shared VPC deployment, the environment will remain in PENDING
+	// status until you create the VPC endpoints. If you do not take action to create
+	// the endpoints within 72 hours, the status will change to CREATE_FAILED . You can
+	// delete the failed environment and create a new one.
+	EndpointManagement types.EndpointManagement
 
 	// The environment class type. Valid values: mw1.small , mw1.medium , mw1.large .
 	// For more information, see Amazon MWAA environment class (https://docs.aws.amazon.com/mwaa/latest/userguide/environment-class.html)
@@ -175,8 +181,8 @@ type CreateEnvironmentInput struct {
 	// .
 	Tags map[string]string
 
-	// The Apache Airflow Web server access mode. For more information, see Apache
-	// Airflow access modes (https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html)
+	// Defines the access mode for the Apache Airflow web server. For more
+	// information, see Apache Airflow access modes (https://docs.aws.amazon.com/mwaa/latest/userguide/configuring-networking.html)
 	// .
 	WebserverAccessMode types.WebserverAccessMode
 
@@ -201,6 +207,9 @@ type CreateEnvironmentOutput struct {
 }
 
 func (c *Client) addOperationCreateEnvironmentMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateEnvironment{}, middleware.After)
 	if err != nil {
 		return err
@@ -209,6 +218,10 @@ func (c *Client) addOperationCreateEnvironmentMiddlewares(stack *middleware.Stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateEnvironment"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -230,9 +243,6 @@ func (c *Client) addOperationCreateEnvironmentMiddlewares(stack *middleware.Stac
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -248,10 +258,10 @@ func (c *Client) addOperationCreateEnvironmentMiddlewares(stack *middleware.Stac
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addEndpointPrefix_opCreateEnvironmentMiddleware(stack); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateEnvironmentResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addEndpointPrefix_opCreateEnvironmentMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateEnvironmentValidationMiddleware(stack); err != nil {
@@ -272,7 +282,7 @@ func (c *Client) addOperationCreateEnvironmentMiddlewares(stack *middleware.Stac
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -285,11 +295,11 @@ func (*endpointPrefix_opCreateEnvironmentMiddleware) ID() string {
 	return "EndpointHostPrefix"
 }
 
-func (m *endpointPrefix_opCreateEnvironmentMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+func (m *endpointPrefix_opCreateEnvironmentMiddleware) HandleFinalize(ctx context.Context, in middleware.FinalizeInput, next middleware.FinalizeHandler) (
+	out middleware.FinalizeOutput, metadata middleware.Metadata, err error,
 ) {
 	if smithyhttp.GetHostnameImmutable(ctx) || smithyhttp.IsEndpointHostPrefixDisabled(ctx) {
-		return next.HandleSerialize(ctx, in)
+		return next.HandleFinalize(ctx, in)
 	}
 
 	req, ok := in.Request.(*smithyhttp.Request)
@@ -299,140 +309,16 @@ func (m *endpointPrefix_opCreateEnvironmentMiddleware) HandleSerialize(ctx conte
 
 	req.URL.Host = "api." + req.URL.Host
 
-	return next.HandleSerialize(ctx, in)
+	return next.HandleFinalize(ctx, in)
 }
 func addEndpointPrefix_opCreateEnvironmentMiddleware(stack *middleware.Stack) error {
-	return stack.Serialize.Insert(&endpointPrefix_opCreateEnvironmentMiddleware{}, `OperationSerializer`, middleware.After)
+	return stack.Finalize.Insert(&endpointPrefix_opCreateEnvironmentMiddleware{}, "ResolveEndpointV2", middleware.After)
 }
 
 func newServiceMetadataMiddleware_opCreateEnvironment(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "airflow",
 		OperationName: "CreateEnvironment",
 	}
-}
-
-type opCreateEnvironmentResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateEnvironmentResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateEnvironmentResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "airflow"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "airflow"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("airflow")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateEnvironmentResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateEnvironmentResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

@@ -4,25 +4,19 @@ package quicksight
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/quicksight/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates an Amazon QuickSight account, or subscribes to Amazon QuickSight Q. The
 // Amazon Web Services Region for the account is derived from what is configured in
-// the CLI or SDK. This operation isn't supported in the US East (Ohio) Region,
-// South America (Sao Paulo) Region, or Asia Pacific (Singapore) Region. Before you
-// use this operation, make sure that you can connect to an existing Amazon Web
-// Services account. If you don't have an Amazon Web Services account, see Sign up
-// for Amazon Web Services (https://docs.aws.amazon.com/quicksight/latest/user/setting-up-aws-sign-up.html)
+// the CLI or SDK. Before you use this operation, make sure that you can connect to
+// an existing Amazon Web Services account. If you don't have an Amazon Web
+// Services account, see Sign up for Amazon Web Services (https://docs.aws.amazon.com/quicksight/latest/user/setting-up-aws-sign-up.html)
 // in the Amazon QuickSight User Guide. The person who signs up for Amazon
 // QuickSight needs to have the correct Identity and Access Management (IAM)
 // permissions. For more information, see IAM Policy Examples for Amazon QuickSight (https://docs.aws.amazon.com/quicksight/latest/user/iam-policy-examples.html)
@@ -63,9 +57,10 @@ type CreateAccountSubscriptionInput struct {
 	AccountName *string
 
 	// The method that you want to use to authenticate your Amazon QuickSight account.
-	// Currently, the valid values for this parameter are IAM_AND_QUICKSIGHT , IAM_ONLY
-	// , and ACTIVE_DIRECTORY . If you choose ACTIVE_DIRECTORY , provide an
-	// ActiveDirectoryName and an AdminGroup associated with your Active Directory.
+	// If you choose ACTIVE_DIRECTORY , provide an ActiveDirectoryName and an
+	// AdminGroup associated with your Active Directory. If you choose
+	// IAM_IDENTITY_CENTER , provide an AdminGroup associated with your IAM Identity
+	// Center account.
 	//
 	// This member is required.
 	AuthenticationMethod types.AuthenticationMethodOption
@@ -97,16 +92,24 @@ type CreateAccountSubscriptionInput struct {
 	// is the selected authentication method of the new Amazon QuickSight account.
 	ActiveDirectoryName *string
 
-	// The admin group associated with your Active Directory. This field is required
-	// if ACTIVE_DIRECTORY is the selected authentication method of the new Amazon
-	// QuickSight account. For more information about using Active Directory in Amazon
-	// QuickSight, see Using Active Directory with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
+	// The admin group associated with your Active Directory or IAM Identity Center
+	// account. This field is required if ACTIVE_DIRECTORY or IAM_IDENTITY_CENTER is
+	// the selected authentication method of the new Amazon QuickSight account. For
+	// more information about using IAM Identity Center in Amazon QuickSight, see
+	// Using IAM Identity Center with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
+	// in the Amazon QuickSight User Guide. For more information about using Active
+	// Directory in Amazon QuickSight, see Using Active Directory with Amazon
+	// QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
 	// in the Amazon QuickSight User Guide.
 	AdminGroup []string
 
-	// The author group associated with your Active Directory. For more information
-	// about using Active Directory in Amazon QuickSight, see Using Active Directory
-	// with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
+	// The author group associated with your Active Directory or IAM Identity Center
+	// account. For more information about using IAM Identity Center in Amazon
+	// QuickSight, see Using IAM Identity Center with Amazon QuickSight Enterprise
+	// Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
+	// in the Amazon QuickSight User Guide. For more information about using Active
+	// Directory in Amazon QuickSight, see Using Active Directory with Amazon
+	// QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
 	// in the Amazon QuickSight User Guide.
 	AuthorGroup []string
 
@@ -134,9 +137,13 @@ type CreateAccountSubscriptionInput struct {
 	// edition of the new Amazon QuickSight account.
 	LastName *string
 
-	// The reader group associated with your Active Direcrtory. For more information
-	// about using Active Directory in Amazon QuickSight, see Using Active Directory
-	// with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
+	// The reader group associated with your Active Directory or IAM Identity Center
+	// account. For more information about using IAM Identity Center in Amazon
+	// QuickSight, see Using IAM Identity Center with Amazon QuickSight Enterprise
+	// Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
+	// in the Amazon QuickSight User Guide. For more information about using Active
+	// Directory in Amazon QuickSight, see Using Active Directory with Amazon
+	// QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
 	// in the Amazon QuickSight User Guide.
 	ReaderGroup []string
 
@@ -167,6 +174,9 @@ type CreateAccountSubscriptionOutput struct {
 }
 
 func (c *Client) addOperationCreateAccountSubscriptionMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateAccountSubscription{}, middleware.After)
 	if err != nil {
 		return err
@@ -175,6 +185,10 @@ func (c *Client) addOperationCreateAccountSubscriptionMiddlewares(stack *middlew
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateAccountSubscription"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -196,9 +210,6 @@ func (c *Client) addOperationCreateAccountSubscriptionMiddlewares(stack *middlew
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -214,7 +225,7 @@ func (c *Client) addOperationCreateAccountSubscriptionMiddlewares(stack *middlew
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateAccountSubscriptionResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateAccountSubscriptionValidationMiddleware(stack); err != nil {
@@ -235,7 +246,7 @@ func (c *Client) addOperationCreateAccountSubscriptionMiddlewares(stack *middlew
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -245,130 +256,6 @@ func newServiceMetadataMiddleware_opCreateAccountSubscription(region string) *aw
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "quicksight",
 		OperationName: "CreateAccountSubscription",
 	}
-}
-
-type opCreateAccountSubscriptionResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateAccountSubscriptionResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateAccountSubscriptionResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "quicksight"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "quicksight"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("quicksight")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateAccountSubscriptionResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateAccountSubscriptionResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

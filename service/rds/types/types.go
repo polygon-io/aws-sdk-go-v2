@@ -409,6 +409,18 @@ type ConnectionPoolConfigurationInfo struct {
 	noSmithyDocumentSerde
 }
 
+// The additional attributes of RecommendedAction data type.
+type ContextAttribute struct {
+
+	// The key of ContextAttribute .
+	Key *string
+
+	// The value of ContextAttribute .
+	Value *string
+
+	noSmithyDocumentSerde
+}
+
 // A value that indicates the AMI information.
 type CustomDBEngineVersionAMI struct {
 
@@ -602,11 +614,11 @@ type DBCluster struct {
 	// The ID that Amazon Route 53 assigns when you create a hosted zone.
 	HostedZoneId *string
 
-	// Indicates whether the HTTP endpoint for an Aurora Serverless v1 DB cluster is
-	// enabled. When enabled, the HTTP endpoint provides a connectionless web service
-	// API for running SQL queries on the Aurora Serverless v1 DB cluster. You can also
-	// query your database from inside the RDS console with the query editor. For more
-	// information, see Using the Data API for Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
+	// Indicates whether the HTTP endpoint is enabled for an Aurora DB cluster. When
+	// enabled, the HTTP endpoint provides a connectionless web service API (RDS Data
+	// API) for running SQL queries on the DB cluster. You can also query your database
+	// from inside the RDS console with the RDS query editor. For more information, see
+	// Using RDS Data API (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
 	// in the Amazon Aurora User Guide.
 	HttpEndpointEnabled *bool
 
@@ -629,6 +641,9 @@ type DBCluster struct {
 
 	// The latest time to which a database can be restored with point-in-time restore.
 	LatestRestorableTime *time.Time
+
+	// The details for Aurora Limitless Database.
+	LimitlessDatabase *LimitlessDatabase
 
 	// Indicates whether an Aurora DB cluster has in-cluster write forwarding enabled,
 	// not enabled, requested, or is in the process of enabling it.
@@ -749,6 +764,9 @@ type DBCluster struct {
 
 	// The current state of this DB cluster.
 	Status *string
+
+	// Reserved for future use.
+	StatusInfos []DBClusterStatusInfo
 
 	// Indicates whether the DB cluster is encrypted.
 	StorageEncrypted *bool
@@ -1165,6 +1183,24 @@ type DBClusterSnapshotAttributesResult struct {
 	noSmithyDocumentSerde
 }
 
+// Reserved for future use.
+type DBClusterStatusInfo struct {
+
+	// Reserved for future use.
+	Message *string
+
+	// Reserved for future use.
+	Normal *bool
+
+	// Reserved for future use.
+	Status *string
+
+	// Reserved for future use.
+	StatusType *string
+
+	noSmithyDocumentSerde
+}
+
 // This data type is used as a response element in the action
 // DescribeDBEngineVersions .
 type DBEngineVersion struct {
@@ -1273,8 +1309,8 @@ type DBEngineVersion struct {
 	// version.
 	SupportsGlobalDatabases *bool
 
-	// Indicates whether the DB engine version supports Aurora zero-ETL integrations
-	// with Amazon Redshift.
+	// Indicates whether the DB engine version supports zero-ETL integrations with
+	// Amazon Redshift.
 	SupportsIntegrations *bool
 
 	// Indicates whether the DB engine version supports forwarding write operations
@@ -1437,10 +1473,9 @@ type DBInstance struct {
 	// in the Amazon RDS User Guide.
 	DBInstanceStatus *string
 
-	// Contains the initial database name that you provided (if required) when you
-	// created the DB instance. This name is returned for the life of your DB instance.
-	// For an RDS for Oracle CDB instance, the name identifies the PDB rather than the
-	// CDB.
+	// The initial database name that you provided (if required) when you created the
+	// DB instance. This name is returned for the life of your DB instance. For an RDS
+	// for Oracle CDB instance, the name identifies the PDB rather than the CDB.
 	DBName *string
 
 	// The list of DB parameter groups applied to this DB instance.
@@ -1562,6 +1597,10 @@ type DBInstance struct {
 	// Indicates whether the DB instance is a Multi-AZ deployment. This setting
 	// doesn't apply to RDS Custom DB instances.
 	MultiAZ *bool
+
+	// Specifies whether the DB instance is in the multi-tenant configuration (TRUE)
+	// or the single-tenant configuration (FALSE).
+	MultiTenant *bool
 
 	// The name of the NCHAR character set for the Oracle DB instance. This character
 	// set specifies the Unicode encoding for data stored in table columns of type
@@ -1773,6 +1812,10 @@ type DBInstanceAutomatedBackup struct {
 	// The master user name of an automated backup.
 	MasterUsername *string
 
+	// Specifies whether the automatic backup is for a DB instance in the multi-tenant
+	// configuration (TRUE) or the single-tenant configuration (FALSE).
+	MultiTenant *bool
+
 	// The option group the automated backup is associated with. If omitted, the
 	// default option group for the engine specified is used.
 	OptionGroupName *string
@@ -1859,8 +1902,8 @@ type DBInstanceStatusInfo struct {
 	// isn't in an error state, this value is blank.
 	Message *string
 
-	// A Boolean value that is true if the instance is operating normally, or false if
-	// the instance is in an error state.
+	// Indicates whether the instance is operating normally (TRUE) or is in an error
+	// state (FALSE).
 	Normal *bool
 
 	// The status of the DB instance. For a StatusType of read replica, the values can
@@ -2117,6 +2160,98 @@ type DBProxyTargetGroup struct {
 	noSmithyDocumentSerde
 }
 
+// The recommendation for your DB instances, DB clusters, and DB parameter groups.
+type DBRecommendation struct {
+
+	// Additional information about the recommendation. The information might contain
+	// markdown.
+	AdditionalInfo *string
+
+	// The category of the recommendation. Valid values:
+	//   - performance efficiency
+	//   - security
+	//   - reliability
+	//   - cost optimization
+	//   - operational excellence
+	//   - sustainability
+	Category *string
+
+	// The time when the recommendation was created. For example,
+	// 2023-09-28T01:13:53.931000+00:00 .
+	CreatedTime *time.Time
+
+	// A detailed description of the recommendation. The description might contain
+	// markdown.
+	Description *string
+
+	// A short description of the issue identified for this recommendation. The
+	// description might contain markdown.
+	Detection *string
+
+	// A short description that explains the possible impact of an issue.
+	Impact *string
+
+	// Details of the issue that caused the recommendation.
+	IssueDetails *IssueDetails
+
+	// A link to documentation that provides additional information about the
+	// recommendation.
+	Links []DocLink
+
+	// The reason why this recommendation was created. The information might contain
+	// markdown.
+	Reason *string
+
+	// A short description of the recommendation to resolve an issue. The description
+	// might contain markdown.
+	Recommendation *string
+
+	// The unique identifier of the recommendation.
+	RecommendationId *string
+
+	// A list of recommended actions.
+	RecommendedActions []RecommendedAction
+
+	// The Amazon Resource Name (ARN) of the RDS resource associated with the
+	// recommendation.
+	ResourceArn *string
+
+	// The severity level of the recommendation. The severity level can help you
+	// decide the urgency with which to address the recommendation. Valid values:
+	//   - high
+	//   - medium
+	//   - low
+	//   - informational
+	Severity *string
+
+	// The Amazon Web Services service that generated the recommendations.
+	Source *string
+
+	// The current status of the recommendation. Valid values:
+	//   - active - The recommendations which are ready for you to apply.
+	//   - pending - The applied or scheduled recommendations which are in progress.
+	//   - resolved - The recommendations which are completed.
+	//   - dismissed - The recommendations that you dismissed.
+	Status *string
+
+	// A short description of the recommendation type. The description might contain
+	// markdown.
+	TypeDetection *string
+
+	// A value that indicates the type of recommendation. This value determines how
+	// the description is rendered.
+	TypeId *string
+
+	// A short description that summarizes the recommendation to fix all the issues of
+	// the recommendation type. The description might contain markdown.
+	TypeRecommendation *string
+
+	// The time when the recommendation was last updated.
+	UpdatedTime *time.Time
+
+	noSmithyDocumentSerde
+}
+
 // Contains the details for an Amazon RDS DB security group. This data type is
 // used as a response element in the DescribeDBSecurityGroups action.
 type DBSecurityGroup struct {
@@ -2157,6 +2292,52 @@ type DBSecurityGroupMembership struct {
 	DBSecurityGroupName *string
 
 	// The status of the DB security group.
+	Status *string
+
+	noSmithyDocumentSerde
+}
+
+type DBShardGroup struct {
+
+	// Specifies whether to create standby instances for the DB shard group. Valid
+	// values are the following:
+	//   - 0 - Creates a single, primary DB instance for each physical shard. This is
+	//   the default value, and the only one supported for the preview.
+	//   - 1 - Creates a primary DB instance and a standby instance in a different
+	//   Availability Zone (AZ) for each physical shard.
+	//   - 2 - Creates a primary DB instance and two standby instances in different
+	//   AZs for each physical shard.
+	ComputeRedundancy *int32
+
+	// The name of the primary DB cluster for the DB shard group.
+	DBClusterIdentifier *string
+
+	// The name of the DB shard group.
+	DBShardGroupIdentifier *string
+
+	// The Amazon Web Services Region-unique, immutable identifier for the DB shard
+	// group.
+	DBShardGroupResourceId *string
+
+	// The connection endpoint for the DB shard group.
+	Endpoint *string
+
+	// The maximum capacity of the DB shard group in Aurora capacity units (ACUs).
+	MaxACU *float64
+
+	// Indicates whether the DB shard group is publicly accessible. When the DB shard
+	// group is publicly accessible, its Domain Name System (DNS) endpoint resolves to
+	// the private IP address from within the DB shard group's virtual private cloud
+	// (VPC). It resolves to the public IP address from outside of the DB shard group's
+	// VPC. Access to the DB shard group is ultimately controlled by the security group
+	// it uses. That public access isn't permitted if the security group assigned to
+	// the DB shard group doesn't permit it. When the DB shard group isn't publicly
+	// accessible, it is an internal DB shard group with a DNS name that resolves to a
+	// private IP address. For more information, see CreateDBShardGroup . This setting
+	// is only for Aurora Limitless Database.
+	PubliclyAccessible *bool
+
+	// The status of the DB shard group.
 	Status *string
 
 	noSmithyDocumentSerde
@@ -2226,6 +2407,10 @@ type DBSnapshot struct {
 
 	// Provides the master username for the DB snapshot.
 	MasterUsername *string
+
+	// Indicates whether the snapshot is of a DB instance using the multi-tenant
+	// configuration (TRUE) or the single-tenant configuration (FALSE).
+	MultiTenant *bool
 
 	// Provides the option group name for the DB snapshot.
 	OptionGroupName *string
@@ -2339,6 +2524,54 @@ type DBSnapshotAttributesResult struct {
 	noSmithyDocumentSerde
 }
 
+// Contains the details of a tenant database in a snapshot of a DB instance.
+type DBSnapshotTenantDatabase struct {
+
+	// The name of the character set of a tenant database.
+	CharacterSetName *string
+
+	// The ID for the DB instance that contains the tenant databases.
+	DBInstanceIdentifier *string
+
+	// The identifier for the snapshot of the DB instance.
+	DBSnapshotIdentifier *string
+
+	// The Amazon Resource Name (ARN) for the snapshot tenant database.
+	DBSnapshotTenantDatabaseARN *string
+
+	// The resource identifier of the source CDB instance. This identifier can't be
+	// changed and is unique to an Amazon Web Services Region.
+	DbiResourceId *string
+
+	// The name of the database engine.
+	EngineName *string
+
+	// The master username of the tenant database.
+	MasterUsername *string
+
+	// The NCHAR character set name of the tenant database.
+	NcharCharacterSetName *string
+
+	// The type of DB snapshot.
+	SnapshotType *string
+
+	// A list of tags. For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+	// in the Amazon RDS User Guide.
+	TagList []Tag
+
+	// The name of the tenant database.
+	TenantDBName *string
+
+	// The time the DB snapshot was taken, specified in Coordinated Universal Time
+	// (UTC). If you copy the snapshot, the creation time changes.
+	TenantDatabaseCreateTime *time.Time
+
+	// The resource ID of the tenant database.
+	TenantDatabaseResourceId *string
+
+	noSmithyDocumentSerde
+}
+
 // Contains the details of an Amazon RDS DB subnet group. This data type is used
 // as a response element in the DescribeDBSubnetGroups action.
 type DBSubnetGroup struct {
@@ -2384,6 +2617,19 @@ type DescribeDBLogFilesDetails struct {
 
 	// The size, in bytes, of the log file for the specified DB instance.
 	Size *int64
+
+	noSmithyDocumentSerde
+}
+
+// A link to documentation that provides additional information for a
+// recommendation.
+type DocLink struct {
+
+	// The text with the link to documentation for the recommendation.
+	Text *string
+
+	// The URL for the documentation for the recommendation.
+	Url *string
 
 	noSmithyDocumentSerde
 }
@@ -2545,8 +2791,8 @@ type EventSubscription struct {
 	// notification subscription.
 	CustomerAwsId *string
 
-	// A Boolean value indicating if the subscription is enabled. True indicates the
-	// subscription is enabled.
+	// Specifies whether the subscription is enabled. True indicates the subscription
+	// is enabled.
 	Enabled *bool
 
 	// A list of event categories for the RDS event notification subscription.
@@ -2669,13 +2915,15 @@ type FailoverState struct {
 	//   - pending  The service received a request to switch over or fail over the
 	//   global cluster. The global cluster's primary DB cluster and the specified
 	//   secondary DB cluster are being verified before the operation starts.
-	//   - failing-over  This status covers the range of Aurora internal operations
-	//   that take place during the switchover or failover process, such as demoting the
-	//   primary Aurora DB cluster, promoting the secondary Aurora DB cluster, and
-	//   synchronizing replicas.
+	//   - failing-over  Aurora is promoting the chosen secondary Aurora DB cluster
+	//   to become the new primary DB cluster to fail over the global cluster.
 	//   - cancelling  The request to switch over or fail over the global cluster was
 	//   cancelled and the primary Aurora DB cluster and the selected secondary Aurora DB
 	//   cluster are returning to their previous states.
+	//   - switching-over  This status covers the range of Aurora internal operations
+	//   that take place during the switchover process, such as demoting the primary
+	//   Aurora DB cluster, promoting the secondary Aurora DB cluster, and synchronizing
+	//   replicas.
 	Status FailoverStatus
 
 	// The Amazon Resource Name (ARN) of the Aurora DB cluster that is currently being
@@ -2694,6 +2942,7 @@ type FailoverState struct {
 //   - DescribeDBClusterEndpoints
 //   - DescribeDBClusters
 //   - DescribeDBInstances
+//   - DescribeDBRecommendations
 //   - DescribePendingMaintenanceActions
 type Filter struct {
 
@@ -2779,9 +3028,7 @@ type GlobalClusterMember struct {
 	noSmithyDocumentSerde
 }
 
-// An Aurora zero-ETL integration with Amazon Redshift. For more information, see
-// Working with Amazon Aurora zero-ETL integrations with Amazon Redshift (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/zero-etl.html)
-// in the Amazon Aurora User Guide.
+// A zero-ETL integration with Amazon Redshift.
 type Integration struct {
 
 	// The encryption context for the integration. For more information, see
@@ -2805,7 +3052,7 @@ type Integration struct {
 	// identifier for the key used to to encrypt the integration.
 	KMSKeyId *string
 
-	// The Amazon Resource Name (ARN) of the Aurora DB cluster used as the source for
+	// The Amazon Resource Name (ARN) of the database used as the source for
 	// replication.
 	SourceArn *string
 
@@ -2850,6 +3097,30 @@ type IPRange struct {
 	noSmithyDocumentSerde
 }
 
+// The details of an issue with your DB instances, DB clusters, and DB parameter
+// groups.
+type IssueDetails struct {
+
+	// A detailed description of the issue when the recommendation category is
+	// performance .
+	PerformanceIssueDetails *PerformanceIssueDetails
+
+	noSmithyDocumentSerde
+}
+
+// Contains details for Aurora Limitless Database.
+type LimitlessDatabase struct {
+
+	// The minimum required capacity for Aurora Limitless Database in Aurora capacity
+	// units (ACUs).
+	MinRequiredACU *float64
+
+	// The status of Aurora Limitless Database.
+	Status LimitlessDatabaseStatus
+
+	noSmithyDocumentSerde
+}
+
 // Contains the secret managed by RDS in Amazon Web Services Secrets Manager for
 // the master user password. For more information, see Password management with
 // Amazon Web Services Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
@@ -2876,6 +3147,47 @@ type MasterUserSecret struct {
 	//   automatic management of database credentials, and then modify the DB instance
 	//   again to turn on automatic management of database credentials.
 	SecretStatus *string
+
+	noSmithyDocumentSerde
+}
+
+// The representation of a metric.
+type Metric struct {
+
+	// The query to retrieve metric data points.
+	MetricQuery *MetricQuery
+
+	// The name of a metric.
+	Name *string
+
+	// A list of metric references (thresholds).
+	References []MetricReference
+
+	// The details of different statistics for a metric. The description might contain
+	// markdown.
+	StatisticsDetails *string
+
+	noSmithyDocumentSerde
+}
+
+// The query to retrieve metric data points.
+type MetricQuery struct {
+
+	// The Performance Insights query that you can use to retrieve Performance
+	// Insights metric data points.
+	PerformanceInsightsMetricQuery *PerformanceInsightsMetricQuery
+
+	noSmithyDocumentSerde
+}
+
+// The reference (threshold) for a metric.
+type MetricReference struct {
+
+	// The name of the metric reference.
+	Name *string
+
+	// The details of a performance issue.
+	ReferenceDetails *ReferenceDetails
 
 	noSmithyDocumentSerde
 }
@@ -3455,6 +3767,10 @@ type PendingModifiedValues struct {
 	// deployment.
 	MultiAZ *bool
 
+	// Indicates whether the DB instance will change to the multi-tenant configuration
+	// (TRUE) or the single-tenant configuration (FALSE).
+	MultiTenant *bool
+
 	// A list of the log types whose configuration is still pending. In other words,
 	// these log types are in the process of being activated or deactivated.
 	PendingCloudwatchLogsExports *PendingCloudwatchLogsExports
@@ -3476,6 +3792,86 @@ type PendingModifiedValues struct {
 
 	// The storage type of the DB instance.
 	StorageType *string
+
+	noSmithyDocumentSerde
+}
+
+// A logical grouping of Performance Insights metrics for a related subject area.
+// For example, the db.sql dimension group consists of the following dimensions:
+//   - db.sql.id - The hash of a running SQL statement, generated by Performance
+//     Insights.
+//   - db.sql.db_id - Either the SQL ID generated by the database engine, or a
+//     value generated by Performance Insights that begins with pi- .
+//   - db.sql.statement - The full text of the SQL statement that is running, for
+//     example, SELECT * FROM employees .
+//   - db.sql_tokenized.id - The hash of the SQL digest generated by Performance
+//     Insights.
+//
+// Each response element returns a maximum of 500 bytes. For larger elements, such
+// as SQL statements, only the first 500 bytes are returned.
+type PerformanceInsightsMetricDimensionGroup struct {
+
+	// A list of specific dimensions from a dimension group. If this list isn't
+	// included, then all of the dimensions in the group were requested, or are present
+	// in the response.
+	Dimensions []string
+
+	// The available dimension groups for Performance Insights metric type.
+	Group *string
+
+	// The maximum number of items to fetch for this dimension group.
+	Limit *int32
+
+	noSmithyDocumentSerde
+}
+
+// A single Performance Insights metric query to process. You must provide the
+// metric to the query. If other parameters aren't specified, Performance Insights
+// returns all data points for the specified metric. Optionally, you can request
+// the data points to be aggregated by dimension group ( GroupBy ) and return only
+// those data points that match your criteria ( Filter ). Constraints:
+//   - Must be a valid Performance Insights query.
+type PerformanceInsightsMetricQuery struct {
+
+	// A specification for how to aggregate the data points from a query result. You
+	// must specify a valid dimension group. Performance Insights will return all of
+	// the dimensions within that group, unless you provide the names of specific
+	// dimensions within that group. You can also request that Performance Insights
+	// return a limited number of values for a dimension.
+	GroupBy *PerformanceInsightsMetricDimensionGroup
+
+	// The name of a Performance Insights metric to be measured. Valid Values:
+	//   - db.load.avg - A scaled representation of the number of active sessions for
+	//   the database engine.
+	//   - db.sampledload.avg - The raw number of active sessions for the database
+	//   engine.
+	//   - The counter metrics listed in Performance Insights operating system counters (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_PerfInsights_Counters.html#USER_PerfInsights_Counters.OS)
+	//   in the Amazon Aurora User Guide.
+	// If the number of active sessions is less than an internal Performance Insights
+	// threshold, db.load.avg and db.sampledload.avg are the same value. If the number
+	// of active sessions is greater than the internal threshold, Performance Insights
+	// samples the active sessions, with db.load.avg showing the scaled values,
+	// db.sampledload.avg showing the raw values, and db.sampledload.avg less than
+	// db.load.avg . For most use cases, you can query db.load.avg only.
+	Metric *string
+
+	noSmithyDocumentSerde
+}
+
+// Details of the performance issue.
+type PerformanceIssueDetails struct {
+
+	// The analysis of the performance issue. The information might contain markdown.
+	Analysis *string
+
+	// The time when the performance issue stopped.
+	EndTime *time.Time
+
+	// The metrics that are relevant to the performance issue.
+	Metrics []Metric
+
+	// The time when the performance issue started.
+	StartTime *time.Time
 
 	noSmithyDocumentSerde
 }
@@ -3544,7 +3940,84 @@ type RdsCustomClusterConfiguration struct {
 	InterconnectSubnetId *string
 
 	// Reserved for future use.
+	ReplicaMode ReplicaMode
+
+	// Reserved for future use.
 	TransitGatewayMulticastDomainId *string
+
+	noSmithyDocumentSerde
+}
+
+// The recommended actions to apply to resolve the issues associated with your DB
+// instances, DB clusters, and DB parameter groups.
+type RecommendedAction struct {
+
+	// The unique identifier of the recommended action.
+	ActionId *string
+
+	// The methods to apply the recommended action. Valid values:
+	//   - manual - The action requires you to resolve the recommendation manually.
+	//   - immediately - The action is applied immediately.
+	//   - next-maintainance-window - The action is applied during the next scheduled
+	//   maintainance.
+	ApplyModes []string
+
+	// The supporting attributes to explain the recommended action.
+	ContextAttributes []ContextAttribute
+
+	// A detailed description of the action. The description might contain markdown.
+	Description *string
+
+	// The details of the issue.
+	IssueDetails *IssueDetails
+
+	// An API operation for the action.
+	Operation *string
+
+	// The parameters for the API operation.
+	Parameters []RecommendedActionParameter
+
+	// The status of the action.
+	//   - ready
+	//   - applied
+	//   - scheduled
+	//   - resolved
+	Status *string
+
+	// A short description to summarize the action. The description might contain
+	// markdown.
+	Title *string
+
+	noSmithyDocumentSerde
+}
+
+// A single parameter to use with the RecommendedAction API operation to apply the
+// action.
+type RecommendedActionParameter struct {
+
+	// The key of the parameter to use with the RecommendedAction API operation.
+	Key *string
+
+	// The value of the parameter to use with the RecommendedAction API operation.
+	Value *string
+
+	noSmithyDocumentSerde
+}
+
+// The recommended status to update for the specified recommendation action ID.
+type RecommendedActionUpdate struct {
+
+	// A unique identifier of the updated recommendation action.
+	//
+	// This member is required.
+	ActionId *string
+
+	// The status of the updated recommendation action.
+	//   - applied
+	//   - scheduled
+	//
+	// This member is required.
+	Status *string
 
 	noSmithyDocumentSerde
 }
@@ -3558,6 +4031,15 @@ type RecurringCharge struct {
 
 	// The frequency of the recurring charge.
 	RecurringChargeFrequency *string
+
+	noSmithyDocumentSerde
+}
+
+// The reference details of a metric.
+type ReferenceDetails struct {
+
+	// The metric reference details when the reference is a scalar.
+	ScalarReferenceDetails *ScalarReferenceDetails
 
 	noSmithyDocumentSerde
 }
@@ -3677,6 +4159,15 @@ type RestoreWindow struct {
 
 	// The latest time you can restore an instance to.
 	LatestTime *time.Time
+
+	noSmithyDocumentSerde
+}
+
+// The metric reference details when the reference is a scalar.
+type ScalarReferenceDetails struct {
+
+	// The value of a scalar reference.
+	Value *float64
 
 	noSmithyDocumentSerde
 }
@@ -3914,6 +4405,67 @@ type TargetHealth struct {
 	noSmithyDocumentSerde
 }
 
+// A tenant database in the DB instance. This data type is an element in the
+// response to the DescribeTenantDatabases action.
+type TenantDatabase struct {
+
+	// The character set of the tenant database.
+	CharacterSetName *string
+
+	// The ID of the DB instance that contains the tenant database.
+	DBInstanceIdentifier *string
+
+	// The Amazon Web Services Region-unique, immutable identifier for the DB instance.
+	DbiResourceId *string
+
+	// Specifies whether deletion protection is enabled for the DB instance.
+	DeletionProtection *bool
+
+	// The master username of the tenant database.
+	MasterUsername *string
+
+	// The NCHAR character set name of the tenant database.
+	NcharCharacterSetName *string
+
+	// Information about pending changes for a tenant database.
+	PendingModifiedValues *TenantDatabasePendingModifiedValues
+
+	// The status of the tenant database.
+	Status *string
+
+	// A list of tags. For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+	// in the Amazon RDS User Guide.
+	TagList []Tag
+
+	// The database name of the tenant database.
+	TenantDBName *string
+
+	// The Amazon Resource Name (ARN) for the tenant database.
+	TenantDatabaseARN *string
+
+	// The creation time of the tenant database.
+	TenantDatabaseCreateTime *time.Time
+
+	// The Amazon Web Services Region-unique, immutable identifier for the tenant
+	// database.
+	TenantDatabaseResourceId *string
+
+	noSmithyDocumentSerde
+}
+
+// A response element in the ModifyTenantDatabase operation that describes changes
+// that will be applied. Specific changes are identified by subelements.
+type TenantDatabasePendingModifiedValues struct {
+
+	// The master password for the tenant database.
+	MasterUserPassword *string
+
+	// The name of the tenant database.
+	TenantDBName *string
+
+	noSmithyDocumentSerde
+}
+
 // A time zone associated with a DBInstance or a DBSnapshot . This data type is an
 // element in the response to the DescribeDBInstances , the DescribeDBSnapshots ,
 // and the DescribeDBEngineVersions actions.
@@ -3956,8 +4508,8 @@ type UpgradeTarget struct {
 	// version.
 	SupportsGlobalDatabases *bool
 
-	// Indicates whether the DB engine version supports Aurora zero-ETL integrations
-	// with Amazon Redshift.
+	// Indicates whether the DB engine version supports zero-ETL integrations with
+	// Amazon Redshift.
 	SupportsIntegrations *bool
 
 	// Indicates whether the target engine version supports forwarding write

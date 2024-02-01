@@ -332,6 +332,102 @@ type DataSource struct {
 	noSmithyDocumentSerde
 }
 
+// Contains the introspected data that was retrieved from the data source.
+type DataSourceIntrospectionModel struct {
+
+	// The DataSourceIntrospectionModelField object data.
+	Fields []DataSourceIntrospectionModelField
+
+	// The array of DataSourceIntrospectionModelIndex objects.
+	Indexes []DataSourceIntrospectionModelIndex
+
+	// The name of the model. For example, this could be the name of a single table in
+	// a database.
+	Name *string
+
+	// The primary key stored as a DataSourceIntrospectionModelIndex object.
+	PrimaryKey *DataSourceIntrospectionModelIndex
+
+	// Contains the output of the SDL that was generated from the introspected types.
+	// This is controlled by the includeModelsSDL parameter of the
+	// GetDataSourceIntrospection operation.
+	Sdl *string
+
+	noSmithyDocumentSerde
+}
+
+// Represents the fields that were retrieved from the introspected data.
+type DataSourceIntrospectionModelField struct {
+
+	// The length value of the introspected field.
+	Length int64
+
+	// The name of the field that was retrieved from the introspected data.
+	Name *string
+
+	// The DataSourceIntrospectionModelFieldType object data.
+	Type *DataSourceIntrospectionModelFieldType
+
+	noSmithyDocumentSerde
+}
+
+// Represents the type data for each field retrieved from the introspection.
+type DataSourceIntrospectionModelFieldType struct {
+
+	// Specifies the classification of data. For example, this could be set to values
+	// like Scalar or NonNull to indicate a fundamental property of the field. Valid
+	// values include:
+	//   - Scalar : Indicates the value is a primitive type (scalar).
+	//   - NonNull : Indicates the field cannot be null .
+	//   - List : Indicates the field contains a list.
+	Kind *string
+
+	// The name of the data type that represents the field. For example, String is a
+	// valid name value.
+	Name *string
+
+	// The DataSourceIntrospectionModelFieldType object data. The type is only present
+	// if DataSourceIntrospectionModelFieldType.kind is set to NonNull or List . The
+	// type typically contains its own kind and name fields to represent the actual
+	// type data. For instance, type could contain a kind value of Scalar with a name
+	// value of String . The values Scalar and String will be collectively stored in
+	// the values field.
+	Type *DataSourceIntrospectionModelFieldType
+
+	// The values of the type field. This field represents the AppSync data type
+	// equivalent of the introspected field.
+	Values []string
+
+	noSmithyDocumentSerde
+}
+
+// The index that was retrieved from the introspected data.
+type DataSourceIntrospectionModelIndex struct {
+
+	// The fields of the index.
+	Fields []string
+
+	// The name of the index.
+	Name *string
+
+	noSmithyDocumentSerde
+}
+
+// Represents the output of a DataSourceIntrospectionResult . This is the populated
+// result of a GetDataSourceIntrospection operation.
+type DataSourceIntrospectionResult struct {
+
+	// The array of DataSourceIntrospectionModel objects.
+	Models []DataSourceIntrospectionModel
+
+	// Determines the number of types to be returned in a single response before
+	// paginating. This value is typically taken from nextToken value from the
+	// previous response.
+	NextToken *string
+
+	noSmithyDocumentSerde
+}
+
 // Describes a Delta Sync configuration.
 type DeltaSyncConfig struct {
 
@@ -522,6 +618,14 @@ type GraphqlApi struct {
 	// The DNS records for the API.
 	Dns map[string]string
 
+	// Sets the value of the GraphQL API to enable ( ENABLED ) or disable ( DISABLED )
+	// introspection. If no value is provided, the introspection configuration will be
+	// set to ENABLED by default. This field will produce an error if the operation
+	// attempts to use the introspection feature while this field is disabled. For more
+	// information about introspection, see GraphQL introspection (https://graphql.org/learn/introspection/)
+	// .
+	IntrospectionConfig GraphQLApiIntrospectionConfig
+
 	// Configuration for Lambda function authorization.
 	LambdaAuthorizerConfig *LambdaAuthorizerConfig
 
@@ -546,6 +650,21 @@ type GraphqlApi struct {
 	// The owner contact information for an API resource. This field accepts any
 	// string input with a length of 0 - 256 characters.
 	OwnerContact *string
+
+	// The maximum depth a query can have in a single request. Depth refers to the
+	// amount of nested levels allowed in the body of query. The default value is 0
+	// (or unspecified), which indicates there's no depth limit. If you set a limit, it
+	// can be between 1 and 75 nested levels. This field will produce a limit error if
+	// the operation falls out of bounds. Note that fields can still be set to nullable
+	// or non-nullable. If a non-nullable field produces an error, the error will be
+	// thrown upwards to the first nullable field available.
+	QueryDepthLimit int32
+
+	// The maximum number of resolvers that can be invoked in a single request. The
+	// default value is 0 (or unspecified), which will set the limit to 10000 . When
+	// specified, the limit value can be between 1 and 10000 . This field will produce
+	// a limit error if the operation falls out of bounds.
+	ResolverCountLimit int32
 
 	// The tags.
 	Tags map[string]string
@@ -716,6 +835,31 @@ type PipelineConfig struct {
 
 	// A list of Function objects.
 	Functions []string
+
+	noSmithyDocumentSerde
+}
+
+// Contains the metadata required to introspect the RDS cluster.
+type RdsDataApiConfig struct {
+
+	// The name of the database in the cluster.
+	//
+	// This member is required.
+	DatabaseName *string
+
+	// The resource ARN of the RDS cluster.
+	//
+	// This member is required.
+	ResourceArn *string
+
+	// The secret's ARN that was obtained from Secrets Manager. A secret consists of
+	// secret information, the secret value, plus metadata about the secret. A secret
+	// value can be a string or binary. It typically includes the ARN, secret name and
+	// description, policies, tags, encryption key from the Key Management Service, and
+	// key rotation data.
+	//
+	// This member is required.
+	SecretArn *string
 
 	noSmithyDocumentSerde
 }

@@ -1,3 +1,108 @@
+# v1.90.0 (2024-01-18)
+
+* **Feature**: GetMetricDataV2 now supports 3 groupings
+
+# v1.89.0 (2024-01-12)
+
+* **Feature**: Supervisor Barge for Chat is now supported through the MonitorContact API.
+
+# v1.88.1 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.88.0 (2024-01-03)
+
+* **Feature**: Amazon Connect, Contact Lens Evaluation API increase evaluation notes max length to 3072.
+
+# v1.87.0 (2023-12-21)
+
+* **Feature**: Adds APIs to manage User Proficiencies and Predefined Attributes. Enhances StartOutboundVoiceContact API input. Introduces SearchContacts API. Enhances DescribeContact API. Adds an API to update Routing Attributes in QueuePriority and QueueTimeAdjustmentSeconds.
+
+# v1.86.0 (2023-12-15)
+
+* **Feature**: Adds relatedContactId field to StartOutboundVoiceContact API input. Introduces PauseContact API and ResumeContact API for Task contacts. Adds pause duration, number of pauses, timestamps for last paused and resumed events to DescribeContact API response. Adds new Rule type and new Rule action.
+
+# v1.85.0 (2023-12-14)
+
+* **Feature**: This release adds support for more granular billing using tags (key:value pairs)
+
+# v1.84.2 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.84.1 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.84.0 (2023-12-06)
+
+* **Feature**: Releasing Tagging Support for Instance Management APIS
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.83.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.83.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.83.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.82.0 (2023-11-28.2)
+
+* **Feature**: Added support for following capabilities: Amazon Connect's in-app, web, and video calling. Two-way SMS integrations. Contact Lens real-time chat analytics feature. Amazon Connect Analytics Datalake capability. Capability to configure real time chat rules.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.81.2 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.81.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.81.0 (2023-11-17)
+
+* **Feature**: This release adds WISDOM_QUICK_RESPONSES as new IntegrationType of Connect IntegrationAssociation resource and bug fixes.
+
+# v1.80.1 (2023-11-15)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.80.0 (2023-11-14)
+
+* **Feature**: Introducing SegmentAttributes parameter for StartChatContact API
+
+# v1.79.0 (2023-11-09.2)
+
+* **Feature**: This release adds the ability to integrate customer lambda functions with Connect attachments for scanning and updates the ListIntegrationAssociations API to support filtering on IntegrationArn.
+
+# v1.78.1 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.78.0 (2023-11-08)
+
+* **Feature**: This release clarifies in our public documentation that InstanceId is a requirement for SearchUsers API requests.
+
+# v1.77.0 (2023-11-06)
+
+* **Feature**: Added new API that allows Amazon Connect Outbound Campaigns to create contacts in Amazon Connect when ingesting your dial requests.
+
+# v1.76.0 (2023-11-03)
+
+* **Feature**: Amazon Connect Chat introduces Create Persistent Contact Association API, allowing customers to choose when to resume previous conversations from previous chats, eliminating the need to repeat themselves and allowing agents to provide personalized service with access to entire conversation history.
+
+# v1.75.0 (2023-11-02)
+
+* **Feature**: GetMetricDataV2 API: Update to include new metrics PERCENT_NON_TALK_TIME, PERCENT_TALK_TIME, PERCENT_TALK_TIME_AGENT, PERCENT_TALK_TIME_CUSTOMER
+
 # v1.74.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

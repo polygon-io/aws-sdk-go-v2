@@ -728,6 +728,11 @@ func awsRestjson1_serializeOpDocumentCalculateRouteInput(v *CalculateRouteInput,
 	object := value.Object()
 	defer object.Close()
 
+	if v.ArrivalTime != nil {
+		ok := object.Key("ArrivalTime")
+		ok.String(smithytime.FormatDateTime(*v.ArrivalTime))
+	}
+
 	if v.CarModeOptions != nil {
 		ok := object.Key("CarModeOptions")
 		if err := awsRestjson1_serializeDocumentCalculateRouteCarModeOptions(v.CarModeOptions, ok); err != nil {
@@ -767,6 +772,11 @@ func awsRestjson1_serializeOpDocumentCalculateRouteInput(v *CalculateRouteInput,
 	if v.IncludeLegGeometry != nil {
 		ok := object.Key("IncludeLegGeometry")
 		ok.Boolean(*v.IncludeLegGeometry)
+	}
+
+	if len(v.OptimizeFor) > 0 {
+		ok := object.Key("OptimizeFor")
+		ok.String(string(v.OptimizeFor))
 	}
 
 	if len(v.TravelMode) > 0 {
@@ -1665,6 +1675,10 @@ func (m *awsRestjson1_serializeOpDeleteKey) HandleSerialize(ctx context.Context,
 func awsRestjson1_serializeOpHttpBindingsDeleteKeyInput(v *DeleteKeyInput, encoder *httpbinding.Encoder) error {
 	if v == nil {
 		return fmt.Errorf("unsupported serialization of nil %T", v)
+	}
+
+	if v.ForceDelete != nil {
+		encoder.SetQuery("forceDelete").Boolean(*v.ForceDelete)
 	}
 
 	if v.KeyName == nil || len(*v.KeyName) == 0 {
@@ -4108,9 +4122,9 @@ func awsRestjson1_serializeOpDocumentSearchPlaceIndexForPositionInput(v *SearchP
 		ok.String(*v.Language)
 	}
 
-	if v.MaxResults != 0 {
+	if v.MaxResults != nil {
 		ok := object.Key("MaxResults")
-		ok.Integer(v.MaxResults)
+		ok.Integer(*v.MaxResults)
 	}
 
 	if v.Position != nil {
@@ -4370,9 +4384,9 @@ func awsRestjson1_serializeOpDocumentSearchPlaceIndexForTextInput(v *SearchPlace
 		ok.String(*v.Language)
 	}
 
-	if v.MaxResults != 0 {
+	if v.MaxResults != nil {
 		ok := object.Key("MaxResults")
-		ok.Integer(v.MaxResults)
+		ok.Integer(*v.MaxResults)
 	}
 
 	if v.Text != nil {
@@ -5363,6 +5377,17 @@ func awsRestjson1_serializeDocumentCountryCodeList(v []string, value smithyjson.
 	return nil
 }
 
+func awsRestjson1_serializeDocumentCustomLayerList(v []string, value smithyjson.Value) error {
+	array := value.Array()
+	defer array.Close()
+
+	for i := range v {
+		av := array.Value()
+		av.String(v[i])
+	}
+	return nil
+}
+
 func awsRestjson1_serializeDocumentDataSourceConfiguration(v *types.DataSourceConfiguration, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
@@ -5527,6 +5552,13 @@ func awsRestjson1_serializeDocumentMapConfiguration(v *types.MapConfiguration, v
 	object := value.Object()
 	defer object.Close()
 
+	if v.CustomLayers != nil {
+		ok := object.Key("CustomLayers")
+		if err := awsRestjson1_serializeDocumentCustomLayerList(v.CustomLayers, ok); err != nil {
+			return err
+		}
+	}
+
 	if v.PoliticalView != nil {
 		ok := object.Key("PoliticalView")
 		ok.String(*v.PoliticalView)
@@ -5543,6 +5575,13 @@ func awsRestjson1_serializeDocumentMapConfiguration(v *types.MapConfiguration, v
 func awsRestjson1_serializeDocumentMapConfigurationUpdate(v *types.MapConfigurationUpdate, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
+
+	if v.CustomLayers != nil {
+		ok := object.Key("CustomLayers")
+		if err := awsRestjson1_serializeDocumentCustomLayerList(v.CustomLayers, ok); err != nil {
+			return err
+		}
+	}
 
 	if v.PoliticalView != nil {
 		ok := object.Key("PoliticalView")

@@ -43,6 +43,22 @@ type Certificate struct {
 	noSmithyDocumentSerde
 }
 
+// Returns the details of the DB instance’s server certificate. For more
+// information, see Updating Your Amazon DocumentDB TLS Certificates (https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html)
+// and Encrypting Data in Transit (https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html)
+// in the Amazon DocumentDB Developer Guide.
+type CertificateDetails struct {
+
+	// The CA identifier of the CA certificate used for the DB instance's server
+	// certificate.
+	CAIdentifier *string
+
+	// The expiration date of the DB instance’s server certificate.
+	ValidTill *time.Time
+
+	noSmithyDocumentSerde
+}
+
 // The configuration setting for the log types to be enabled for export to Amazon
 // CloudWatch Logs for a specific instance or cluster. The EnableLogTypes and
 // DisableLogTypes arrays determine which logs are exported (or not exported) to
@@ -183,6 +199,12 @@ type DBCluster struct {
 	// Specifies whether the cluster is encrypted.
 	StorageEncrypted *bool
 
+	// Storage type associated with your cluster Storage type associated with your
+	// cluster For information on storage types for Amazon DocumentDB clusters, see
+	// Cluster storage configurations in the Amazon DocumentDB Developer Guide. Valid
+	// values for storage type - standard | iopt1 Default value is standard
+	StorageType *string
+
 	// Provides a list of virtual private cloud (VPC) security groups that the cluster
 	// belongs to.
 	VpcSecurityGroups []VpcSecurityGroupMembership
@@ -309,6 +331,12 @@ type DBClusterSnapshot struct {
 	// Specifies whether the cluster snapshot is encrypted.
 	StorageEncrypted *bool
 
+	// Storage type associated with your cluster snapshot For information on storage
+	// types for Amazon DocumentDB clusters, see Cluster storage configurations in the
+	// Amazon DocumentDB Developer Guide. Valid values for storage type - standard |
+	// iopt1 Default value is standard
+	StorageType *string
+
 	// Provides the virtual private cloud (VPC) ID that is associated with the cluster
 	// snapshot.
 	VpcId *string
@@ -371,6 +399,16 @@ type DBEngineVersion struct {
 	// CloudWatch Logs.
 	ExportableLogTypes []string
 
+	// A list of the supported CA certificate identifiers. For more information, see
+	// Updating Your Amazon DocumentDB TLS Certificates (https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html)
+	// and Encrypting Data in Transit (https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html)
+	// in the Amazon DocumentDB Developer Guide.
+	SupportedCACertificateIdentifiers []string
+
+	// Indicates whether the engine version supports rotating the server certificate
+	// without rebooting the DB instance.
+	SupportsCertificateRotationWithoutRestart *bool
+
 	// A value that indicates whether the engine version supports exporting the log
 	// types specified by ExportableLogTypes to CloudWatch Logs.
 	SupportsLogExportsToCloudwatchLogs *bool
@@ -396,6 +434,9 @@ type DBInstance struct {
 
 	// The identifier of the CA certificate for this DB instance.
 	CACertificateIdentifier *string
+
+	// The details of the DB instance's server certificate.
+	CertificateDetails *CertificateDetails
 
 	// A value that indicates whether to copy tags from the DB instance to snapshots
 	// of the DB instance. By default, tags are not copied.
@@ -453,6 +494,15 @@ type DBInstance struct {
 	// Specifies that changes to the instance are pending. This element is included
 	// only when changes are pending. Specific changes are identified by subelements.
 	PendingModifiedValues *PendingModifiedValues
+
+	// Set to true if Amazon RDS Performance Insights is enabled for the DB instance,
+	// and otherwise false .
+	PerformanceInsightsEnabled *bool
+
+	// The KMS key identifier for encryption of Performance Insights data. The KMS key
+	// ID is the Amazon Resource Name (ARN), KMS key identifier, or the KMS key alias
+	// for the KMS encryption key.
+	PerformanceInsightsKMSKeyId *string
 
 	// Specifies the daily time range during which automated backups are created if
 	// automated backups are enabled, as determined by the BackupRetentionPeriod .
@@ -739,6 +789,9 @@ type OrderableDBInstanceOption struct {
 
 	// The license model for an instance.
 	LicenseModel *string
+
+	// The storage type to associate with the DB cluster
+	StorageType *string
 
 	// Indicates whether an instance is in a virtual private cloud (VPC).
 	Vpc *bool

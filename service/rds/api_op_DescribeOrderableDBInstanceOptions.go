@@ -4,20 +4,15 @@ package rds
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Returns a list of orderable DB instance options for the specified DB engine, DB
-// engine version, and DB instance class.
+// Describes the orderable DB instance options for a specified DB engine.
 func (c *Client) DescribeOrderableDBInstanceOptions(ctx context.Context, params *DescribeOrderableDBInstanceOptionsInput, optFns ...func(*Options)) (*DescribeOrderableDBInstanceOptionsOutput, error) {
 	if params == nil {
 		params = &DescribeOrderableDBInstanceOptionsInput{}
@@ -35,10 +30,12 @@ func (c *Client) DescribeOrderableDBInstanceOptions(ctx context.Context, params 
 
 type DescribeOrderableDBInstanceOptionsInput struct {
 
-	// The name of the engine to retrieve DB instance options for. Valid Values:
+	// The name of the engine to describe DB instance options for. Valid Values:
 	//   - aurora-mysql
 	//   - aurora-postgresql
 	//   - custom-oracle-ee
+	//   - db2-ae
+	//   - db2-se
 	//   - mariadb
 	//   - mysql
 	//   - oracle-ee
@@ -55,25 +52,23 @@ type DescribeOrderableDBInstanceOptionsInput struct {
 	Engine *string
 
 	// The Availability Zone group associated with a Local Zone. Specify this
-	// parameter to retrieve available offerings for the Local Zones in the group. Omit
-	// this parameter to show the available offerings in the specified Amazon Web
-	// Services Region. This setting doesn't apply to RDS Custom.
+	// parameter to retrieve available options for the Local Zones in the group. Omit
+	// this parameter to show the available options in the specified Amazon Web
+	// Services Region. This setting doesn't apply to RDS Custom DB instances.
 	AvailabilityZoneGroup *string
 
-	// The DB instance class filter value. Specify this parameter to show only the
-	// available offerings matching the specified DB instance class.
+	// A filter to include only the available options for the specified DB instance
+	// class.
 	DBInstanceClass *string
 
-	// The engine version filter value. Specify this parameter to show only the
-	// available offerings matching the specified engine version.
+	// A filter to include only the available options for the specified engine version.
 	EngineVersion *string
 
 	// This parameter isn't currently supported.
 	Filters []types.Filter
 
-	// The license model filter value. Specify this parameter to show only the
-	// available offerings matching the specified license model. RDS Custom supports
-	// only the BYOL licensing model.
+	// A filter to include only the available options for the specified license model.
+	// RDS Custom supports only the BYOL licensing model.
 	LicenseModel *string
 
 	// An optional pagination token provided by a previous
@@ -116,6 +111,9 @@ type DescribeOrderableDBInstanceOptionsOutput struct {
 }
 
 func (c *Client) addOperationDescribeOrderableDBInstanceOptionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDescribeOrderableDBInstanceOptions{}, middleware.After)
 	if err != nil {
 		return err
@@ -124,6 +122,10 @@ func (c *Client) addOperationDescribeOrderableDBInstanceOptionsMiddlewares(stack
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeOrderableDBInstanceOptions"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -145,9 +147,6 @@ func (c *Client) addOperationDescribeOrderableDBInstanceOptionsMiddlewares(stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -163,7 +162,7 @@ func (c *Client) addOperationDescribeOrderableDBInstanceOptionsMiddlewares(stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addDescribeOrderableDBInstanceOptionsResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpDescribeOrderableDBInstanceOptionsValidationMiddleware(stack); err != nil {
@@ -184,7 +183,7 @@ func (c *Client) addOperationDescribeOrderableDBInstanceOptionsMiddlewares(stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -290,130 +289,6 @@ func newServiceMetadataMiddleware_opDescribeOrderableDBInstanceOptions(region st
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "rds",
 		OperationName: "DescribeOrderableDBInstanceOptions",
 	}
-}
-
-type opDescribeOrderableDBInstanceOptionsResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opDescribeOrderableDBInstanceOptionsResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opDescribeOrderableDBInstanceOptionsResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "rds"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "rds"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("rds")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addDescribeOrderableDBInstanceOptionsResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opDescribeOrderableDBInstanceOptionsResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

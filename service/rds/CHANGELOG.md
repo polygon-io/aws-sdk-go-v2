@@ -1,3 +1,107 @@
+# v1.69.0 (2024-01-29)
+
+* **Feature**: Introduced support for the InsufficientDBInstanceCapacityFault error in the RDS RestoreDBClusterFromSnapshot and RestoreDBClusterToPointInTime API methods. This provides enhanced error handling, ensuring a more robust experience.
+
+# v1.68.0 (2024-01-24)
+
+* **Feature**: This release adds support for Aurora Limitless Database.
+
+# v1.67.0 (2024-01-22)
+
+* **Feature**: Introduced support for the InsufficientDBInstanceCapacityFault error in the RDS CreateDBCluster API method. This provides enhanced error handling, ensuring a more robust experience when creating database clusters with insufficient instance capacity.
+
+# v1.66.2 (2024-01-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.1 (2023-12-27)
+
+* No change notes available for this release.
+
+# v1.66.0 (2023-12-21)
+
+* **Feature**: This release adds support for using RDS Data API with Aurora PostgreSQL Serverless v2 and provisioned DB clusters.
+
+# v1.65.0 (2023-12-19)
+
+* **Feature**: RDS - The release adds two new APIs: DescribeDBRecommendations and ModifyDBRecommendation
+
+# v1.64.6 (2023-12-15)
+
+* **Documentation**: Updates Amazon RDS documentation by adding code examples
+
+# v1.64.5 (2023-12-08)
+
+* **Bug Fix**: Reinstate presence of default Retryer in functional options, but still respect max attempts set therein.
+
+# v1.64.4 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.64.3 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+
+# v1.64.2 (2023-12-01)
+
+* **Bug Fix**: Correct wrapping of errors in authentication workflow.
+* **Bug Fix**: Correctly recognize cache-wrapped instances of AnonymousCredentials at client construction.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.64.1 (2023-11-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.64.0 (2023-11-29)
+
+* **Feature**: Expose Options() accessor on service clients.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.5 (2023-11-28.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.4 (2023-11-28)
+
+* **Bug Fix**: Respect setting RetryMaxAttempts in functional options at client construction.
+
+# v1.63.3 (2023-11-27.2)
+
+* **Documentation**: Updates Amazon RDS documentation for support for RDS for Db2.
+
+# v1.63.2 (2023-11-27)
+
+* No change notes available for this release.
+
+# v1.63.1 (2023-11-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.63.0 (2023-11-17)
+
+* **Feature**: This release adds support for option groups and replica enhancements to Amazon RDS Custom.
+
+# v1.62.4 (2023-11-15)
+
+* **Documentation**: Updates Amazon RDS documentation for support for upgrading RDS for MySQL snapshots from version 5.7 to version 8.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.3 (2023-11-10)
+
+* **Documentation**: Updates Amazon RDS documentation for zero-ETL integrations.
+
+# v1.62.2 (2023-11-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.1 (2023-11-08)
+
+* **Documentation**: This Amazon RDS release adds support for patching the OS of an RDS Custom for Oracle DB instance. You can now upgrade the database or operating system using the modify-db-instance command.
+
+# v1.62.0 (2023-11-07)
+
+* **Feature**: This Amazon RDS release adds support for the multi-tenant configuration. In this configuration, an RDS DB instance can contain multiple tenant databases. In RDS for Oracle, a tenant database is a pluggable database (PDB).
+
 # v1.61.0 (2023-11-01)
 
 * **Feature**: Adds support for configured endpoints via environment variables and the AWS shared configuration file.

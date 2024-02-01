@@ -12421,6 +12421,40 @@ func awsRestjson1_deserializeDocument__listOfChannelSummary(v *[]types.ChannelSu
 	return nil
 }
 
+func awsRestjson1_deserializeDocument__listOfColorCorrection(v *[]types.ColorCorrection, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.([]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var cv []types.ColorCorrection
+	if *v == nil {
+		cv = []types.ColorCorrection{}
+	} else {
+		cv = *v
+	}
+
+	for _, value := range shape {
+		var col types.ColorCorrection
+		destAddr := &col
+		if err := awsRestjson1_deserializeDocumentColorCorrection(&destAddr, value); err != nil {
+			return err
+		}
+		col = *destAddr
+		cv = append(cv, col)
+
+	}
+	*v = cv
+	return nil
+}
+
 func awsRestjson1_deserializeDocument__listOfFailoverCondition(v *[]types.FailoverCondition, value interface{}) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -12685,6 +12719,40 @@ func awsRestjson1_deserializeDocument__listOfInputDeviceSummary(v *[]types.Input
 		var col types.InputDeviceSummary
 		destAddr := &col
 		if err := awsRestjson1_deserializeDocumentInputDeviceSummary(&destAddr, value); err != nil {
+			return err
+		}
+		col = *destAddr
+		cv = append(cv, col)
+
+	}
+	*v = cv
+	return nil
+}
+
+func awsRestjson1_deserializeDocument__listOfInputDeviceUhdAudioChannelPairConfig(v *[]types.InputDeviceUhdAudioChannelPairConfig, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.([]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var cv []types.InputDeviceUhdAudioChannelPairConfig
+	if *v == nil {
+		cv = []types.InputDeviceUhdAudioChannelPairConfig{}
+	} else {
+		cv = *v
+	}
+
+	for _, value := range shape {
+		var col types.InputDeviceUhdAudioChannelPairConfig
+		destAddr := &col
+		if err := awsRestjson1_deserializeDocumentInputDeviceUhdAudioChannelPairConfig(&destAddr, value); err != nil {
 			return err
 		}
 		col = *destAddr
@@ -16704,6 +16772,100 @@ func awsRestjson1_deserializeDocumentChannelSummary(v **types.ChannelSummary, va
 	return nil
 }
 
+func awsRestjson1_deserializeDocumentColorCorrection(v **types.ColorCorrection, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.ColorCorrection
+	if *v == nil {
+		sv = &types.ColorCorrection{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "inputColorSpace":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected ColorSpace to be of type string, got %T instead", value)
+				}
+				sv.InputColorSpace = types.ColorSpace(jtv)
+			}
+
+		case "outputColorSpace":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected ColorSpace to be of type string, got %T instead", value)
+				}
+				sv.OutputColorSpace = types.ColorSpace(jtv)
+			}
+
+		case "uri":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected __string to be of type string, got %T instead", value)
+				}
+				sv.Uri = ptr.String(jtv)
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
+func awsRestjson1_deserializeDocumentColorCorrectionSettings(v **types.ColorCorrectionSettings, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.ColorCorrectionSettings
+	if *v == nil {
+		sv = &types.ColorCorrectionSettings{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "globalColorCorrections":
+			if err := awsRestjson1_deserializeDocument__listOfColorCorrection(&sv.GlobalColorCorrections, value); err != nil {
+				return err
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
 func awsRestjson1_deserializeDocumentColorSpacePassthroughSettings(v **types.ColorSpacePassthroughSettings, value interface{}) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -18020,6 +18182,11 @@ func awsRestjson1_deserializeDocumentEncoderSettings(v **types.EncoderSettings, 
 				return err
 			}
 
+		case "colorCorrectionSettings":
+			if err := awsRestjson1_deserializeDocumentColorCorrectionSettings(&sv.ColorCorrectionSettings, value); err != nil {
+				return err
+			}
+
 		case "featureActivations":
 			if err := awsRestjson1_deserializeDocumentFeatureActivations(&sv.FeatureActivations, value); err != nil {
 				return err
@@ -18318,6 +18485,15 @@ func awsRestjson1_deserializeDocumentFeatureActivations(v **types.FeatureActivat
 					return fmt.Errorf("expected FeatureActivationsInputPrepareScheduleActions to be of type string, got %T instead", value)
 				}
 				sv.InputPrepareScheduleActions = types.FeatureActivationsInputPrepareScheduleActions(jtv)
+			}
+
+		case "outputStaticImageOverlayScheduleActions":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected FeatureActivationsOutputStaticImageOverlayScheduleActions to be of type string, got %T instead", value)
+				}
+				sv.OutputStaticImageOverlayScheduleActions = types.FeatureActivationsOutputStaticImageOverlayScheduleActions(jtv)
 			}
 
 		default:
@@ -22197,6 +22373,59 @@ func awsRestjson1_deserializeDocumentInputDeviceSummary(v **types.InputDeviceSum
 	return nil
 }
 
+func awsRestjson1_deserializeDocumentInputDeviceUhdAudioChannelPairConfig(v **types.InputDeviceUhdAudioChannelPairConfig, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.InputDeviceUhdAudioChannelPairConfig
+	if *v == nil {
+		sv = &types.InputDeviceUhdAudioChannelPairConfig{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "id":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integer to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Id = ptr.Int32(int32(i64))
+			}
+
+		case "profile":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected InputDeviceUhdAudioChannelPairProfile to be of type string, got %T instead", value)
+				}
+				sv.Profile = types.InputDeviceUhdAudioChannelPairProfile(jtv)
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
 func awsRestjson1_deserializeDocumentInputDeviceUhdSettings(v **types.InputDeviceUhdSettings, value interface{}) error {
 	if v == nil {
 		return fmt.Errorf("unexpected nil of type %T", v)
@@ -22226,6 +22455,11 @@ func awsRestjson1_deserializeDocumentInputDeviceUhdSettings(v **types.InputDevic
 					return fmt.Errorf("expected InputDeviceActiveInput to be of type string, got %T instead", value)
 				}
 				sv.ActiveInput = types.InputDeviceActiveInput(jtv)
+			}
+
+		case "audioChannelPairs":
+			if err := awsRestjson1_deserializeDocument__listOfInputDeviceUhdAudioChannelPairConfig(&sv.AudioChannelPairs, value); err != nil {
+				return err
 			}
 
 		case "codec":
@@ -28095,6 +28329,16 @@ func awsRestjson1_deserializeDocumentScheduleActionSettings(v **types.ScheduleAc
 				return err
 			}
 
+		case "staticImageOutputActivateSettings":
+			if err := awsRestjson1_deserializeDocumentStaticImageOutputActivateScheduleActionSettings(&sv.StaticImageOutputActivateSettings, value); err != nil {
+				return err
+			}
+
+		case "staticImageOutputDeactivateSettings":
+			if err := awsRestjson1_deserializeDocumentStaticImageOutputDeactivateScheduleActionSettings(&sv.StaticImageOutputDeactivateSettings, value); err != nil {
+				return err
+			}
+
 		default:
 			_, _ = key, value
 
@@ -29240,6 +29484,226 @@ func awsRestjson1_deserializeDocumentStaticImageDeactivateScheduleActionSettings
 					return err
 				}
 				sv.Layer = ptr.Int32(int32(i64))
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
+func awsRestjson1_deserializeDocumentStaticImageOutputActivateScheduleActionSettings(v **types.StaticImageOutputActivateScheduleActionSettings, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.StaticImageOutputActivateScheduleActionSettings
+	if *v == nil {
+		sv = &types.StaticImageOutputActivateScheduleActionSettings{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "duration":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Duration = ptr.Int32(int32(i64))
+			}
+
+		case "fadeIn":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.FadeIn = ptr.Int32(int32(i64))
+			}
+
+		case "fadeOut":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.FadeOut = ptr.Int32(int32(i64))
+			}
+
+		case "height":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin1 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Height = ptr.Int32(int32(i64))
+			}
+
+		case "image":
+			if err := awsRestjson1_deserializeDocumentInputLocation(&sv.Image, value); err != nil {
+				return err
+			}
+
+		case "imageX":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.ImageX = ptr.Int32(int32(i64))
+			}
+
+		case "imageY":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.ImageY = ptr.Int32(int32(i64))
+			}
+
+		case "layer":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0Max7 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Layer = ptr.Int32(int32(i64))
+			}
+
+		case "opacity":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0Max100 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Opacity = ptr.Int32(int32(i64))
+			}
+
+		case "outputNames":
+			if err := awsRestjson1_deserializeDocument__listOf__string(&sv.OutputNames, value); err != nil {
+				return err
+			}
+
+		case "width":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin1 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Width = ptr.Int32(int32(i64))
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
+func awsRestjson1_deserializeDocumentStaticImageOutputDeactivateScheduleActionSettings(v **types.StaticImageOutputDeactivateScheduleActionSettings, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.StaticImageOutputDeactivateScheduleActionSettings
+	if *v == nil {
+		sv = &types.StaticImageOutputDeactivateScheduleActionSettings{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "fadeOut":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.FadeOut = ptr.Int32(int32(i64))
+			}
+
+		case "layer":
+			if value != nil {
+				jtv, ok := value.(json.Number)
+				if !ok {
+					return fmt.Errorf("expected __integerMin0Max7 to be json.Number, got %T instead", value)
+				}
+				i64, err := jtv.Int64()
+				if err != nil {
+					return err
+				}
+				sv.Layer = ptr.Int32(int32(i64))
+			}
+
+		case "outputNames":
+			if err := awsRestjson1_deserializeDocument__listOf__string(&sv.OutputNames, value); err != nil {
+				return err
 			}
 
 		default:

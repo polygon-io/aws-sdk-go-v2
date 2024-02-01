@@ -204,6 +204,27 @@ func (ConflictHandlerType) Values() []ConflictHandlerType {
 	}
 }
 
+type DataSourceIntrospectionStatus string
+
+// Enum values for DataSourceIntrospectionStatus
+const (
+	DataSourceIntrospectionStatusProcessing DataSourceIntrospectionStatus = "PROCESSING"
+	DataSourceIntrospectionStatusFailed     DataSourceIntrospectionStatus = "FAILED"
+	DataSourceIntrospectionStatusSuccess    DataSourceIntrospectionStatus = "SUCCESS"
+)
+
+// Values returns all known values for DataSourceIntrospectionStatus. Note that
+// this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (DataSourceIntrospectionStatus) Values() []DataSourceIntrospectionStatus {
+	return []DataSourceIntrospectionStatus{
+		"PROCESSING",
+		"FAILED",
+		"SUCCESS",
+	}
+}
+
 type DataSourceType string
 
 // Enum values for DataSourceType
@@ -269,6 +290,25 @@ func (FieldLogLevel) Values() []FieldLogLevel {
 		"NONE",
 		"ERROR",
 		"ALL",
+	}
+}
+
+type GraphQLApiIntrospectionConfig string
+
+// Enum values for GraphQLApiIntrospectionConfig
+const (
+	GraphQLApiIntrospectionConfigEnabled  GraphQLApiIntrospectionConfig = "ENABLED"
+	GraphQLApiIntrospectionConfigDisabled GraphQLApiIntrospectionConfig = "DISABLED"
+)
+
+// Values returns all known values for GraphQLApiIntrospectionConfig. Note that
+// this can be expanded in the future, and so it is only as up to date as the
+// client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (GraphQLApiIntrospectionConfig) Values() []GraphQLApiIntrospectionConfig {
+	return []GraphQLApiIntrospectionConfig{
+		"ENABLED",
+		"DISABLED",
 	}
 }
 

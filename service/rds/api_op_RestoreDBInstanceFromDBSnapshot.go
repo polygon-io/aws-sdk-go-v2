@@ -4,14 +4,10 @@ package rds
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -24,15 +20,15 @@ import (
 // mirroring. In this case, the instance becomes a Multi-AZ deployment, not a
 // Single-AZ deployment. If you want to replace your original DB instance with the
 // new, restored DB instance, then rename your original DB instance before you call
-// the RestoreDBInstanceFromDBSnapshot action. RDS doesn't allow two DB instances
-// with the same name. After you have renamed your original DB instance with a
-// different identifier, then you can pass the original name of the DB instance as
-// the DBInstanceIdentifier in the call to the RestoreDBInstanceFromDBSnapshot
-// action. The result is that you replace the original DB instance with the DB
-// instance created from the snapshot. If you are restoring from a shared manual DB
-// snapshot, the DBSnapshotIdentifier must be the ARN of the shared DB snapshot.
-// This command doesn't apply to Aurora MySQL and Aurora PostgreSQL. For Aurora,
-// use RestoreDBClusterFromSnapshot .
+// the RestoreDBInstanceFromDBSnapshot operation. RDS doesn't allow two DB
+// instances with the same name. After you have renamed your original DB instance
+// with a different identifier, then you can pass the original name of the DB
+// instance as the DBInstanceIdentifier in the call to the
+// RestoreDBInstanceFromDBSnapshot operation. The result is that you replace the
+// original DB instance with the DB instance created from the snapshot. If you are
+// restoring from a shared manual DB snapshot, the DBSnapshotIdentifier must be
+// the ARN of the shared DB snapshot. This command doesn't apply to Aurora MySQL
+// and Aurora PostgreSQL. For Aurora, use RestoreDBClusterFromSnapshot .
 func (c *Client) RestoreDBInstanceFromDBSnapshot(ctx context.Context, params *RestoreDBInstanceFromDBSnapshotInput, optFns ...func(*Options)) (*RestoreDBInstanceFromDBSnapshotOutput, error) {
 	if params == nil {
 		params = &RestoreDBInstanceFromDBSnapshotInput{}
@@ -50,11 +46,11 @@ func (c *Client) RestoreDBInstanceFromDBSnapshot(ctx context.Context, params *Re
 
 type RestoreDBInstanceFromDBSnapshotInput struct {
 
-	// Name of the DB instance to create from the DB snapshot. This parameter isn't
-	// case-sensitive. Constraints:
-	//   - Must contain from 1 to 63 numbers, letters, or hyphens
-	//   - First character must be a letter
-	//   - Can't end with a hyphen or contain two consecutive hyphens
+	// The name of the DB instance to create from the DB snapshot. This parameter
+	// isn't case-sensitive. Constraints:
+	//   - Must contain from 1 to 63 numbers, letters, or hyphens.
+	//   - First character must be a letter.
+	//   - Can't end with a hyphen or contain two consecutive hyphens.
 	// Example: my-snapshot-id
 	//
 	// This member is required.
@@ -129,31 +125,32 @@ type RestoreDBInstanceFromDBSnapshotInput struct {
 	// DB instance.
 	DBInstanceClass *string
 
-	// The database name for the restored DB instance. This parameter doesn't apply to
-	// the MySQL, PostgreSQL, or MariaDB engines. It also doesn't apply to RDS Custom
-	// DB instances.
+	// The name of the database for the restored DB instance. This parameter only
+	// applies to RDS for Oracle and RDS for SQL Server DB instances. It doesn't apply
+	// to the other engines or to RDS Custom DB instances.
 	DBName *string
 
 	// The name of the DB parameter group to associate with this DB instance. If you
 	// don't specify a value for DBParameterGroupName , then RDS uses the default
 	// DBParameterGroup for the specified DB engine. This setting doesn't apply to RDS
 	// Custom. Constraints:
-	//   - If supplied, must match the name of an existing DBParameterGroup.
+	//   - If supplied, must match the name of an existing DB parameter group.
 	//   - Must be 1 to 255 letters, numbers, or hyphens.
 	//   - First character must be a letter.
 	//   - Can't end with a hyphen or contain two consecutive hyphens.
 	DBParameterGroupName *string
 
 	// The identifier for the DB snapshot to restore from. Constraints:
-	//   - Must match the identifier of an existing DBSnapshot.
+	//   - Must match the identifier of an existing DB snapshot.
 	//   - Can't be specified when DBClusterSnapshotIdentifier is specified.
 	//   - Must be specified when DBClusterSnapshotIdentifier isn't specified.
 	//   - If you are restoring from a shared manual DB snapshot, the
 	//   DBSnapshotIdentifier must be the ARN of the shared DB snapshot.
 	DBSnapshotIdentifier *string
 
-	// The DB subnet group name to use for the new instance. Constraints: If supplied,
-	// must match the name of an existing DBSubnetGroup. Example: mydbsubnetgroup
+	// The name of the DB subnet group to use for the new instance. Constraints:
+	//   - If supplied, must match the name of an existing DB subnet group.
+	// Example: mydbsubnetgroup
 	DBSubnetGroupName *string
 
 	// Specifies whether to enable a dedicated log volume (DLV) for the DB instance.
@@ -166,8 +163,8 @@ type RestoreDBInstanceFromDBSnapshotInput struct {
 	// .
 	DeletionProtection *bool
 
-	// Specify the Active Directory directory ID to restore the DB instance in. The
-	// domain/ must be created prior to this operation. Currently, you can create only
+	// The Active Directory directory ID to restore the DB instance in. The domain/
+	// must be created prior to this operation. Currently, you can create only Db2,
 	// MySQL, Microsoft SQL Server, Oracle, and PostgreSQL DB instances in an Active
 	// Directory Domain. For more information, see Kerberos Authentication (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/kerberos-authentication.html)
 	// in the Amazon RDS User Guide. This setting doesn't apply to RDS Custom.
@@ -205,9 +202,9 @@ type RestoreDBInstanceFromDBSnapshotInput struct {
 	// Example: OU=mymanagedADtestOU,DC=mymanagedADtest,DC=mymanagedAD,DC=mydomain
 	DomainOu *string
 
-	// The list of logs that the restored DB instance is to export to CloudWatch Logs.
-	// The values in the list depend on the DB engine being used. For more information,
-	// see Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
+	// The list of logs for the restored DB instance to export to CloudWatch Logs. The
+	// values in the list depend on the DB engine. For more information, see
+	// Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
 	// in the Amazon RDS User Guide. This setting doesn't apply to RDS Custom.
 	EnableCloudwatchLogsExports []string
 
@@ -234,6 +231,8 @@ type RestoreDBInstanceFromDBSnapshotInput struct {
 	// RDS Custom. Default: The same as source Constraint: Must be compatible with the
 	// engine of the source. For example, you can restore a MariaDB 10.1 DB instance
 	// from a MySQL 5.6 snapshot. Valid Values:
+	//   - db2-ae
+	//   - db2-se
 	//   - mariadb
 	//   - mysql
 	//   - oracle-ee
@@ -353,6 +352,9 @@ type RestoreDBInstanceFromDBSnapshotOutput struct {
 }
 
 func (c *Client) addOperationRestoreDBInstanceFromDBSnapshotMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpRestoreDBInstanceFromDBSnapshot{}, middleware.After)
 	if err != nil {
 		return err
@@ -361,6 +363,10 @@ func (c *Client) addOperationRestoreDBInstanceFromDBSnapshotMiddlewares(stack *m
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RestoreDBInstanceFromDBSnapshot"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -382,9 +388,6 @@ func (c *Client) addOperationRestoreDBInstanceFromDBSnapshotMiddlewares(stack *m
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -400,7 +403,7 @@ func (c *Client) addOperationRestoreDBInstanceFromDBSnapshotMiddlewares(stack *m
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addRestoreDBInstanceFromDBSnapshotResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpRestoreDBInstanceFromDBSnapshotValidationMiddleware(stack); err != nil {
@@ -421,7 +424,7 @@ func (c *Client) addOperationRestoreDBInstanceFromDBSnapshotMiddlewares(stack *m
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -431,130 +434,6 @@ func newServiceMetadataMiddleware_opRestoreDBInstanceFromDBSnapshot(region strin
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "rds",
 		OperationName: "RestoreDBInstanceFromDBSnapshot",
 	}
-}
-
-type opRestoreDBInstanceFromDBSnapshotResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opRestoreDBInstanceFromDBSnapshotResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opRestoreDBInstanceFromDBSnapshotResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "rds"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "rds"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("rds")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addRestoreDBInstanceFromDBSnapshotResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opRestoreDBInstanceFromDBSnapshotResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

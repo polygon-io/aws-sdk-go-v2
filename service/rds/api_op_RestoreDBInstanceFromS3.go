@@ -4,14 +4,10 @@ package rds
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -21,7 +17,7 @@ import (
 // database, store it on Amazon Simple Storage Service (Amazon S3), and then
 // restore the backup file onto a new Amazon RDS DB instance running MySQL. For
 // more information, see Importing Data into an Amazon RDS MySQL DB Instance (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Procedural.Importing.html)
-// in the Amazon RDS User Guide. This command doesn't apply to RDS Custom.
+// in the Amazon RDS User Guide. This operation doesn't apply to RDS Custom.
 func (c *Client) RestoreDBInstanceFromS3(ctx context.Context, params *RestoreDBInstanceFromS3Input, optFns ...func(*Options)) (*RestoreDBInstanceFromS3Output, error) {
 	if params == nil {
 		params = &RestoreDBInstanceFromS3Input{}
@@ -194,13 +190,18 @@ type RestoreDBInstanceFromS3Input struct {
 	//   Manager if MasterUserPassword is specified.
 	ManageMasterUserPassword *bool
 
-	// The password for the master user. The password can include any printable ASCII
-	// character except "/", """, or "@". Constraints: Can't be specified if
-	// ManageMasterUserPassword is turned on. MariaDB Constraints: Must contain from 8
-	// to 41 characters. Microsoft SQL Server Constraints: Must contain from 8 to 128
-	// characters. MySQL Constraints: Must contain from 8 to 41 characters. Oracle
-	// Constraints: Must contain from 8 to 30 characters. PostgreSQL Constraints: Must
-	// contain from 8 to 128 characters.
+	// The password for the master user. Constraints:
+	//   - Can't be specified if ManageMasterUserPassword is turned on.
+	//   - Can include any printable ASCII character except "/", """, or "@". For RDS
+	//   for Oracle, can't include the "&" (ampersand) or the "'" (single quotes)
+	//   character.
+	// Length Constraints:
+	//   - RDS for Db2 - Must contain from 8 to 128 characters.
+	//   - RDS for MariaDB - Must contain from 8 to 41 characters.
+	//   - RDS for Microsoft SQL Server - Must contain from 8 to 128 characters.
+	//   - RDS for MySQL - Must contain from 8 to 41 characters.
+	//   - RDS for Oracle - Must contain from 8 to 30 characters.
+	//   - RDS for PostgreSQL - Must contain from 8 to 128 characters.
 	MasterUserPassword *string
 
 	// The Amazon Web Services KMS key identifier to encrypt a secret that is
@@ -374,6 +375,9 @@ type RestoreDBInstanceFromS3Output struct {
 }
 
 func (c *Client) addOperationRestoreDBInstanceFromS3Middlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpRestoreDBInstanceFromS3{}, middleware.After)
 	if err != nil {
 		return err
@@ -382,6 +386,10 @@ func (c *Client) addOperationRestoreDBInstanceFromS3Middlewares(stack *middlewar
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RestoreDBInstanceFromS3"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -403,9 +411,6 @@ func (c *Client) addOperationRestoreDBInstanceFromS3Middlewares(stack *middlewar
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -421,7 +426,7 @@ func (c *Client) addOperationRestoreDBInstanceFromS3Middlewares(stack *middlewar
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addRestoreDBInstanceFromS3ResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpRestoreDBInstanceFromS3ValidationMiddleware(stack); err != nil {
@@ -442,7 +447,7 @@ func (c *Client) addOperationRestoreDBInstanceFromS3Middlewares(stack *middlewar
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -452,130 +457,6 @@ func newServiceMetadataMiddleware_opRestoreDBInstanceFromS3(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "rds",
 		OperationName: "RestoreDBInstanceFromS3",
 	}
-}
-
-type opRestoreDBInstanceFromS3ResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opRestoreDBInstanceFromS3ResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opRestoreDBInstanceFromS3ResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "rds"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "rds"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("rds")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addRestoreDBInstanceFromS3ResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opRestoreDBInstanceFromS3ResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

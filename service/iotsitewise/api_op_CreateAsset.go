@@ -4,14 +4,10 @@ package iotsitewise
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/iotsitewise/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -36,7 +32,10 @@ func (c *Client) CreateAsset(ctx context.Context, params *CreateAssetInput, optF
 
 type CreateAssetInput struct {
 
-	// The ID of the asset model from which to create the asset.
+	// The ID of the asset model from which to create the asset. This can be either
+	// the actual ID in UUID format, or else externalId: followed by the external ID,
+	// if it has one. For more information, see Referencing objects with external IDs (https://docs.aws.amazon.com/iot-sitewise/latest/userguide/object-ids.html#external-id-references)
+	// in the IoT SiteWise User Guide.
 	//
 	// This member is required.
 	AssetModelId *string
@@ -48,6 +47,17 @@ type CreateAssetInput struct {
 
 	// A description for the asset.
 	AssetDescription *string
+
+	// An external ID to assign to the asset. The external ID must be unique within
+	// your Amazon Web Services account. For more information, see Using external IDs (https://docs.aws.amazon.com/iot-sitewise/latest/userguide/object-ids.html#external-ids)
+	// in the IoT SiteWise User Guide.
+	AssetExternalId *string
+
+	// The ID to assign to the asset, if desired. IoT SiteWise automatically generates
+	// a unique ID for you, so this parameter is never required. However, if you prefer
+	// to supply your own ID instead, you can specify it here in UUID format. If you
+	// specify your own ID, it must be globally unique.
+	AssetId *string
 
 	// A unique case-sensitive identifier that you can provide to ensure the
 	// idempotency of the request. Don't reuse this client token if a new idempotent
@@ -71,8 +81,8 @@ type CreateAssetOutput struct {
 	// This member is required.
 	AssetArn *string
 
-	// The ID of the asset. This ID uniquely identifies the asset within IoT SiteWise
-	// and can be used with other IoT SiteWise APIs.
+	// The ID of the asset, in UUID format. This ID uniquely identifies the asset
+	// within IoT SiteWise and can be used with other IoT SiteWise API operations.
 	//
 	// This member is required.
 	AssetId *string
@@ -90,6 +100,9 @@ type CreateAssetOutput struct {
 }
 
 func (c *Client) addOperationCreateAssetMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateAsset{}, middleware.After)
 	if err != nil {
 		return err
@@ -98,6 +111,10 @@ func (c *Client) addOperationCreateAssetMiddlewares(stack *middleware.Stack, opt
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateAsset"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -119,9 +136,6 @@ func (c *Client) addOperationCreateAssetMiddlewares(stack *middleware.Stack, opt
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -137,10 +151,10 @@ func (c *Client) addOperationCreateAssetMiddlewares(stack *middleware.Stack, opt
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addEndpointPrefix_opCreateAssetMiddleware(stack); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateAssetResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addEndpointPrefix_opCreateAssetMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreateAssetMiddleware(stack, options); err != nil {
@@ -164,7 +178,7 @@ func (c *Client) addOperationCreateAssetMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -177,11 +191,11 @@ func (*endpointPrefix_opCreateAssetMiddleware) ID() string {
 	return "EndpointHostPrefix"
 }
 
-func (m *endpointPrefix_opCreateAssetMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+func (m *endpointPrefix_opCreateAssetMiddleware) HandleFinalize(ctx context.Context, in middleware.FinalizeInput, next middleware.FinalizeHandler) (
+	out middleware.FinalizeOutput, metadata middleware.Metadata, err error,
 ) {
 	if smithyhttp.GetHostnameImmutable(ctx) || smithyhttp.IsEndpointHostPrefixDisabled(ctx) {
-		return next.HandleSerialize(ctx, in)
+		return next.HandleFinalize(ctx, in)
 	}
 
 	req, ok := in.Request.(*smithyhttp.Request)
@@ -191,10 +205,10 @@ func (m *endpointPrefix_opCreateAssetMiddleware) HandleSerialize(ctx context.Con
 
 	req.URL.Host = "api." + req.URL.Host
 
-	return next.HandleSerialize(ctx, in)
+	return next.HandleFinalize(ctx, in)
 }
 func addEndpointPrefix_opCreateAssetMiddleware(stack *middleware.Stack) error {
-	return stack.Serialize.Insert(&endpointPrefix_opCreateAssetMiddleware{}, `OperationSerializer`, middleware.After)
+	return stack.Finalize.Insert(&endpointPrefix_opCreateAssetMiddleware{}, "ResolveEndpointV2", middleware.After)
 }
 
 type idempotencyToken_initializeOpCreateAsset struct {
@@ -234,130 +248,6 @@ func newServiceMetadataMiddleware_opCreateAsset(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iotsitewise",
 		OperationName: "CreateAsset",
 	}
-}
-
-type opCreateAssetResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateAssetResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateAssetResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "iotsitewise"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "iotsitewise"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("iotsitewise")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateAssetResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateAssetResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

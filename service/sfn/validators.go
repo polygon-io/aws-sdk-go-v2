@@ -410,6 +410,26 @@ func (m *validateOpPublishStateMachineVersion) HandleInitialize(ctx context.Cont
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpRedriveExecution struct {
+}
+
+func (*validateOpRedriveExecution) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpRedriveExecution) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*RedriveExecutionInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpRedriveExecutionInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpSendTaskFailure struct {
 }
 
@@ -545,6 +565,26 @@ func (m *validateOpTagResource) HandleInitialize(ctx context.Context, in middlew
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpTagResourceInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpTestState struct {
+}
+
+func (*validateOpTestState) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpTestState) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*TestStateInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpTestStateInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -710,6 +750,10 @@ func addOpPublishStateMachineVersionValidationMiddleware(stack *middleware.Stack
 	return stack.Initialize.Add(&validateOpPublishStateMachineVersion{}, middleware.After)
 }
 
+func addOpRedriveExecutionValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpRedriveExecution{}, middleware.After)
+}
+
 func addOpSendTaskFailureValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpSendTaskFailure{}, middleware.After)
 }
@@ -736,6 +780,10 @@ func addOpStopExecutionValidationMiddleware(stack *middleware.Stack) error {
 
 func addOpTagResourceValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpTagResource{}, middleware.After)
+}
+
+func addOpTestStateValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpTestState{}, middleware.After)
 }
 
 func addOpUntagResourceValidationMiddleware(stack *middleware.Stack) error {
@@ -1099,6 +1147,21 @@ func validateOpPublishStateMachineVersionInput(v *PublishStateMachineVersionInpu
 	}
 }
 
+func validateOpRedriveExecutionInput(v *RedriveExecutionInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "RedriveExecutionInput"}
+	if v.ExecutionArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ExecutionArn"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpSendTaskFailureInput(v *SendTaskFailureInput) error {
 	if v == nil {
 		return nil
@@ -1202,6 +1265,24 @@ func validateOpTagResourceInput(v *TagResourceInput) error {
 	}
 	if v.Tags == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("Tags"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpTestStateInput(v *TestStateInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "TestStateInput"}
+	if v.Definition == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("Definition"))
+	}
+	if v.RoleArn == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("RoleArn"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams

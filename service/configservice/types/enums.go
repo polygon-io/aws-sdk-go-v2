@@ -518,6 +518,24 @@ func (RecorderStatus) Values() []RecorderStatus {
 	}
 }
 
+type RecordingFrequency string
+
+// Enum values for RecordingFrequency
+const (
+	RecordingFrequencyContinuous RecordingFrequency = "CONTINUOUS"
+	RecordingFrequencyDaily      RecordingFrequency = "DAILY"
+)
+
+// Values returns all known values for RecordingFrequency. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (RecordingFrequency) Values() []RecordingFrequency {
+	return []RecordingFrequency{
+		"CONTINUOUS",
+		"DAILY",
+	}
+}
+
 type RecordingStrategyType string
 
 // Enum values for RecordingStrategyType
@@ -1030,6 +1048,41 @@ const (
 	ResourceTypeCodeGuruProfilerProfilingGroup                       ResourceType = "AWS::CodeGuruProfiler::ProfilingGroup"
 	ResourceTypeRoute53ResolverResolverQueryLoggingConfig            ResourceType = "AWS::Route53Resolver::ResolverQueryLoggingConfig"
 	ResourceTypeBatchSchedulingPolicy                                ResourceType = "AWS::Batch::SchedulingPolicy"
+	ResourceTypeACMPCACertificateAuthorityActivation                 ResourceType = "AWS::ACMPCA::CertificateAuthorityActivation"
+	ResourceTypeAppMeshGatewayRoute                                  ResourceType = "AWS::AppMesh::GatewayRoute"
+	ResourceTypeAppMeshMesh                                          ResourceType = "AWS::AppMesh::Mesh"
+	ResourceTypeConnectInstance                                      ResourceType = "AWS::Connect::Instance"
+	ResourceTypeConnectQuickConnect                                  ResourceType = "AWS::Connect::QuickConnect"
+	ResourceTypeEC2CarrierGateway                                    ResourceType = "AWS::EC2::CarrierGateway"
+	ResourceTypeEC2IPAMPool                                          ResourceType = "AWS::EC2::IPAMPool"
+	ResourceTypeEC2TransitGatewayConnect                             ResourceType = "AWS::EC2::TransitGatewayConnect"
+	ResourceTypeEC2TransitGatewayMulticastDomain                     ResourceType = "AWS::EC2::TransitGatewayMulticastDomain"
+	ResourceTypeECSCapacityProvider                                  ResourceType = "AWS::ECS::CapacityProvider"
+	ResourceTypeIAMInstanceProfile                                   ResourceType = "AWS::IAM::InstanceProfile"
+	ResourceTypeIoTCACertificate                                     ResourceType = "AWS::IoT::CACertificate"
+	ResourceTypeIoTTwinMakerSyncJob                                  ResourceType = "AWS::IoTTwinMaker::SyncJob"
+	ResourceTypeKafkaConnectConnector                                ResourceType = "AWS::KafkaConnect::Connector"
+	ResourceTypeLambdaCodeSigningConfig                              ResourceType = "AWS::Lambda::CodeSigningConfig"
+	ResourceTypeNetworkManagerConnectPeer                            ResourceType = "AWS::NetworkManager::ConnectPeer"
+	ResourceTypeResourceExplorer2Index                               ResourceType = "AWS::ResourceExplorer2::Index"
+	ResourceTypeAppStreamFleet                                       ResourceType = "AWS::AppStream::Fleet"
+	ResourceTypeCognitoUserPool                                      ResourceType = "AWS::Cognito::UserPool"
+	ResourceTypeCognitoUserPoolClient                                ResourceType = "AWS::Cognito::UserPoolClient"
+	ResourceTypeCognitoUserPoolGroup                                 ResourceType = "AWS::Cognito::UserPoolGroup"
+	ResourceTypeEC2NetworkInsightsAccessScope                        ResourceType = "AWS::EC2::NetworkInsightsAccessScope"
+	ResourceTypeEC2NetworkInsightsAnalysis                           ResourceType = "AWS::EC2::NetworkInsightsAnalysis"
+	ResourceTypeGrafanaWorkspace                                     ResourceType = "AWS::Grafana::Workspace"
+	ResourceTypeGroundStationDataflowEndpointGroup                   ResourceType = "AWS::GroundStation::DataflowEndpointGroup"
+	ResourceTypeImageBuilderImageRecipe                              ResourceType = "AWS::ImageBuilder::ImageRecipe"
+	ResourceTypeKMSAlias                                             ResourceType = "AWS::KMS::Alias"
+	ResourceTypeM2Environment                                        ResourceType = "AWS::M2::Environment"
+	ResourceTypeQuickSightDataSource                                 ResourceType = "AWS::QuickSight::DataSource"
+	ResourceTypeQuickSightTemplate                                   ResourceType = "AWS::QuickSight::Template"
+	ResourceTypeQuickSightTheme                                      ResourceType = "AWS::QuickSight::Theme"
+	ResourceTypeRDSOptionGroup                                       ResourceType = "AWS::RDS::OptionGroup"
+	ResourceTypeRedshiftEndpointAccess                               ResourceType = "AWS::Redshift::EndpointAccess"
+	ResourceTypeRoute53ResolverFirewallRuleGroup                     ResourceType = "AWS::Route53Resolver::FirewallRuleGroup"
+	ResourceTypeSSMDocument                                          ResourceType = "AWS::SSM::Document"
 )
 
 // Values returns all known values for ResourceType. Note that this can be
@@ -1409,6 +1462,41 @@ func (ResourceType) Values() []ResourceType {
 		"AWS::CodeGuruProfiler::ProfilingGroup",
 		"AWS::Route53Resolver::ResolverQueryLoggingConfig",
 		"AWS::Batch::SchedulingPolicy",
+		"AWS::ACMPCA::CertificateAuthorityActivation",
+		"AWS::AppMesh::GatewayRoute",
+		"AWS::AppMesh::Mesh",
+		"AWS::Connect::Instance",
+		"AWS::Connect::QuickConnect",
+		"AWS::EC2::CarrierGateway",
+		"AWS::EC2::IPAMPool",
+		"AWS::EC2::TransitGatewayConnect",
+		"AWS::EC2::TransitGatewayMulticastDomain",
+		"AWS::ECS::CapacityProvider",
+		"AWS::IAM::InstanceProfile",
+		"AWS::IoT::CACertificate",
+		"AWS::IoTTwinMaker::SyncJob",
+		"AWS::KafkaConnect::Connector",
+		"AWS::Lambda::CodeSigningConfig",
+		"AWS::NetworkManager::ConnectPeer",
+		"AWS::ResourceExplorer2::Index",
+		"AWS::AppStream::Fleet",
+		"AWS::Cognito::UserPool",
+		"AWS::Cognito::UserPoolClient",
+		"AWS::Cognito::UserPoolGroup",
+		"AWS::EC2::NetworkInsightsAccessScope",
+		"AWS::EC2::NetworkInsightsAnalysis",
+		"AWS::Grafana::Workspace",
+		"AWS::GroundStation::DataflowEndpointGroup",
+		"AWS::ImageBuilder::ImageRecipe",
+		"AWS::KMS::Alias",
+		"AWS::M2::Environment",
+		"AWS::QuickSight::DataSource",
+		"AWS::QuickSight::Template",
+		"AWS::QuickSight::Theme",
+		"AWS::RDS::OptionGroup",
+		"AWS::Redshift::EndpointAccess",
+		"AWS::Route53Resolver::FirewallRuleGroup",
+		"AWS::SSM::Document",
 	}
 }
 

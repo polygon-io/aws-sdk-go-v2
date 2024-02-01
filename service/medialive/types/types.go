@@ -1109,6 +1109,47 @@ type ChannelSummary struct {
 	noSmithyDocumentSerde
 }
 
+// Property of ColorCorrectionSettings. Used for custom color space conversion.
+// The object identifies one 3D LUT file and specifies the input/output color space
+// combination that the file will be used for.
+type ColorCorrection struct {
+
+	// The color space of the input.
+	//
+	// This member is required.
+	InputColorSpace ColorSpace
+
+	// The color space of the output.
+	//
+	// This member is required.
+	OutputColorSpace ColorSpace
+
+	// The URI of the 3D LUT file. The protocol must be 's3:' or 's3ssl:':.
+	//
+	// This member is required.
+	Uri *string
+
+	noSmithyDocumentSerde
+}
+
+// Property of encoderSettings. Controls color conversion when you are using 3D
+// LUT files to perform color conversion on video.
+type ColorCorrectionSettings struct {
+
+	// An array of colorCorrections that applies when you are using 3D LUT files to
+	// perform color conversion on video. Each colorCorrection contains one 3D LUT file
+	// (that defines the color mapping for converting an input color space to an output
+	// color space), and the input/output combination that this 3D LUT file applies to.
+	// MediaLive reads the color space in the input metadata, determines the color
+	// space that you have specified for the output, and finds and uses the LUT file
+	// that applies to this combination.
+	//
+	// This member is required.
+	GlobalColorCorrections []ColorCorrection
+
+	noSmithyDocumentSerde
+}
+
 // Passthrough applies no color space conversion to the output
 type ColorSpacePassthroughSettings struct {
 	noSmithyDocumentSerde
@@ -1519,6 +1560,9 @@ type EncoderSettings struct {
 	// Settings for caption decriptions
 	CaptionDescriptions []CaptionDescription
 
+	// Color Correction Settings
+	ColorCorrectionSettings *ColorCorrectionSettings
+
 	// Feature Activations
 	FeatureActivations *FeatureActivations
 
@@ -1625,6 +1669,11 @@ type FeatureActivations struct {
 	// existing schedule, make sure that you first delete all input prepare actions
 	// from the schedule.
 	InputPrepareScheduleActions FeatureActivationsInputPrepareScheduleActions
+
+	// Enables the output static image overlay feature. Enabling this feature allows
+	// you to send channel schedule updates to display/clear/modify image overlays on
+	// an output-by-output bases.
+	OutputStaticImageOverlayScheduleActions FeatureActivationsOutputStaticImageOverlayScheduleActions
 
 	noSmithyDocumentSerde
 }
@@ -2900,8 +2949,33 @@ type InputDestinationVpc struct {
 	noSmithyDocumentSerde
 }
 
+// One audio configuration that specifies the format for one audio pair that the
+// device produces as output.
+type InputDeviceConfigurableAudioChannelPairConfig struct {
+
+	// The ID for one audio pair configuration, a value from 1 to 8.
+	Id *int32
+
+	// The profile to set for one audio pair configuration. Choose an enumeration
+	// value. Each value describes one audio configuration using the format (rate
+	// control algorithm)-(codec)_(quality)-(bitrate in bytes). For example,
+	// CBR-AAC_HQ-192000. Or choose DISABLED, in which case the device won't produce
+	// audio for this pair.
+	Profile InputDeviceConfigurableAudioChannelPairProfile
+
+	noSmithyDocumentSerde
+}
+
 // Configurable settings for the input device.
 type InputDeviceConfigurableSettings struct {
+
+	// An array of eight audio configurations, one for each audio pair in the source.
+	// Set up each audio configuration either to exclude the pair, or to format it and
+	// include it in the output from the device. This parameter applies only to UHD
+	// devices, and only when the device is configured as the source for a MediaConnect
+	// flow. For an HD device, you configure the audio by setting up audio selectors in
+	// the channel configuration.
+	AudioChannelPairs []InputDeviceConfigurableAudioChannelPairConfig
 
 	// Choose the codec for the video that the device produces. Only UHD devices can
 	// specify this parameter.
@@ -3107,6 +3181,22 @@ type InputDeviceSummary struct {
 	noSmithyDocumentSerde
 }
 
+// One audio configuration that specifies the format for one audio pair that the
+// device produces as output.
+type InputDeviceUhdAudioChannelPairConfig struct {
+
+	// The ID for one audio pair configuration, a value from 1 to 8.
+	Id *int32
+
+	// The profile for one audio pair configuration. This property describes one audio
+	// configuration in the format (rate control algorithm)-(codec)_(quality)-(bitrate
+	// in bytes). For example, CBR-AAC_HQ-192000. Or DISABLED, in which case the device
+	// won't produce audio for this pair.
+	Profile InputDeviceUhdAudioChannelPairProfile
+
+	noSmithyDocumentSerde
+}
+
 // Settings that describe the active source from the input device, and the video
 // characteristics of that source.
 type InputDeviceUhdSettings struct {
@@ -3114,6 +3204,12 @@ type InputDeviceUhdSettings struct {
 	// If you specified Auto as the configured input, specifies which of the sources
 	// is currently active (SDI or HDMI).
 	ActiveInput InputDeviceActiveInput
+
+	// An array of eight audio configurations, one for each audio pair in the source.
+	// Each audio configuration specifies either to exclude the pair, or to format it
+	// and include it in the output from the UHD device. Applies only when the device
+	// is configured as the source for a MediaConnect flow.
+	AudioChannelPairs []InputDeviceUhdAudioChannelPairConfig
 
 	// The codec for the video that the device produces.
 	Codec InputDeviceCodec
@@ -5072,6 +5168,12 @@ type ScheduleActionSettings struct {
 	// Action to deactivate a static image overlay
 	StaticImageDeactivateSettings *StaticImageDeactivateScheduleActionSettings
 
+	// Action to activate a static image overlay in one or more specified outputs
+	StaticImageOutputActivateSettings *StaticImageOutputActivateScheduleActionSettings
+
+	// Action to deactivate a static image overlay in one or more specified outputs
+	StaticImageOutputDeactivateSettings *StaticImageOutputDeactivateScheduleActionSettings
+
 	noSmithyDocumentSerde
 }
 
@@ -5446,6 +5548,86 @@ type StaticImageDeactivateScheduleActionSettings struct {
 	noSmithyDocumentSerde
 }
 
+// Settings for the action to activate a static image.
+type StaticImageOutputActivateScheduleActionSettings struct {
+
+	// The location and filename of the image file to overlay on the video. The file
+	// must be a 32-bit BMP, PNG, or TGA file, and must not be larger (in pixels) than
+	// the input video.
+	//
+	// This member is required.
+	Image *InputLocation
+
+	// The name(s) of the output(s) the activation should apply to.
+	//
+	// This member is required.
+	OutputNames []string
+
+	// The duration in milliseconds for the image to remain on the video. If omitted
+	// or set to 0 the duration is unlimited and the image will remain until it is
+	// explicitly deactivated.
+	Duration *int32
+
+	// The time in milliseconds for the image to fade in. The fade-in starts at the
+	// start time of the overlay. Default is 0 (no fade-in).
+	FadeIn *int32
+
+	// Applies only if a duration is specified. The time in milliseconds for the image
+	// to fade out. The fade-out starts when the duration time is hit, so it
+	// effectively extends the duration. Default is 0 (no fade-out).
+	FadeOut *int32
+
+	// The height of the image when inserted into the video, in pixels. The overlay
+	// will be scaled up or down to the specified height. Leave blank to use the native
+	// height of the overlay.
+	Height *int32
+
+	// Placement of the left edge of the overlay relative to the left edge of the
+	// video frame, in pixels. 0 (the default) is the left edge of the frame. If the
+	// placement causes the overlay to extend beyond the right edge of the underlying
+	// video, then the overlay is cropped on the right.
+	ImageX *int32
+
+	// Placement of the top edge of the overlay relative to the top edge of the video
+	// frame, in pixels. 0 (the default) is the top edge of the frame. If the placement
+	// causes the overlay to extend beyond the bottom edge of the underlying video,
+	// then the overlay is cropped on the bottom.
+	ImageY *int32
+
+	// The number of the layer, 0 to 7. There are 8 layers that can be overlaid on the
+	// video, each layer with a different image. The layers are in Z order, which means
+	// that overlays with higher values of layer are inserted on top of overlays with
+	// lower values of layer. Default is 0.
+	Layer *int32
+
+	// Opacity of image where 0 is transparent and 100 is fully opaque. Default is 100.
+	Opacity *int32
+
+	// The width of the image when inserted into the video, in pixels. The overlay
+	// will be scaled up or down to the specified width. Leave blank to use the native
+	// width of the overlay.
+	Width *int32
+
+	noSmithyDocumentSerde
+}
+
+// Settings for the action to deactivate the image in a specific layer.
+type StaticImageOutputDeactivateScheduleActionSettings struct {
+
+	// The name(s) of the output(s) the deactivation should apply to.
+	//
+	// This member is required.
+	OutputNames []string
+
+	// The time in milliseconds for the image to fade out. Default is 0 (no fade-out).
+	FadeOut *int32
+
+	// The image overlay layer to deactivate, 0 to 7. Default is 0.
+	Layer *int32
+
+	noSmithyDocumentSerde
+}
+
 // Static Key Settings
 type StaticKeySettings struct {
 
@@ -5533,7 +5715,9 @@ type Thumbnail struct {
 // Thumbnail Configuration
 type ThumbnailConfiguration struct {
 
-	// Whether Thumbnail is enabled.
+	// Enables the thumbnail feature. The feature generates thumbnails of the incoming
+	// video in each pipeline in the channel. AUTO turns the feature on, DISABLE turns
+	// the feature off.
 	//
 	// This member is required.
 	State ThumbnailState

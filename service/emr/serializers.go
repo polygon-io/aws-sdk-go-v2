@@ -2602,6 +2602,61 @@ func (m *awsAwsjson11_serializeOpRunJobFlow) HandleSerialize(ctx context.Context
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsjson11_serializeOpSetKeepJobFlowAliveWhenNoSteps struct {
+}
+
+func (*awsAwsjson11_serializeOpSetKeepJobFlowAliveWhenNoSteps) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsjson11_serializeOpSetKeepJobFlowAliveWhenNoSteps) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*SetKeepJobFlowAliveWhenNoStepsInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-amz-json-1.1")
+	httpBindingEncoder.SetHeader("X-Amz-Target").String("ElasticMapReduce.SetKeepJobFlowAliveWhenNoSteps")
+
+	jsonEncoder := smithyjson.NewEncoder()
+	if err := awsAwsjson11_serializeOpDocumentSetKeepJobFlowAliveWhenNoStepsInput(input, jsonEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(jsonEncoder.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsjson11_serializeOpSetTerminationProtection struct {
 }
 
@@ -4771,9 +4826,24 @@ func awsAwsjson11_serializeOpDocumentCreateStudioInput(v *CreateStudioInput, val
 		ok.String(*v.Description)
 	}
 
+	if v.EncryptionKeyArn != nil {
+		ok := object.Key("EncryptionKeyArn")
+		ok.String(*v.EncryptionKeyArn)
+	}
+
 	if v.EngineSecurityGroupId != nil {
 		ok := object.Key("EngineSecurityGroupId")
 		ok.String(*v.EngineSecurityGroupId)
+	}
+
+	if v.IdcInstanceArn != nil {
+		ok := object.Key("IdcInstanceArn")
+		ok.String(*v.IdcInstanceArn)
+	}
+
+	if len(v.IdcUserAssignment) > 0 {
+		ok := object.Key("IdcUserAssignment")
+		ok.String(string(v.IdcUserAssignment))
 	}
 
 	if v.IdpAuthUrl != nil {
@@ -4808,6 +4878,11 @@ func awsAwsjson11_serializeOpDocumentCreateStudioInput(v *CreateStudioInput, val
 		if err := awsAwsjson11_serializeDocumentTagList(v.Tags, ok); err != nil {
 			return err
 		}
+	}
+
+	if v.TrustedIdentityPropagationEnabled != nil {
+		ok := object.Key("TrustedIdentityPropagationEnabled")
+		ok.Boolean(*v.TrustedIdentityPropagationEnabled)
 	}
 
 	if v.UserRole != nil {
@@ -5762,6 +5837,25 @@ func awsAwsjson11_serializeOpDocumentRunJobFlowInput(v *RunJobFlowInput, value s
 	return nil
 }
 
+func awsAwsjson11_serializeOpDocumentSetKeepJobFlowAliveWhenNoStepsInput(v *SetKeepJobFlowAliveWhenNoStepsInput, value smithyjson.Value) error {
+	object := value.Object()
+	defer object.Close()
+
+	if v.JobFlowIds != nil {
+		ok := object.Key("JobFlowIds")
+		if err := awsAwsjson11_serializeDocumentXmlStringList(v.JobFlowIds, ok); err != nil {
+			return err
+		}
+	}
+
+	if v.KeepJobFlowAliveWhenNoSteps != nil {
+		ok := object.Key("KeepJobFlowAliveWhenNoSteps")
+		ok.Boolean(*v.KeepJobFlowAliveWhenNoSteps)
+	}
+
+	return nil
+}
+
 func awsAwsjson11_serializeOpDocumentSetTerminationProtectionInput(v *SetTerminationProtectionInput, value smithyjson.Value) error {
 	object := value.Object()
 	defer object.Close()
@@ -5915,6 +6009,11 @@ func awsAwsjson11_serializeOpDocumentUpdateStudioInput(v *UpdateStudioInput, val
 	if v.Description != nil {
 		ok := object.Key("Description")
 		ok.String(*v.Description)
+	}
+
+	if v.EncryptionKeyArn != nil {
+		ok := object.Key("EncryptionKeyArn")
+		ok.String(*v.EncryptionKeyArn)
 	}
 
 	if v.Name != nil {

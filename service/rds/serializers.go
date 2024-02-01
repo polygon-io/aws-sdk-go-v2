@@ -1618,6 +1618,70 @@ func (m *awsAwsquery_serializeOpCreateDBSecurityGroup) HandleSerialize(ctx conte
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpCreateDBShardGroup struct {
+}
+
+func (*awsAwsquery_serializeOpCreateDBShardGroup) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpCreateDBShardGroup) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*CreateDBShardGroupInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("CreateDBShardGroup")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentCreateDBShardGroupInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpCreateDBSnapshot struct {
 }
 
@@ -1982,6 +2046,70 @@ func (m *awsAwsquery_serializeOpCreateOptionGroup) HandleSerialize(ctx context.C
 	body.Key("Version").String("2014-10-31")
 
 	if err := awsAwsquery_serializeOpDocumentCreateOptionGroupInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpCreateTenantDatabase struct {
+}
+
+func (*awsAwsquery_serializeOpCreateTenantDatabase) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpCreateTenantDatabase) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*CreateTenantDatabaseInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("CreateTenantDatabase")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentCreateTenantDatabaseInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -2834,6 +2962,70 @@ func (m *awsAwsquery_serializeOpDeleteDBSecurityGroup) HandleSerialize(ctx conte
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpDeleteDBShardGroup struct {
+}
+
+func (*awsAwsquery_serializeOpDeleteDBShardGroup) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDeleteDBShardGroup) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DeleteDBShardGroupInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DeleteDBShardGroup")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDeleteDBShardGroupInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpDeleteDBSnapshot struct {
 }
 
@@ -3198,6 +3390,70 @@ func (m *awsAwsquery_serializeOpDeleteOptionGroup) HandleSerialize(ctx context.C
 	body.Key("Version").String("2014-10-31")
 
 	if err := awsAwsquery_serializeOpDocumentDeleteOptionGroupInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpDeleteTenantDatabase struct {
+}
+
+func (*awsAwsquery_serializeOpDeleteTenantDatabase) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDeleteTenantDatabase) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DeleteTenantDatabaseInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DeleteTenantDatabase")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDeleteTenantDatabaseInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -4622,6 +4878,70 @@ func (m *awsAwsquery_serializeOpDescribeDBProxyTargets) HandleSerialize(ctx cont
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpDescribeDBRecommendations struct {
+}
+
+func (*awsAwsquery_serializeOpDescribeDBRecommendations) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDescribeDBRecommendations) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DescribeDBRecommendationsInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DescribeDBRecommendations")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDescribeDBRecommendationsInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpDescribeDBSecurityGroups struct {
 }
 
@@ -4666,6 +4986,70 @@ func (m *awsAwsquery_serializeOpDescribeDBSecurityGroups) HandleSerialize(ctx co
 	body.Key("Version").String("2014-10-31")
 
 	if err := awsAwsquery_serializeOpDocumentDescribeDBSecurityGroupsInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpDescribeDBShardGroups struct {
+}
+
+func (*awsAwsquery_serializeOpDescribeDBShardGroups) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDescribeDBShardGroups) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DescribeDBShardGroupsInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DescribeDBShardGroups")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDescribeDBShardGroupsInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -4794,6 +5178,70 @@ func (m *awsAwsquery_serializeOpDescribeDBSnapshots) HandleSerialize(ctx context
 	body.Key("Version").String("2014-10-31")
 
 	if err := awsAwsquery_serializeOpDocumentDescribeDBSnapshotsInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpDescribeDBSnapshotTenantDatabases struct {
+}
+
+func (*awsAwsquery_serializeOpDescribeDBSnapshotTenantDatabases) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDescribeDBSnapshotTenantDatabases) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DescribeDBSnapshotTenantDatabasesInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DescribeDBSnapshotTenantDatabases")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDescribeDBSnapshotTenantDatabasesInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -5838,6 +6286,70 @@ func (m *awsAwsquery_serializeOpDescribeSourceRegions) HandleSerialize(ctx conte
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpDescribeTenantDatabases struct {
+}
+
+func (*awsAwsquery_serializeOpDescribeTenantDatabases) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDescribeTenantDatabases) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DescribeTenantDatabasesInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DescribeTenantDatabases")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDescribeTenantDatabasesInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpDescribeValidDBInstanceModifications struct {
 }
 
@@ -5902,6 +6414,70 @@ func (m *awsAwsquery_serializeOpDescribeValidDBInstanceModifications) HandleSeri
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpDisableHttpEndpoint struct {
+}
+
+func (*awsAwsquery_serializeOpDisableHttpEndpoint) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpDisableHttpEndpoint) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*DisableHttpEndpointInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("DisableHttpEndpoint")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentDisableHttpEndpointInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpDownloadDBLogFilePortion struct {
 }
 
@@ -5946,6 +6522,70 @@ func (m *awsAwsquery_serializeOpDownloadDBLogFilePortion) HandleSerialize(ctx co
 	body.Key("Version").String("2014-10-31")
 
 	if err := awsAwsquery_serializeOpDocumentDownloadDBLogFilePortionInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpEnableHttpEndpoint struct {
+}
+
+func (*awsAwsquery_serializeOpEnableHttpEndpoint) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpEnableHttpEndpoint) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*EnableHttpEndpointInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("EnableHttpEndpoint")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentEnableHttpEndpointInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -6990,6 +7630,134 @@ func (m *awsAwsquery_serializeOpModifyDBProxyTargetGroup) HandleSerialize(ctx co
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpModifyDBRecommendation struct {
+}
+
+func (*awsAwsquery_serializeOpModifyDBRecommendation) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpModifyDBRecommendation) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*ModifyDBRecommendationInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("ModifyDBRecommendation")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentModifyDBRecommendationInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpModifyDBShardGroup struct {
+}
+
+func (*awsAwsquery_serializeOpModifyDBShardGroup) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpModifyDBShardGroup) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*ModifyDBShardGroupInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("ModifyDBShardGroup")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentModifyDBShardGroupInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpModifyDBSnapshot struct {
 }
 
@@ -7374,6 +8142,70 @@ func (m *awsAwsquery_serializeOpModifyOptionGroup) HandleSerialize(ctx context.C
 	return next.HandleSerialize(ctx, in)
 }
 
+type awsAwsquery_serializeOpModifyTenantDatabase struct {
+}
+
+func (*awsAwsquery_serializeOpModifyTenantDatabase) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpModifyTenantDatabase) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*ModifyTenantDatabaseInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("ModifyTenantDatabase")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentModifyTenantDatabaseInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
 type awsAwsquery_serializeOpPromoteReadReplica struct {
 }
 
@@ -7674,6 +8506,70 @@ func (m *awsAwsquery_serializeOpRebootDBInstance) HandleSerialize(ctx context.Co
 	body.Key("Version").String("2014-10-31")
 
 	if err := awsAwsquery_serializeOpDocumentRebootDBInstanceInput(input, bodyEncoder.Value); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	err = bodyEncoder.Encode()
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request, err = request.SetStream(bytes.NewReader(bodyWriter.Bytes())); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
+	if request.Request, err = httpBindingEncoder.Encode(request.Request); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	in.Request = request
+
+	return next.HandleSerialize(ctx, in)
+}
+
+type awsAwsquery_serializeOpRebootDBShardGroup struct {
+}
+
+func (*awsAwsquery_serializeOpRebootDBShardGroup) ID() string {
+	return "OperationSerializer"
+}
+
+func (m *awsAwsquery_serializeOpRebootDBShardGroup) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
+	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
+) {
+	request, ok := in.Request.(*smithyhttp.Request)
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown transport type %T", in.Request)}
+	}
+
+	input, ok := in.Parameters.(*RebootDBShardGroupInput)
+	_ = input
+	if !ok {
+		return out, metadata, &smithy.SerializationError{Err: fmt.Errorf("unknown input parameters type %T", in.Parameters)}
+	}
+
+	operationPath := "/"
+	if len(request.Request.URL.Path) == 0 {
+		request.Request.URL.Path = operationPath
+	} else {
+		request.Request.URL.Path = path.Join(request.Request.URL.Path, operationPath)
+		if request.Request.URL.Path != "/" && operationPath[len(operationPath)-1] == '/' {
+			request.Request.URL.Path += "/"
+		}
+	}
+	request.Request.Method = "POST"
+	httpBindingEncoder, err := httpbinding.NewEncoder(request.URL.Path, request.URL.RawQuery, request.Header)
+	if err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+	httpBindingEncoder.SetHeader("Content-Type").String("application/x-www-form-urlencoded")
+
+	bodyWriter := bytes.NewBuffer(nil)
+	bodyEncoder := query.NewEncoder(bodyWriter)
+	body := bodyEncoder.Object()
+	body.Key("Action").String("RebootDBShardGroup")
+	body.Key("Version").String("2014-10-31")
+
+	if err := awsAwsquery_serializeOpDocumentRebootDBShardGroupInput(input, bodyEncoder.Value); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
@@ -9849,11 +10745,45 @@ func awsAwsquery_serializeDocumentRdsCustomClusterConfiguration(v *types.RdsCust
 		objectKey.String(*v.InterconnectSubnetId)
 	}
 
+	if len(v.ReplicaMode) > 0 {
+		objectKey := object.Key("ReplicaMode")
+		objectKey.String(string(v.ReplicaMode))
+	}
+
 	if v.TransitGatewayMulticastDomainId != nil {
 		objectKey := object.Key("TransitGatewayMulticastDomainId")
 		objectKey.String(*v.TransitGatewayMulticastDomainId)
 	}
 
+	return nil
+}
+
+func awsAwsquery_serializeDocumentRecommendedActionUpdate(v *types.RecommendedActionUpdate, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.ActionId != nil {
+		objectKey := object.Key("ActionId")
+		objectKey.String(*v.ActionId)
+	}
+
+	if v.Status != nil {
+		objectKey := object.Key("Status")
+		objectKey.String(*v.Status)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeDocumentRecommendedActionUpdateList(v []types.RecommendedActionUpdate, value query.Value) error {
+	array := value.Array("member")
+
+	for i := range v {
+		av := array.Value()
+		if err := awsAwsquery_serializeDocumentRecommendedActionUpdate(&v[i], av); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -10687,6 +11617,11 @@ func awsAwsquery_serializeOpDocumentCreateDBClusterInput(v *CreateDBClusterInput
 		objectKey.Boolean(*v.EnableIAMDatabaseAuthentication)
 	}
 
+	if v.EnableLimitlessDatabase != nil {
+		objectKey := object.Key("EnableLimitlessDatabase")
+		objectKey.Boolean(*v.EnableLimitlessDatabase)
+	}
+
 	if v.EnableLocalWriteForwarding != nil {
 		objectKey := object.Key("EnableLocalWriteForwarding")
 		objectKey.Boolean(*v.EnableLocalWriteForwarding)
@@ -11126,6 +12061,11 @@ func awsAwsquery_serializeOpDocumentCreateDBInstanceInput(v *CreateDBInstanceInp
 	if v.MultiAZ != nil {
 		objectKey := object.Key("MultiAZ")
 		objectKey.Boolean(*v.MultiAZ)
+	}
+
+	if v.MultiTenant != nil {
+		objectKey := object.Key("MultiTenant")
+		objectKey.Boolean(*v.MultiTenant)
 	}
 
 	if v.NcharCharacterSetName != nil {
@@ -11635,6 +12575,51 @@ func awsAwsquery_serializeOpDocumentCreateDBSecurityGroupInput(v *CreateDBSecuri
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentCreateDBShardGroupInput(v *CreateDBShardGroupInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.ComputeRedundancy != nil {
+		objectKey := object.Key("ComputeRedundancy")
+		objectKey.Integer(*v.ComputeRedundancy)
+	}
+
+	if v.DBClusterIdentifier != nil {
+		objectKey := object.Key("DBClusterIdentifier")
+		objectKey.String(*v.DBClusterIdentifier)
+	}
+
+	if v.DBShardGroupIdentifier != nil {
+		objectKey := object.Key("DBShardGroupIdentifier")
+		objectKey.String(*v.DBShardGroupIdentifier)
+	}
+
+	if v.MaxACU != nil {
+		objectKey := object.Key("MaxACU")
+		switch {
+		case math.IsNaN(*v.MaxACU):
+			objectKey.String("NaN")
+
+		case math.IsInf(*v.MaxACU, 1):
+			objectKey.String("Infinity")
+
+		case math.IsInf(*v.MaxACU, -1):
+			objectKey.String("-Infinity")
+
+		default:
+			objectKey.Double(*v.MaxACU)
+
+		}
+	}
+
+	if v.PubliclyAccessible != nil {
+		objectKey := object.Key("PubliclyAccessible")
+		objectKey.Boolean(*v.PubliclyAccessible)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentCreateDBSnapshotInput(v *CreateDBSnapshotInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -11855,6 +12840,50 @@ func awsAwsquery_serializeOpDocumentCreateOptionGroupInput(v *CreateOptionGroupI
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentCreateTenantDatabaseInput(v *CreateTenantDatabaseInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.CharacterSetName != nil {
+		objectKey := object.Key("CharacterSetName")
+		objectKey.String(*v.CharacterSetName)
+	}
+
+	if v.DBInstanceIdentifier != nil {
+		objectKey := object.Key("DBInstanceIdentifier")
+		objectKey.String(*v.DBInstanceIdentifier)
+	}
+
+	if v.MasterUsername != nil {
+		objectKey := object.Key("MasterUsername")
+		objectKey.String(*v.MasterUsername)
+	}
+
+	if v.MasterUserPassword != nil {
+		objectKey := object.Key("MasterUserPassword")
+		objectKey.String(*v.MasterUserPassword)
+	}
+
+	if v.NcharCharacterSetName != nil {
+		objectKey := object.Key("NcharCharacterSetName")
+		objectKey.String(*v.NcharCharacterSetName)
+	}
+
+	if v.Tags != nil {
+		objectKey := object.Key("Tags")
+		if err := awsAwsquery_serializeDocumentTagList(v.Tags, objectKey); err != nil {
+			return err
+		}
+	}
+
+	if v.TenantDBName != nil {
+		objectKey := object.Key("TenantDBName")
+		objectKey.String(*v.TenantDBName)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentDeleteBlueGreenDeploymentInput(v *DeleteBlueGreenDeploymentInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -12056,6 +13085,18 @@ func awsAwsquery_serializeOpDocumentDeleteDBSecurityGroupInput(v *DeleteDBSecuri
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentDeleteDBShardGroupInput(v *DeleteDBShardGroupInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBShardGroupIdentifier != nil {
+		objectKey := object.Key("DBShardGroupIdentifier")
+		objectKey.String(*v.DBShardGroupIdentifier)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentDeleteDBSnapshotInput(v *DeleteDBSnapshotInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -12123,6 +13164,33 @@ func awsAwsquery_serializeOpDocumentDeleteOptionGroupInput(v *DeleteOptionGroupI
 	if v.OptionGroupName != nil {
 		objectKey := object.Key("OptionGroupName")
 		objectKey.String(*v.OptionGroupName)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentDeleteTenantDatabaseInput(v *DeleteTenantDatabaseInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBInstanceIdentifier != nil {
+		objectKey := object.Key("DBInstanceIdentifier")
+		objectKey.String(*v.DBInstanceIdentifier)
+	}
+
+	if v.FinalDBSnapshotIdentifier != nil {
+		objectKey := object.Key("FinalDBSnapshotIdentifier")
+		objectKey.String(*v.FinalDBSnapshotIdentifier)
+	}
+
+	if v.SkipFinalSnapshot != nil {
+		objectKey := object.Key("SkipFinalSnapshot")
+		objectKey.Boolean(*v.SkipFinalSnapshot)
+	}
+
+	if v.TenantDBName != nil {
+		objectKey := object.Key("TenantDBName")
+		objectKey.String(*v.TenantDBName)
 	}
 
 	return nil
@@ -12854,6 +13922,45 @@ func awsAwsquery_serializeOpDocumentDescribeDBProxyTargetsInput(v *DescribeDBPro
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentDescribeDBRecommendationsInput(v *DescribeDBRecommendationsInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.Filters != nil {
+		objectKey := object.Key("Filters")
+		if err := awsAwsquery_serializeDocumentFilterList(v.Filters, objectKey); err != nil {
+			return err
+		}
+	}
+
+	if v.LastUpdatedAfter != nil {
+		objectKey := object.Key("LastUpdatedAfter")
+		objectKey.String(smithytime.FormatDateTime(*v.LastUpdatedAfter))
+	}
+
+	if v.LastUpdatedBefore != nil {
+		objectKey := object.Key("LastUpdatedBefore")
+		objectKey.String(smithytime.FormatDateTime(*v.LastUpdatedBefore))
+	}
+
+	if v.Locale != nil {
+		objectKey := object.Key("Locale")
+		objectKey.String(*v.Locale)
+	}
+
+	if v.Marker != nil {
+		objectKey := object.Key("Marker")
+		objectKey.String(*v.Marker)
+	}
+
+	if v.MaxRecords != nil {
+		objectKey := object.Key("MaxRecords")
+		objectKey.Integer(*v.MaxRecords)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentDescribeDBSecurityGroupsInput(v *DescribeDBSecurityGroupsInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -12861,6 +13968,35 @@ func awsAwsquery_serializeOpDocumentDescribeDBSecurityGroupsInput(v *DescribeDBS
 	if v.DBSecurityGroupName != nil {
 		objectKey := object.Key("DBSecurityGroupName")
 		objectKey.String(*v.DBSecurityGroupName)
+	}
+
+	if v.Filters != nil {
+		objectKey := object.Key("Filters")
+		if err := awsAwsquery_serializeDocumentFilterList(v.Filters, objectKey); err != nil {
+			return err
+		}
+	}
+
+	if v.Marker != nil {
+		objectKey := object.Key("Marker")
+		objectKey.String(*v.Marker)
+	}
+
+	if v.MaxRecords != nil {
+		objectKey := object.Key("MaxRecords")
+		objectKey.Integer(*v.MaxRecords)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentDescribeDBShardGroupsInput(v *DescribeDBShardGroupsInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBShardGroupIdentifier != nil {
+		objectKey := object.Key("DBShardGroupIdentifier")
+		objectKey.String(*v.DBShardGroupIdentifier)
 	}
 
 	if v.Filters != nil {
@@ -12929,6 +14065,50 @@ func awsAwsquery_serializeOpDocumentDescribeDBSnapshotsInput(v *DescribeDBSnapsh
 	if v.IncludeShared != nil {
 		objectKey := object.Key("IncludeShared")
 		objectKey.Boolean(*v.IncludeShared)
+	}
+
+	if v.Marker != nil {
+		objectKey := object.Key("Marker")
+		objectKey.String(*v.Marker)
+	}
+
+	if v.MaxRecords != nil {
+		objectKey := object.Key("MaxRecords")
+		objectKey.Integer(*v.MaxRecords)
+	}
+
+	if v.SnapshotType != nil {
+		objectKey := object.Key("SnapshotType")
+		objectKey.String(*v.SnapshotType)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentDescribeDBSnapshotTenantDatabasesInput(v *DescribeDBSnapshotTenantDatabasesInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBInstanceIdentifier != nil {
+		objectKey := object.Key("DBInstanceIdentifier")
+		objectKey.String(*v.DBInstanceIdentifier)
+	}
+
+	if v.DbiResourceId != nil {
+		objectKey := object.Key("DbiResourceId")
+		objectKey.String(*v.DbiResourceId)
+	}
+
+	if v.DBSnapshotIdentifier != nil {
+		objectKey := object.Key("DBSnapshotIdentifier")
+		objectKey.String(*v.DBSnapshotIdentifier)
+	}
+
+	if v.Filters != nil {
+		objectKey := object.Key("Filters")
+		if err := awsAwsquery_serializeDocumentFilterList(v.Filters, objectKey); err != nil {
+			return err
+		}
 	}
 
 	if v.Marker != nil {
@@ -13540,6 +14720,40 @@ func awsAwsquery_serializeOpDocumentDescribeSourceRegionsInput(v *DescribeSource
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentDescribeTenantDatabasesInput(v *DescribeTenantDatabasesInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBInstanceIdentifier != nil {
+		objectKey := object.Key("DBInstanceIdentifier")
+		objectKey.String(*v.DBInstanceIdentifier)
+	}
+
+	if v.Filters != nil {
+		objectKey := object.Key("Filters")
+		if err := awsAwsquery_serializeDocumentFilterList(v.Filters, objectKey); err != nil {
+			return err
+		}
+	}
+
+	if v.Marker != nil {
+		objectKey := object.Key("Marker")
+		objectKey.String(*v.Marker)
+	}
+
+	if v.MaxRecords != nil {
+		objectKey := object.Key("MaxRecords")
+		objectKey.Integer(*v.MaxRecords)
+	}
+
+	if v.TenantDBName != nil {
+		objectKey := object.Key("TenantDBName")
+		objectKey.String(*v.TenantDBName)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentDescribeValidDBInstanceModificationsInput(v *DescribeValidDBInstanceModificationsInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -13547,6 +14761,18 @@ func awsAwsquery_serializeOpDocumentDescribeValidDBInstanceModificationsInput(v 
 	if v.DBInstanceIdentifier != nil {
 		objectKey := object.Key("DBInstanceIdentifier")
 		objectKey.String(*v.DBInstanceIdentifier)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentDisableHttpEndpointInput(v *DisableHttpEndpointInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.ResourceArn != nil {
+		objectKey := object.Key("ResourceArn")
+		objectKey.String(*v.ResourceArn)
 	}
 
 	return nil
@@ -13574,6 +14800,18 @@ func awsAwsquery_serializeOpDocumentDownloadDBLogFilePortionInput(v *DownloadDBL
 	if v.NumberOfLines != nil {
 		objectKey := object.Key("NumberOfLines")
 		objectKey.Integer(*v.NumberOfLines)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentEnableHttpEndpointInput(v *EnableHttpEndpointInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.ResourceArn != nil {
+		objectKey := object.Key("ResourceArn")
+		objectKey.String(*v.ResourceArn)
 	}
 
 	return nil
@@ -13865,6 +15103,11 @@ func awsAwsquery_serializeOpDocumentModifyDBClusterInput(v *ModifyDBClusterInput
 	if v.EnableIAMDatabaseAuthentication != nil {
 		objectKey := object.Key("EnableIAMDatabaseAuthentication")
 		objectKey.Boolean(*v.EnableIAMDatabaseAuthentication)
+	}
+
+	if v.EnableLimitlessDatabase != nil {
+		objectKey := object.Key("EnableLimitlessDatabase")
+		objectKey.Boolean(*v.EnableLimitlessDatabase)
 	}
 
 	if v.EnableLocalWriteForwarding != nil {
@@ -14251,6 +15494,11 @@ func awsAwsquery_serializeOpDocumentModifyDBInstanceInput(v *ModifyDBInstanceInp
 		objectKey.Boolean(*v.MultiAZ)
 	}
 
+	if v.MultiTenant != nil {
+		objectKey := object.Key("MultiTenant")
+		objectKey.Boolean(*v.MultiTenant)
+	}
+
 	if v.NetworkType != nil {
 		objectKey := object.Key("NetworkType")
 		objectKey.String(*v.NetworkType)
@@ -14476,6 +15724,65 @@ func awsAwsquery_serializeOpDocumentModifyDBProxyTargetGroupInput(v *ModifyDBPro
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentModifyDBRecommendationInput(v *ModifyDBRecommendationInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.Locale != nil {
+		objectKey := object.Key("Locale")
+		objectKey.String(*v.Locale)
+	}
+
+	if v.RecommendationId != nil {
+		objectKey := object.Key("RecommendationId")
+		objectKey.String(*v.RecommendationId)
+	}
+
+	if v.RecommendedActionUpdates != nil {
+		objectKey := object.Key("RecommendedActionUpdates")
+		if err := awsAwsquery_serializeDocumentRecommendedActionUpdateList(v.RecommendedActionUpdates, objectKey); err != nil {
+			return err
+		}
+	}
+
+	if v.Status != nil {
+		objectKey := object.Key("Status")
+		objectKey.String(*v.Status)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentModifyDBShardGroupInput(v *ModifyDBShardGroupInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBShardGroupIdentifier != nil {
+		objectKey := object.Key("DBShardGroupIdentifier")
+		objectKey.String(*v.DBShardGroupIdentifier)
+	}
+
+	if v.MaxACU != nil {
+		objectKey := object.Key("MaxACU")
+		switch {
+		case math.IsNaN(*v.MaxACU):
+			objectKey.String("NaN")
+
+		case math.IsInf(*v.MaxACU, 1):
+			objectKey.String("Infinity")
+
+		case math.IsInf(*v.MaxACU, -1):
+			objectKey.String("-Infinity")
+
+		default:
+			objectKey.Double(*v.MaxACU)
+
+		}
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentModifyDBSnapshotAttributeInput(v *ModifyDBSnapshotAttributeInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -14650,6 +15957,33 @@ func awsAwsquery_serializeOpDocumentModifyOptionGroupInput(v *ModifyOptionGroupI
 	return nil
 }
 
+func awsAwsquery_serializeOpDocumentModifyTenantDatabaseInput(v *ModifyTenantDatabaseInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBInstanceIdentifier != nil {
+		objectKey := object.Key("DBInstanceIdentifier")
+		objectKey.String(*v.DBInstanceIdentifier)
+	}
+
+	if v.MasterUserPassword != nil {
+		objectKey := object.Key("MasterUserPassword")
+		objectKey.String(*v.MasterUserPassword)
+	}
+
+	if v.NewTenantDBName != nil {
+		objectKey := object.Key("NewTenantDBName")
+		objectKey.String(*v.NewTenantDBName)
+	}
+
+	if v.TenantDBName != nil {
+		objectKey := object.Key("TenantDBName")
+		objectKey.String(*v.TenantDBName)
+	}
+
+	return nil
+}
+
 func awsAwsquery_serializeOpDocumentPromoteReadReplicaDBClusterInput(v *PromoteReadReplicaDBClusterInput, value query.Value) error {
 	object := value.Object()
 	_ = object
@@ -14737,6 +16071,18 @@ func awsAwsquery_serializeOpDocumentRebootDBInstanceInput(v *RebootDBInstanceInp
 	if v.ForceFailover != nil {
 		objectKey := object.Key("ForceFailover")
 		objectKey.Boolean(*v.ForceFailover)
+	}
+
+	return nil
+}
+
+func awsAwsquery_serializeOpDocumentRebootDBShardGroupInput(v *RebootDBShardGroupInput, value query.Value) error {
+	object := value.Object()
+	_ = object
+
+	if v.DBShardGroupIdentifier != nil {
+		objectKey := object.Key("DBShardGroupIdentifier")
+		objectKey.String(*v.DBShardGroupIdentifier)
 	}
 
 	return nil

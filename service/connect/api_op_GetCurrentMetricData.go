@@ -4,14 +4,10 @@ package connect
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/connect/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
@@ -57,7 +53,11 @@ type GetCurrentMetricDataInput struct {
 	// SECONDS but the Value is returned in MILLISECONDS. For example, if you get a
 	// response like this: { "Metric": { "Name": "OLDEST_CONTACT_AGE", "Unit":
 	// "SECONDS" }, "Value": 24113.0 } The actual OLDEST_CONTACT_AGE is 24 seconds.
-	// Name in real-time metrics report: Oldest (https://docs.aws.amazon.com/connect/latest/adminguide/real-time-metrics-definitions.html#oldest-real-time)
+	// When the filter RoutingStepExpression is used, this metric is still calculated
+	// from enqueue time. For example, if a contact that has been queued under for 10
+	// seconds has expired and becomes active, then OLDEST_CONTACT_AGE for this queue
+	// will be counted starting from 10, not 0. Name in real-time metrics report:
+	// Oldest (https://docs.aws.amazon.com/connect/latest/adminguide/real-time-metrics-definitions.html#oldest-real-time)
 	// SLOTS_ACTIVE Unit: COUNT Name in real-time metrics report: Active (https://docs.aws.amazon.com/connect/latest/adminguide/real-time-metrics-definitions.html#active-real-time)
 	// SLOTS_AVAILABLE Unit: COUNT Name in real-time metrics report: Availability (https://docs.aws.amazon.com/connect/latest/adminguide/real-time-metrics-definitions.html#availability-real-time)
 	//
@@ -69,11 +69,15 @@ type GetCurrentMetricDataInput struct {
 	//   - Queues: 100
 	//   - Routing profiles: 100
 	//   - Channels: 3 (VOICE, CHAT, and TASK channels are supported.)
+	//   - RoutingStepExpressions: 50
 	// Metric data is retrieved only for the resources associated with the queues or
 	// routing profiles, and by any channels included in the filter. (You cannot filter
 	// by both queue AND routing profile.) You can include both resource IDs and
-	// resource ARNs in the same request. Currently tagging is only supported on the
-	// resources that are passed in the filter.
+	// resource ARNs in the same request. When using the RoutingStepExpression filter,
+	// you need to pass exactly one QueueId . The filter is also case sensitive so when
+	// using the RoutingStepExpression filter, grouping by ROUTING_STEP_EXPRESSION is
+	// required. Currently tagging is only supported on the resources that are passed
+	// in the filter.
 	//
 	// This member is required.
 	Filters *types.Filters
@@ -93,6 +97,8 @@ type GetCurrentMetricDataInput struct {
 	//   profile filter. In addition, a routing profile filter is required for metrics
 	//   CONTACTS_SCHEDULED , CONTACTS_IN_QUEUE , and OLDEST_CONTACT_AGE .
 	//   - If no Grouping is included in the request, a summary of metrics is returned.
+	//   - When using the RoutingStepExpression filter, group by
+	//   ROUTING_STEP_EXPRESSION is required.
 	Groupings []types.Grouping
 
 	// The maximum number of results to return per page.
@@ -138,6 +144,9 @@ type GetCurrentMetricDataOutput struct {
 }
 
 func (c *Client) addOperationGetCurrentMetricDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetCurrentMetricData{}, middleware.After)
 	if err != nil {
 		return err
@@ -146,6 +155,10 @@ func (c *Client) addOperationGetCurrentMetricDataMiddlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetCurrentMetricData"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -167,9 +180,6 @@ func (c *Client) addOperationGetCurrentMetricDataMiddlewares(stack *middleware.S
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -185,7 +195,7 @@ func (c *Client) addOperationGetCurrentMetricDataMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addGetCurrentMetricDataResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpGetCurrentMetricDataValidationMiddleware(stack); err != nil {
@@ -206,7 +216,7 @@ func (c *Client) addOperationGetCurrentMetricDataMiddlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -307,130 +317,6 @@ func newServiceMetadataMiddleware_opGetCurrentMetricData(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "connect",
 		OperationName: "GetCurrentMetricData",
 	}
-}
-
-type opGetCurrentMetricDataResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opGetCurrentMetricDataResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opGetCurrentMetricDataResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "connect"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "connect"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("connect")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addGetCurrentMetricDataResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opGetCurrentMetricDataResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }

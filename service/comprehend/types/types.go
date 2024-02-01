@@ -572,7 +572,7 @@ type DocumentClass struct {
 	noSmithyDocumentSerde
 }
 
-// Configuration required for a custom classification model.
+// Configuration required for a document classification model.
 type DocumentClassificationConfig struct {
 
 	// Classification mode indicates whether the documents are MULTI_CLASS or
@@ -671,7 +671,7 @@ type DocumentClassificationJobProperties struct {
 
 	// Configuration parameters for a private Virtual Private Cloud (VPC) containing
 	// the resources you are using for your document classification job. For more
-	// information, see Amazon VPC (https://docs.aws.amazon.com/vppc/latest/userguide/what-is-amazon-vpc.html)
+	// information, see Amazon VPC (https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)
 	// .
 	VpcConfig *VpcConfig
 
@@ -679,7 +679,7 @@ type DocumentClassificationJobProperties struct {
 }
 
 // The location of the training documents. This parameter is required in a request
-// to create a native classifier model.
+// to create a semi-structured document classification model.
 type DocumentClassifierDocuments struct {
 
 	// The S3 URI location of the training documents specified in the S3Uri CSV file.
@@ -757,11 +757,11 @@ type DocumentClassifierInputDataConfig struct {
 
 	// The type of input documents for training the model. Provide plain-text
 	// documents to create a plain-text model, and provide semi-structured documents to
-	// create a native model.
+	// create a native document model.
 	DocumentType DocumentClassifierDocumentTypeFormat
 
 	// The S3 location of the training documents. This parameter is required in a
-	// request to create a native classifier model.
+	// request to create a native document model.
 	Documents *DocumentClassifierDocuments
 
 	// Indicates the delimiter used to separate each label for training a multi-label
@@ -781,8 +781,8 @@ type DocumentClassifierInputDataConfig struct {
 	// if you set DataFormat to COMPREHEND_CSV .
 	S3Uri *string
 
-	// This specifies the Amazon S3 location where the test annotations for an entity
-	// recognizer are located. The URI must be in the same Amazon Web Services Region
+	// This specifies the Amazon S3 location that contains the test annotations for
+	// the document classifier. The URI must be in the same Amazon Web Services Region
 	// as the API endpoint that you are calling.
 	TestS3Uri *string
 
@@ -790,7 +790,7 @@ type DocumentClassifierInputDataConfig struct {
 }
 
 // Provide the location for output data from a custom classifier job. This field
-// is mandatory if you are training a native classifier model.
+// is mandatory if you are training a native document model.
 type DocumentClassifierOutputDataConfig struct {
 
 	// The Amazon S3 prefix for the data lake location of the flywheel statistics.
@@ -908,7 +908,7 @@ type DocumentClassifierProperties struct {
 
 	// Configuration parameters for a private Virtual Private Cloud (VPC) containing
 	// the resources you are using for your custom classifier. For more information,
-	// see Amazon VPC (https://docs.aws.amazon.com/vppc/latest/userguide/what-is-amazon-vpc.html)
+	// see Amazon VPC (https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)
 	// .
 	VpcConfig *VpcConfig
 
@@ -1003,9 +1003,9 @@ type DocumentReaderConfig struct {
 	// Specifies the type of Amazon Textract features to apply. If you chose
 	// TEXTRACT_ANALYZE_DOCUMENT as the read action, you must specify one or both of
 	// the following values:
-	//   - TABLES - Returns information about any tables that are detected in the input
-	//   document.
-	//   - FORMS - Returns information and the data from any forms that are detected in
+	//   - TABLES - Returns additional information about any tables that are detected
+	//   in the input document.
+	//   - FORMS - Returns additional information about any forms that are detected in
 	//   the input document.
 	FeatureTypes []DocumentReadFeatureTypes
 
@@ -1674,8 +1674,8 @@ type EntityTypesListItem struct {
 	// An entity type within a labeled training dataset that Amazon Comprehend uses to
 	// train a custom entity recognizer. Entity types must not contain the following
 	// invalid characters: \n (line break), \\n (escaped line break, \r (carriage
-	// return), \\r (escaped carriage return), \t (tab), \\t (escaped tab), space, and
-	// , (comma).
+	// return), \\r (escaped carriage return), \t (tab), \\t (escaped tab), and ,
+	// (comma).
 	//
 	// This member is required.
 	Type *string
@@ -1920,7 +1920,7 @@ type FlywheelProperties struct {
 	// The status of the flywheel.
 	Status FlywheelStatus
 
-	// Configuration about the custom classifier associated with the flywheel.
+	// Configuration about the model associated with a flywheel.
 	TaskConfig *TaskConfig
 
 	noSmithyDocumentSerde
@@ -2004,18 +2004,25 @@ type InputDataConfig struct {
 	noSmithyDocumentSerde
 }
 
-// Provides additional detail about why the request failed:
-//   - Document size is too large - Check the size of your file and resubmit the
-//     request.
-//   - Document type is not supported - Check the file type and resubmit the
-//     request.
-//   - Too many pages in the document - Check the number of pages in your file and
-//     resubmit the request.
-//   - Access denied to Amazon Textract - Verify that your account has permission
-//     to use Amazon Textract API operations and resubmit the request.
+// Provides additional detail about why the request failed.
 type InvalidRequestDetail struct {
 
-	// Reason code is INVALID_DOCUMENT .
+	// Reason codes include the following values:
+	//   - DOCUMENT_SIZE_EXCEEDED - Document size is too large. Check the size of your
+	//   file and resubmit the request.
+	//   - UNSUPPORTED_DOC_TYPE - Document type is not supported. Check the file type
+	//   and resubmit the request.
+	//   - PAGE_LIMIT_EXCEEDED - Too many pages in the document. Check the number of
+	//   pages in your file and resubmit the request.
+	//   - TEXTRACT_ACCESS_DENIED - Access denied to Amazon Textract. Verify that your
+	//   account has permission to use Amazon Textract API operations and resubmit the
+	//   request.
+	//   - NOT_TEXTRACT_JSON - Document is not Amazon Textract JSON format. Verify the
+	//   format and resubmit the request.
+	//   - MISMATCHED_TOTAL_PAGE_COUNT - Check the number of pages in your file and
+	//   resubmit the request.
+	//   - INVALID_DOCUMENT - Invalid document. Check the file and resubmit the
+	//   request.
 	Reason InvalidRequestDetailReason
 
 	noSmithyDocumentSerde
@@ -2130,7 +2137,7 @@ type KeyPhrasesDetectionJobProperties struct {
 
 // Contains the sentiment and sentiment score for one mention of an entity. For
 // more information about targeted sentiment, see Targeted sentiment (https://docs.aws.amazon.com/comprehend/latest/dg/how-targeted-sentiment.html)
-// .
+// in the Amazon Comprehend Developer Guide.
 type MentionSentiment struct {
 
 	// The sentiment of the mention.
@@ -2161,8 +2168,9 @@ type OutputDataConfig struct {
 	S3Uri *string
 
 	// ID for the Amazon Web Services Key Management Service (KMS) key that Amazon
-	// Comprehend uses to encrypt the output results from an analysis job. The KmsKeyId
-	// can be one of the following formats:
+	// Comprehend uses to encrypt the output results from an analysis job. Specify the
+	// Key Id of a symmetric key, because you cannot use an asymmetric key for
+	// uploading data to S3. The KmsKeyId can be one of the following formats:
 	//   - KMS Key ID: "1234abcd-12ab-34cd-56ef-1234567890ab"
 	//   - Amazon Resource Name (ARN) of a KMS Key:
 	//   "arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
@@ -2245,7 +2253,7 @@ type PiiEntitiesDetectionJobProperties struct {
 	// the Message field shows the reason for the failure.
 	JobStatus JobStatus
 
-	// The language code of the input documents
+	// The language code of the input documents.
 	LanguageCode LanguageCode
 
 	// A description of the status of a job.
@@ -2601,7 +2609,7 @@ type TargetedSentimentDetectionJobProperties struct {
 
 // Information about one of the entities found by targeted sentiment analysis. For
 // more information about targeted sentiment, see Targeted sentiment (https://docs.aws.amazon.com/comprehend/latest/dg/how-targeted-sentiment.html)
-// .
+// in the Amazon Comprehend Developer Guide.
 type TargetedSentimentEntity struct {
 
 	// One or more index into the Mentions array that provides the best name for the
@@ -2619,7 +2627,7 @@ type TargetedSentimentEntity struct {
 // Information about one mention of an entity. The mention information includes
 // the location of the mention in the text and the sentiment of the mention. For
 // more information about targeted sentiment, see Targeted sentiment (https://docs.aws.amazon.com/comprehend/latest/dg/how-targeted-sentiment.html)
-// .
+// in the Amazon Comprehend Developer Guide.
 type TargetedSentimentMention struct {
 
 	// The offset into the document text where the mention begins.
@@ -2649,7 +2657,7 @@ type TargetedSentimentMention struct {
 	noSmithyDocumentSerde
 }
 
-// Configuration about the custom classifier associated with the flywheel.
+// Configuration about the model associated with a flywheel.
 type TaskConfig struct {
 
 	// Language code for the language that the model supports.
@@ -2657,11 +2665,22 @@ type TaskConfig struct {
 	// This member is required.
 	LanguageCode LanguageCode
 
-	// Configuration required for a classification model.
+	// Configuration required for a document classification model.
 	DocumentClassificationConfig *DocumentClassificationConfig
 
 	// Configuration required for an entity recognition model.
 	EntityRecognitionConfig *EntityRecognitionConfig
+
+	noSmithyDocumentSerde
+}
+
+// One of the of text strings. Each string has a size limit of 1KB.
+type TextSegment struct {
+
+	// The text content.
+	//
+	// This member is required.
+	Text *string
 
 	noSmithyDocumentSerde
 }
@@ -2752,6 +2771,36 @@ type TopicsDetectionJobProperties struct {
 	noSmithyDocumentSerde
 }
 
+// Toxic content analysis result for one string. For more information about
+// toxicity detection, see Toxicity detection (https://docs.aws.amazon.com/comprehend/latest/dg/toxicity-detection.html)
+// in the Amazon Comprehend Developer Guide
+type ToxicContent struct {
+
+	// The name of the toxic content type.
+	Name ToxicContentType
+
+	// Model confidence in the detected content type. Value range is zero to one,
+	// where one is highest confidence.
+	Score *float32
+
+	noSmithyDocumentSerde
+}
+
+// Toxicity analysis result for one string. For more information about toxicity
+// detection, see Toxicity detection (https://docs.aws.amazon.com/comprehend/latest/dg/toxicity-detection.html)
+// in the Amazon Comprehend Developer Guide.
+type ToxicLabels struct {
+
+	// Array of toxic content types identified in the string.
+	Labels []ToxicContent
+
+	// Overall toxicity score for the string. Value range is zero to one, where one is
+	// the highest confidence.
+	Toxicity *float32
+
+	noSmithyDocumentSerde
+}
+
 // Data security configuration.
 type UpdateDataSecurityConfig struct {
 
@@ -2805,7 +2854,7 @@ type VpcConfig struct {
 // The system identified one of the following warnings while processing the input
 // document:
 //   - The document to classify is plain text, but the classifier is a native
-//     model.
+//     document model.
 //   - The document to classify is semi-structured, but the classifier is a
 //     plain-text model.
 type WarningsListItem struct {

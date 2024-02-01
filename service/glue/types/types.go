@@ -352,6 +352,47 @@ type BasicCatalogTarget struct {
 	noSmithyDocumentSerde
 }
 
+// Represents a table optimizer to retrieve in the BatchGetTableOptimizer
+// operation.
+type BatchGetTableOptimizerEntry struct {
+
+	// The Catalog ID of the table.
+	CatalogId *string
+
+	// The name of the database in the catalog in which the table resides.
+	DatabaseName *string
+
+	// The name of the table.
+	TableName *string
+
+	// The type of table optimizer.
+	Type TableOptimizerType
+
+	noSmithyDocumentSerde
+}
+
+// Contains details on one of the errors in the error list returned by the
+// BatchGetTableOptimizer operation.
+type BatchGetTableOptimizerError struct {
+
+	// The Catalog ID of the table.
+	CatalogId *string
+
+	// The name of the database in the catalog in which the table resides.
+	DatabaseName *string
+
+	// An ErrorDetail object containing code and message details about the error.
+	Error *ErrorDetail
+
+	// The name of the table.
+	TableName *string
+
+	// The type of table optimizer.
+	Type TableOptimizerType
+
+	noSmithyDocumentSerde
+}
+
 // Records an error that occurred when attempting to stop a specified job run.
 type BatchStopJobRunError struct {
 
@@ -375,6 +416,26 @@ type BatchStopJobRunSuccessfulSubmission struct {
 
 	// The JobRunId of the job run that was stopped.
 	JobRunId *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains details for one of the table optimizers returned by the
+// BatchGetTableOptimizer operation.
+type BatchTableOptimizer struct {
+
+	// The Catalog ID of the table.
+	CatalogId *string
+
+	// The name of the database in the catalog in which the table resides.
+	DatabaseName *string
+
+	// The name of the table.
+	TableName *string
+
+	// A TableOptimizer object that contains details on the configuration and last run
+	// of a table optimzer.
+	TableOptimizer *TableOptimizer
 
 	noSmithyDocumentSerde
 }
@@ -841,6 +902,12 @@ type CodeGenConfigurationNode struct {
 	// Specifies a target that uses a Glue Data Catalog table.
 	CatalogTarget *BasicCatalogTarget
 
+	// Specifies a source generated with standard connection options.
+	ConnectorDataSource *ConnectorDataSource
+
+	// Specifies a target generated with standard connection options.
+	ConnectorDataTarget *ConnectorDataTarget
+
 	// Specifies a transform that uses custom code you provide to perform the data
 	// transformation. The output is a collection of DynamicFrames.
 	CustomCode *CustomCode
@@ -1235,6 +1302,71 @@ type ColumnStatisticsError struct {
 	noSmithyDocumentSerde
 }
 
+// The object that shows the details of the column stats run.
+type ColumnStatisticsTaskRun struct {
+
+	// The ID of the Data Catalog where the table resides. If none is supplied, the
+	// Amazon Web Services account ID is used by default.
+	CatalogID *string
+
+	// A list of the column names. If none is supplied, all column names for the table
+	// will be used by default.
+	ColumnNameList []string
+
+	// The identifier for the particular column statistics task run.
+	ColumnStatisticsTaskRunId *string
+
+	// The time that this task was created.
+	CreationTime *time.Time
+
+	// The Amazon Web Services account ID.
+	CustomerId *string
+
+	// The calculated DPU usage in seconds for all autoscaled workers.
+	DPUSeconds float64
+
+	// The database where the table resides.
+	DatabaseName *string
+
+	// The end time of the task.
+	EndTime *time.Time
+
+	// The error message for the job.
+	ErrorMessage *string
+
+	// The last point in time when this task was modified.
+	LastUpdated *time.Time
+
+	// The number of workers used to generate column statistics. The job is
+	// preconfigured to autoscale up to 25 instances.
+	NumberOfWorkers int32
+
+	// The IAM role that the service assumes to generate statistics.
+	Role *string
+
+	// The percentage of rows used to generate statistics. If none is supplied, the
+	// entire table will be used to generate stats.
+	SampleSize float64
+
+	// Name of the security configuration that is used to encrypt CloudWatch logs for
+	// the column stats task run.
+	SecurityConfiguration *string
+
+	// The start time of the task.
+	StartTime *time.Time
+
+	// The status of the task run.
+	Status ColumnStatisticsState
+
+	// The name of the table for which column statistics is generated.
+	TableName *string
+
+	// The type of workers being used for generating stats. The default is g.1x .
+	WorkerType *string
+
+	noSmithyDocumentSerde
+}
+
 // Defines a condition under which a trigger fires.
 type Condition struct {
 
@@ -1525,6 +1657,76 @@ type ConnectionsList struct {
 
 	// A list of connections used by the job.
 	Connections []string
+
+	noSmithyDocumentSerde
+}
+
+// Specifies a source generated with standard connection options.
+type ConnectorDataSource struct {
+
+	// The connectionType , as provided to the underlying Glue library. This node type
+	// supports the following connection types:
+	//   - opensearch
+	//   - azuresql
+	//   - azurecosmos
+	//   - bigquery
+	//   - saphana
+	//   - teradata
+	//   - vertica
+	//
+	// This member is required.
+	ConnectionType *string
+
+	// A map specifying connection options for the node. You can find standard
+	// connection options for the corresponding connection type in the Connection
+	// parameters (https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-connect.html)
+	// section of the Glue documentation.
+	//
+	// This member is required.
+	Data map[string]string
+
+	// The name of this source node.
+	//
+	// This member is required.
+	Name *string
+
+	// Specifies the data schema for this source.
+	OutputSchemas []GlueSchema
+
+	noSmithyDocumentSerde
+}
+
+// Specifies a target generated with standard connection options.
+type ConnectorDataTarget struct {
+
+	// The connectionType , as provided to the underlying Glue library. This node type
+	// supports the following connection types:
+	//   - opensearch
+	//   - azuresql
+	//   - azurecosmos
+	//   - bigquery
+	//   - saphana
+	//   - teradata
+	//   - vertica
+	//
+	// This member is required.
+	ConnectionType *string
+
+	// A map specifying connection options for the node. You can find standard
+	// connection options for the corresponding connection type in the Connection
+	// parameters (https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-connect.html)
+	// section of the Glue documentation.
+	//
+	// This member is required.
+	Data map[string]string
+
+	// The name of this target node.
+	//
+	// This member is required.
+	Name *string
+
+	// The nodes that are inputs to the data target.
+	Inputs []string
 
 	noSmithyDocumentSerde
 }
@@ -2092,6 +2294,24 @@ type DataLakePrincipal struct {
 	noSmithyDocumentSerde
 }
 
+// Describes the result of the evaluation of a data quality analyzer.
+type DataQualityAnalyzerResult struct {
+
+	// A description of the data quality analyzer.
+	Description *string
+
+	// A map of metrics associated with the evaluation of the analyzer.
+	EvaluatedMetrics map[string]float64
+
+	// An evaluation message.
+	EvaluationMessage *string
+
+	// The name of the data quality analyzer.
+	Name *string
+
+	noSmithyDocumentSerde
+}
+
 // Additional run options you can specify for an evaluation run.
 type DataQualityEvaluationRunAdditionalRunOptions struct {
 
@@ -2104,8 +2324,47 @@ type DataQualityEvaluationRunAdditionalRunOptions struct {
 	noSmithyDocumentSerde
 }
 
+// Describes the data quality metric value according to the analysis of historical
+// data.
+type DataQualityMetricValues struct {
+
+	// The actual value of the data quality metric.
+	ActualValue *float64
+
+	// The expected value of the data quality metric according to the analysis of
+	// historical data.
+	ExpectedValue *float64
+
+	// The lower limit of the data quality metric value according to the analysis of
+	// historical data.
+	LowerLimit *float64
+
+	// The upper limit of the data quality metric value according to the analysis of
+	// historical data.
+	UpperLimit *float64
+
+	noSmithyDocumentSerde
+}
+
+// Describes the observation generated after evaluating the rules and analyzers.
+type DataQualityObservation struct {
+
+	// A description of the data quality observation.
+	Description *string
+
+	// An object of type MetricBasedObservation representing the observation that is
+	// based on evaluated data quality metrics.
+	MetricBasedObservation *MetricBasedObservation
+
+	noSmithyDocumentSerde
+}
+
 // Describes a data quality result.
 type DataQualityResult struct {
+
+	// A list of DataQualityAnalyzerResult objects representing the results for each
+	// analyzer.
+	AnalyzerResults []DataQualityAnalyzerResult
 
 	// The date and time when this data quality run completed.
 	CompletedOn *time.Time
@@ -2123,6 +2382,10 @@ type DataQualityResult struct {
 
 	// The job run ID associated with the data quality result, if any.
 	JobRunId *string
+
+	// A list of DataQualityObservation objects representing the observations
+	// generated after evaluating the rules and analyzers.
+	Observations []DataQualityObservation
 
 	// A unique result ID for the data quality result.
 	ResultId *string
@@ -3940,8 +4203,8 @@ type JobCommand struct {
 
 	// In Ray jobs, Runtime is used to specify the versions of Ray, Python and
 	// additional libraries available in your environment. This field is not used in
-	// other job types. For supported runtime environment values, see Working with Ray
-	// jobs (https://docs.aws.amazon.com/glue/latest/dg/author-job-ray-runtimes.html)
+	// other job types. For supported runtime environment values, see Supported Ray
+	// runtime environments (https://docs.aws.amazon.com/glue/latest/dg/ray-jobs-section.html)
 	// in the Glue Developer Guide.
 	Runtime *string
 
@@ -4817,6 +5080,24 @@ type MetadataKeyValuePair struct {
 	noSmithyDocumentSerde
 }
 
+// Describes the metric based observation generated based on evaluated data
+// quality metrics.
+type MetricBasedObservation struct {
+
+	// The name of the data quality metric used for generating the observation.
+	MetricName *string
+
+	// An object of type DataQualityMetricValues representing the analysis of the data
+	// quality metric value.
+	MetricValues *DataQualityMetricValues
+
+	// A list of new data quality rules generated as part of the observation based on
+	// the data quality metric value.
+	NewRules []string
+
+	noSmithyDocumentSerde
+}
+
 // Specifies a Microsoft SQL server data source in the Glue Data Catalog.
 type MicrosoftSQLServerCatalogSource struct {
 
@@ -5526,6 +5807,30 @@ type PropertyPredicate struct {
 	noSmithyDocumentSerde
 }
 
+// A structure used as a protocol between query engines and Lake Formation or
+// Glue. Contains both a Lake Formation generated authorization identifier and
+// information from the request's authorization context.
+type QuerySessionContext struct {
+
+	// An opaque string-string map passed by the query engine.
+	AdditionalContext map[string]string
+
+	// An identifier string for the consumer cluster.
+	ClusterId *string
+
+	// A cryptographically generated query identifier generated by Glue or Lake
+	// Formation.
+	QueryAuthorizationId *string
+
+	// A unique identifier generated by the query engine for the query.
+	QueryId *string
+
+	// A timestamp provided by the query engine for when the query started.
+	QueryStartTime *time.Time
+
+	noSmithyDocumentSerde
+}
+
 // A Glue Studio node that uses a Glue DataBrew recipe in Glue jobs.
 type Recipe struct {
 
@@ -5740,6 +6045,24 @@ type ResourceUri struct {
 
 	// The URI for accessing the resource.
 	Uri *string
+
+	noSmithyDocumentSerde
+}
+
+// Metrics for the optimizer run.
+type RunMetrics struct {
+
+	// The duration of the job in hours.
+	JobDurationInHour *string
+
+	// The number of bytes removed by the compaction job run.
+	NumberOfBytesCompacted *string
+
+	// The number of DPU hours consumed by the job.
+	NumberOfDpus *string
+
+	// The number of files removed by the compaction job run.
+	NumberOfFilesCompacted *string
 
 	noSmithyDocumentSerde
 }
@@ -7279,6 +7602,18 @@ type StringColumnStatisticsData struct {
 	noSmithyDocumentSerde
 }
 
+// A structure specifying the dialect and dialect version used by the query engine.
+type SupportedDialect struct {
+
+	// The dialect of the query engine.
+	Dialect ViewDialect
+
+	// The version of the dialect of the query engine. For example, 3.0.0.
+	DialectVersion *string
+
+	noSmithyDocumentSerde
+}
+
 // Represents a collection of related data organized in columns and rows.
 type Table struct {
 
@@ -7450,6 +7785,58 @@ type TableInput struct {
 	// operations. If the table is a VIRTUAL_VIEW , certain Athena configuration
 	// encoded in base64.
 	ViewOriginalText *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains details about an optimizer associated with a table.
+type TableOptimizer struct {
+
+	// A TableOptimizerConfiguration object that was specified when creating or
+	// updating a table optimizer.
+	Configuration *TableOptimizerConfiguration
+
+	// A TableOptimizerRun object representing the last run of the table optimizer.
+	LastRun *TableOptimizerRun
+
+	// The type of table optimizer. Currently, the only valid value is compaction .
+	Type TableOptimizerType
+
+	noSmithyDocumentSerde
+}
+
+// Contains details on the configuration of a table optimizer. You pass this
+// configuration when creating or updating a table optimizer.
+type TableOptimizerConfiguration struct {
+
+	// Whether table optimization is enabled.
+	Enabled *bool
+
+	// A role passed by the caller which gives the service permission to update the
+	// resources associated with the optimizer on the caller's behalf.
+	RoleArn *string
+
+	noSmithyDocumentSerde
+}
+
+// Contains details for a table optimizer run.
+type TableOptimizerRun struct {
+
+	// Represents the epoch timestamp at which the compaction job ended.
+	EndTimestamp *time.Time
+
+	// An error that occured during the optimizer run.
+	Error *string
+
+	// An event type representing the status of the table optimizer run.
+	EventType TableOptimizerEventType
+
+	// A RunMetrics object containing metrics for the optimizer run.
+	Metrics *RunMetrics
+
+	// Represents the epoch timestamp at which the compaction job was started within
+	// Lake Formation.
+	StartTimestamp *time.Time
 
 	noSmithyDocumentSerde
 }

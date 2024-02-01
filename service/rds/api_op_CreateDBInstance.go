@@ -4,14 +4,10 @@ package rds
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	internalauth "github.com/aws/aws-sdk-go-v2/internal/auth"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
-	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
@@ -70,6 +66,8 @@ type CreateDBInstanceInput struct {
 	//   - custom-sqlserver-ee (for RDS Custom for SQL Server DB instances)
 	//   - custom-sqlserver-se (for RDS Custom for SQL Server DB instances)
 	//   - custom-sqlserver-web (for RDS Custom for SQL Server DB instances)
+	//   - db2-ae
+	//   - db2-se
 	//   - mariadb
 	//   - mysql
 	//   - oracle-ee
@@ -95,6 +93,10 @@ type CreateDBInstanceInput struct {
 	//   65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.
 	//   - Provisioned IOPS storage (io1): Must be an integer from 40 to 65536 for RDS
 	//   Custom for Oracle, 16384 for RDS Custom for SQL Server.
+	// RDS for Db2 Constraints to the amount of storage for each storage type are the
+	// following:
+	//   - General Purpose (SSD) storage (gp3): Must be an integer from 20 to 64000.
+	//   - Provisioned IOPS storage (io1): Must be an integer from 100 to 64000.
 	// RDS for MariaDB Constraints to the amount of storage for each storage type are
 	// the following:
 	//   - General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to
@@ -163,7 +165,7 @@ type CreateDBInstanceInput struct {
 	//   - Can't be set to 0 for an RDS Custom for Oracle DB instance.
 	BackupRetentionPeriod *int32
 
-	// The location for storing automated backups and manual snapshots. Valie Values:
+	// The location for storing automated backups and manual snapshots. Valid Values:
 	//   - outposts (Amazon Web Services Outposts)
 	//   - region (Amazon Web Services Region)
 	// Default: region For more information, see Working with Amazon RDS on Amazon Web
@@ -211,52 +213,60 @@ type CreateDBInstanceInput struct {
 	DBClusterIdentifier *string
 
 	// The meaning of this parameter differs according to the database engine you use.
-	// MySQL The name of the database to create when the DB instance is created. If
-	// this parameter isn't specified, no database is created in the DB instance.
-	// Constraints:
-	//   - Must contain 1 to 64 letters or numbers.
-	//   - Must begin with a letter. Subsequent characters can be letters,
-	//   underscores, or digits (0-9).
-	//   - Can't be a word reserved by the specified database engine
-	// MariaDB The name of the database to create when the DB instance is created. If
-	// this parameter isn't specified, no database is created in the DB instance.
-	// Constraints:
-	//   - Must contain 1 to 64 letters or numbers.
-	//   - Must begin with a letter. Subsequent characters can be letters,
-	//   underscores, or digits (0-9).
-	//   - Can't be a word reserved by the specified database engine
-	// PostgreSQL The name of the database to create when the DB instance is created.
-	// If this parameter isn't specified, a database named postgres is created in the
-	// DB instance. Constraints:
-	//   - Must contain 1 to 63 letters, numbers, or underscores.
-	//   - Must begin with a letter. Subsequent characters can be letters,
-	//   underscores, or digits (0-9).
-	//   - Can't be a word reserved by the specified database engine
-	// Oracle The Oracle System ID (SID) of the created DB instance. If you don't
-	// specify a value, the default value is ORCL . You can't specify the string null ,
-	// or any other reserved word, for DBName . Default: ORCL Constraints:
-	//   - Can't be longer than 8 characters
-	// Amazon RDS Custom for Oracle The Oracle System ID (SID) of the created RDS
-	// Custom DB instance. If you don't specify a value, the default value is ORCL for
-	// non-CDBs and RDSCDB for CDBs. Default: ORCL Constraints:
-	//   - It must contain 1 to 8 alphanumeric characters.
-	//   - It must contain a letter.
-	//   - It can't be a word reserved by the database engine.
-	// Amazon RDS Custom for SQL Server Not applicable. Must be null. SQL Server Not
-	// applicable. Must be null. Amazon Aurora MySQL The name of the database to create
-	// when the primary DB instance of the Aurora MySQL DB cluster is created. If this
-	// parameter isn't specified for an Aurora MySQL DB cluster, no database is created
-	// in the DB cluster. Constraints:
-	//   - It must contain 1 to 64 alphanumeric characters.
-	//   - It can't be a word reserved by the database engine.
+	// Amazon Aurora MySQL The name of the database to create when the primary DB
+	// instance of the Aurora MySQL DB cluster is created. If this parameter isn't
+	// specified for an Aurora MySQL DB cluster, no database is created in the DB
+	// cluster. Constraints:
+	//   - Must contain 1 to 64 alphanumeric characters.
+	//   - Can't be a word reserved by the database engine.
 	// Amazon Aurora PostgreSQL The name of the database to create when the primary DB
 	// instance of the Aurora PostgreSQL DB cluster is created. If this parameter isn't
 	// specified for an Aurora PostgreSQL DB cluster, a database named postgres is
 	// created in the DB cluster. Constraints:
 	//   - It must contain 1 to 63 alphanumeric characters.
-	//   - It must begin with a letter. Subsequent characters can be letters,
+	//   - Must begin with a letter. Subsequent characters can be letters,
 	//   underscores, or digits (0 to 9).
-	//   - It can't be a word reserved by the database engine.
+	//   - Can't be a word reserved by the database engine.
+	// Amazon RDS Custom for Oracle The Oracle System ID (SID) of the created RDS
+	// Custom DB instance. If you don't specify a value, the default value is ORCL for
+	// non-CDBs and RDSCDB for CDBs. Default: ORCL Constraints:
+	//   - Must contain 1 to 8 alphanumeric characters.
+	//   - Must contain a letter.
+	//   - Can't be a word reserved by the database engine.
+	// Amazon RDS Custom for SQL Server Not applicable. Must be null. RDS for Db2 The
+	// name of the database to create when the DB instance is created. If this
+	// parameter isn't specified, no database is created in the DB instance.
+	// Constraints:
+	//   - Must contain 1 to 64 letters or numbers.
+	//   - Must begin with a letter. Subsequent characters can be letters,
+	//   underscores, or digits (0-9).
+	//   - Can't be a word reserved by the specified database engine.
+	// RDS for MariaDB The name of the database to create when the DB instance is
+	// created. If this parameter isn't specified, no database is created in the DB
+	// instance. Constraints:
+	//   - Must contain 1 to 64 letters or numbers.
+	//   - Must begin with a letter. Subsequent characters can be letters,
+	//   underscores, or digits (0-9).
+	//   - Can't be a word reserved by the specified database engine.
+	// RDS for MySQL The name of the database to create when the DB instance is
+	// created. If this parameter isn't specified, no database is created in the DB
+	// instance. Constraints:
+	//   - Must contain 1 to 64 letters or numbers.
+	//   - Must begin with a letter. Subsequent characters can be letters,
+	//   underscores, or digits (0-9).
+	//   - Can't be a word reserved by the specified database engine.
+	// RDS for Oracle The Oracle System ID (SID) of the created DB instance. If you
+	// don't specify a value, the default value is ORCL . You can't specify the string
+	// null , or any other reserved word, for DBName . Default: ORCL Constraints:
+	//   - Can't be longer than 8 characters.
+	// RDS for PostgreSQL The name of the database to create when the DB instance is
+	// created. If this parameter isn't specified, a database named postgres is
+	// created in the DB instance. Constraints:
+	//   - Must contain 1 to 63 letters, numbers, or underscores.
+	//   - Must begin with a letter. Subsequent characters can be letters,
+	//   underscores, or digits (0-9).
+	//   - Can't be a word reserved by the specified database engine.
+	// RDS for SQL Server Not applicable. Must be null.
 	DBName *string
 
 	// The name of the DB parameter group to associate with this DB instance. If you
@@ -298,9 +308,10 @@ type CreateDBInstanceInput struct {
 	// protection is enabled for the DB cluster.
 	DeletionProtection *bool
 
-	// The Active Directory directory ID to create the DB instance in. Currently, only
-	// Microsoft SQL Server, MySQL, Oracle, and PostgreSQL DB instances can be created
-	// in an Active Directory Domain. For more information, see Kerberos Authentication (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/kerberos-authentication.html)
+	// The Active Directory directory ID to create the DB instance in. Currently, you
+	// can create only Db2, MySQL, Microsoft SQL Server, Oracle, and PostgreSQL DB
+	// instances in an Active Directory Domain. For more information, see Kerberos
+	// Authentication (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/kerberos-authentication.html)
 	// in the Amazon RDS User Guide. This setting doesn't apply to the following DB
 	// instances:
 	//   - Amazon Aurora (The domain is managed by the DB cluster.)
@@ -339,13 +350,14 @@ type CreateDBInstanceInput struct {
 	// Example: OU=mymanagedADtestOU,DC=mymanagedADtest,DC=mymanagedAD,DC=mydomain
 	DomainOu *string
 
-	// The list of log types that need to be enabled for exporting to CloudWatch Logs.
-	// For more information, see Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
+	// The list of log types to enable for exporting to CloudWatch Logs. For more
+	// information, see Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
 	// in the Amazon RDS User Guide. This setting doesn't apply to the following DB
 	// instances:
 	//   - Amazon Aurora (CloudWatch Logs exports are managed by the DB cluster.)
 	//   - RDS Custom
 	// The following values are valid for each DB engine:
+	//   - RDS for Db2 - diag.log | notify.log
 	//   - RDS for MariaDB - audit | error | general | slowquery
 	//   - RDS for Microsoft SQL Server - agent | error
 	//   - RDS for MySQL - audit | error | general | slowquery
@@ -395,6 +407,8 @@ type CreateDBInstanceInput struct {
 	// Oracle DB instance (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-creating.html#custom-creating.create)
 	// in the Amazon RDS User Guide. Amazon RDS Custom for SQL Server See RDS Custom
 	// for SQL Server general requirements (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-reqs-limits-MS.html)
+	// in the Amazon RDS User Guide. RDS for Db2 For information, see Db2 on Amazon
+	// RDS versions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Db2.html#Db2.Concepts.VersionMgmt)
 	// in the Amazon RDS User Guide. RDS for MariaDB For information, see MariaDB on
 	// Amazon RDS versions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MariaDB.html#MariaDB.Concepts.VersionMgmt)
 	// in the Amazon RDS User Guide. RDS for Microsoft SQL Server For information, see
@@ -413,8 +427,8 @@ type CreateDBInstanceInput struct {
 	// see Amazon RDS DB instance storage (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html)
 	// in the Amazon RDS User Guide. This setting doesn't apply to Amazon Aurora DB
 	// instances. Storage is managed by the DB cluster. Constraints:
-	//   - For RDS for MariaDB, MySQL, Oracle, and PostgreSQL - Must be a multiple
-	//   between .5 and 50 of the storage amount for the DB instance.
+	//   - For RDS for Db2, MariaDB, MySQL, Oracle, and PostgreSQL - Must be a
+	//   multiple between .5 and 50 of the storage amount for the DB instance.
 	//   - For RDS for SQL Server - Must be a multiple between 1 and 50 of the storage
 	//   amount for the DB instance.
 	Iops *int32
@@ -437,6 +451,7 @@ type CreateDBInstanceInput struct {
 
 	// The license model information for this DB instance. This setting doesn't apply
 	// to Amazon Aurora or RDS Custom DB instances. Valid Values:
+	//   - RDS for Db2 - bring-your-own-license
 	//   - RDS for MariaDB - general-public-license
 	//   - RDS for Microsoft SQL Server - license-included
 	//   - RDS for MySQL - general-public-license
@@ -460,6 +475,7 @@ type CreateDBInstanceInput struct {
 	//   for Oracle, can't include the "&" (ampersand) or the "'" (single quotes)
 	//   character.
 	// Length Constraints:
+	//   - RDS for Db2 - Must contain from 8 to 255 characters.
 	//   - RDS for MariaDB - Must contain from 8 to 41 characters.
 	//   - RDS for Microsoft SQL Server - Must contain from 8 to 128 characters.
 	//   - RDS for MySQL - Must contain from 8 to 41 characters.
@@ -524,6 +540,17 @@ type CreateDBInstanceInput struct {
 	//   - RDS Custom
 	MultiAZ *bool
 
+	// Specifies whether to use the multi-tenant configuration or the single-tenant
+	// configuration (default). This parameter only applies to RDS for Oracle container
+	// database (CDB) engines. Note the following restrictions:
+	//   - The DB engine that you specify in the request must support the multi-tenant
+	//   configuration. If you attempt to enable the multi-tenant configuration on a DB
+	//   engine that doesn't support it, the request fails.
+	//   - If you specify the multi-tenant configuration when you create your DB
+	//   instance, you can't later modify this DB instance to use the single-tenant
+	//   configuration.
+	MultiTenant *bool
+
 	// The name of the NCHAR character set for the Oracle DB instance. This setting
 	// doesn't apply to RDS Custom DB instances.
 	NcharCharacterSetName *string
@@ -564,6 +591,7 @@ type CreateDBInstanceInput struct {
 	// The port number on which the database accepts connections. This setting doesn't
 	// apply to Aurora DB instances. The port number is managed by the cluster. Valid
 	// Values: 1150-65535 Default:
+	//   - RDS for Db2 - 50000
 	//   - RDS for MariaDB - 3306
 	//   - RDS for Microsoft SQL Server - 1433
 	//   - RDS for MySQL - 3306
@@ -696,6 +724,9 @@ type CreateDBInstanceOutput struct {
 }
 
 func (c *Client) addOperationCreateDBInstanceMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpCreateDBInstance{}, middleware.After)
 	if err != nil {
 		return err
@@ -704,6 +735,10 @@ func (c *Client) addOperationCreateDBInstanceMiddlewares(stack *middleware.Stack
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateDBInstance"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
 		return err
 	}
@@ -725,9 +760,6 @@ func (c *Client) addOperationCreateDBInstanceMiddlewares(stack *middleware.Stack
 	if err = addRetryMiddlewares(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
-		return err
-	}
 	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
 		return err
 	}
@@ -743,7 +775,7 @@ func (c *Client) addOperationCreateDBInstanceMiddlewares(stack *middleware.Stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addCreateDBInstanceResolveEndpointMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
 	if err = addOpCreateDBInstanceValidationMiddleware(stack); err != nil {
@@ -764,7 +796,7 @@ func (c *Client) addOperationCreateDBInstanceMiddlewares(stack *middleware.Stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
-	if err = addendpointDisableHTTPSMiddleware(stack, options); err != nil {
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -774,130 +806,6 @@ func newServiceMetadataMiddleware_opCreateDBInstance(region string) *awsmiddlewa
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "rds",
 		OperationName: "CreateDBInstance",
 	}
-}
-
-type opCreateDBInstanceResolveEndpointMiddleware struct {
-	EndpointResolver EndpointResolverV2
-	BuiltInResolver  builtInParameterResolver
-}
-
-func (*opCreateDBInstanceResolveEndpointMiddleware) ID() string {
-	return "ResolveEndpointV2"
-}
-
-func (m *opCreateDBInstanceResolveEndpointMiddleware) HandleSerialize(ctx context.Context, in middleware.SerializeInput, next middleware.SerializeHandler) (
-	out middleware.SerializeOutput, metadata middleware.Metadata, err error,
-) {
-	if awsmiddleware.GetRequiresLegacyEndpoints(ctx) {
-		return next.HandleSerialize(ctx, in)
-	}
-
-	req, ok := in.Request.(*smithyhttp.Request)
-	if !ok {
-		return out, metadata, fmt.Errorf("unknown transport type %T", in.Request)
-	}
-
-	if m.EndpointResolver == nil {
-		return out, metadata, fmt.Errorf("expected endpoint resolver to not be nil")
-	}
-
-	params := EndpointParameters{}
-
-	m.BuiltInResolver.ResolveBuiltIns(&params)
-
-	var resolvedEndpoint smithyendpoints.Endpoint
-	resolvedEndpoint, err = m.EndpointResolver.ResolveEndpoint(ctx, params)
-	if err != nil {
-		return out, metadata, fmt.Errorf("failed to resolve service endpoint, %w", err)
-	}
-
-	req.URL = &resolvedEndpoint.URI
-
-	for k := range resolvedEndpoint.Headers {
-		req.Header.Set(
-			k,
-			resolvedEndpoint.Headers.Get(k),
-		)
-	}
-
-	authSchemes, err := internalauth.GetAuthenticationSchemes(&resolvedEndpoint.Properties)
-	if err != nil {
-		var nfe *internalauth.NoAuthenticationSchemesFoundError
-		if errors.As(err, &nfe) {
-			// if no auth scheme is found, default to sigv4
-			signingName := "rds"
-			signingRegion := m.BuiltInResolver.(*builtInResolver).Region
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-
-		}
-		var ue *internalauth.UnSupportedAuthenticationSchemeSpecifiedError
-		if errors.As(err, &ue) {
-			return out, metadata, fmt.Errorf(
-				"This operation requests signer version(s) %v but the client only supports %v",
-				ue.UnsupportedSchemes,
-				internalauth.SupportedSchemes,
-			)
-		}
-	}
-
-	for _, authScheme := range authSchemes {
-		switch authScheme.(type) {
-		case *internalauth.AuthenticationSchemeV4:
-			v4Scheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4)
-			var signingName, signingRegion string
-			if v4Scheme.SigningName == nil {
-				signingName = "rds"
-			} else {
-				signingName = *v4Scheme.SigningName
-			}
-			if v4Scheme.SigningRegion == nil {
-				signingRegion = m.BuiltInResolver.(*builtInResolver).Region
-			} else {
-				signingRegion = *v4Scheme.SigningRegion
-			}
-			if v4Scheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4Scheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, signingName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, signingRegion)
-			break
-		case *internalauth.AuthenticationSchemeV4A:
-			v4aScheme, _ := authScheme.(*internalauth.AuthenticationSchemeV4A)
-			if v4aScheme.SigningName == nil {
-				v4aScheme.SigningName = aws.String("rds")
-			}
-			if v4aScheme.DisableDoubleEncoding != nil {
-				// The signer sets an equivalent value at client initialization time.
-				// Setting this context value will cause the signer to extract it
-				// and override the value set at client initialization time.
-				ctx = internalauth.SetDisableDoubleEncoding(ctx, *v4aScheme.DisableDoubleEncoding)
-			}
-			ctx = awsmiddleware.SetSigningName(ctx, *v4aScheme.SigningName)
-			ctx = awsmiddleware.SetSigningRegion(ctx, v4aScheme.SigningRegionSet[0])
-			break
-		case *internalauth.AuthenticationSchemeNone:
-			break
-		}
-	}
-
-	return next.HandleSerialize(ctx, in)
-}
-
-func addCreateDBInstanceResolveEndpointMiddleware(stack *middleware.Stack, options Options) error {
-	return stack.Serialize.Insert(&opCreateDBInstanceResolveEndpointMiddleware{
-		EndpointResolver: options.EndpointResolverV2,
-		BuiltInResolver: &builtInResolver{
-			Region:       options.Region,
-			UseDualStack: options.EndpointOptions.UseDualStackEndpoint,
-			UseFIPS:      options.EndpointOptions.UseFIPSEndpoint,
-			Endpoint:     options.BaseEndpoint,
-		},
-	}, "ResolveEndpoint", middleware.After)
 }
